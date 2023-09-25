@@ -19,7 +19,7 @@ def get_services(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Services).offset(skip).limit(limit).all()
 
 def add_client(db: Session, client_schema: schemas.ClientBase):
-    new_client = models.Clients(name=client_schema.name, address=client_schema.address)
+    new_client = models.Clients(name=client_schema.name)
     db.add(new_client)
     db.commit()
     db.refresh(new_client)
@@ -32,7 +32,7 @@ def add_service(db: Session, service: schemas.ServiceBase):
     db.refresh(new_service)
     return new_service
 
-@router.post("/clients/", response_model=schemas.ClientBase)
+@router.post("/clients/add", response_model=schemas.ClientBase)
 def create_client(client_schema: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = get_client_by_name(db, client_name=client_schema.name)
     if client_exists:

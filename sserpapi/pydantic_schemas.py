@@ -26,7 +26,6 @@ class Service(ServiceBase):
 
 class ClientBase(BaseModel):
     name: str
-    address: str
 
 class Client(ClientBase):
     id: int
