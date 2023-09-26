@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from . import sql_models
-from .database import engine
+from .db_connection import engine
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import clients
 
