@@ -1,5 +1,5 @@
 from db_connection import Base
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 class Clients(Base):
@@ -46,4 +46,11 @@ class Services(Base):
     clients = relationship('Clients', back_populates='services')
     vendors = relationship('Vendors', back_populates='services')
 
-
+class Users(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    user_name = Column(String)
+    email = Column(String)
+    full_name = Column(String)
+    disabled = Column(Boolean)
+    password = Column(String)
