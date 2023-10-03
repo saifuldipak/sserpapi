@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from . import sql_models
-from .db_connection import engine
+#from . import sql_models
+#from .db_connection import engine
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import clients
+from routers import clients, users
 
-sql_models.Base.metadata.create_all(bind=engine)
+#sql_models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -21,4 +21,5 @@ app.add_middleware(
     )
 
 app.include_router(clients.router)
+app.include_router(users.router)
 

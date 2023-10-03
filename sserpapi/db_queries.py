@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-import sserpapi.sql_models as models
-import sserpapi.pydantic_schemas as schemas
+import sql_models as models
+import pydantic_schemas as schemas
 
 def get_client(db: Session, client_id: int):
     return db.query(models.Clients).filter(models.Clients.id==client_id).first()
@@ -27,3 +27,16 @@ def add_service(db: Session, service: schemas.ServiceBase):
     db.commit()
     db.refresh(new_service)
     return new_service
+
+def get_user_by_name(db: Session, user_name: str):
+    return db.query(models.Users).filter(models.Users.user_name==user_name).first()
+
+def get_users(db: Session, offset: int = 0, limit: int = 100):
+    return db.query(models.Users).offset(offset).limit(limit).all()
+
+def add_user(db: Session, user_schema: schemas.User):
+    new_user = models.Users(**user_schema.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
