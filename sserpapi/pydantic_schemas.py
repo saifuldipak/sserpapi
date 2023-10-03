@@ -49,11 +49,11 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
 
-class User(BaseModel):
+class UserBase(BaseModel):
     user_name: str
     email: str | None = None
     full_name: str | None = None
     disabled: bool | None = None
 
-class UserInDB(User):
-    hashed_password: str
+class User(UserBase):
+    password: str
