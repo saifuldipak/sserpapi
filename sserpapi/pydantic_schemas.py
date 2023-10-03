@@ -1,5 +1,6 @@
 from pydantic import BaseModel, constr
 import typing_extensions
+from fastapi import Form
 
 class ContactBase(BaseModel):
     name: str
