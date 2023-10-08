@@ -9,6 +9,10 @@ from typing import Annotated
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from pydantic import ValidationError
+import logging
+
+#logger name
+logger = logging.getLogger(__name__)
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -99,6 +103,7 @@ async def get_current_active_user(current_user: Annotated[schemas.User, Security
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
+        logger.warning('User authentication failed for "%s"', form_data.username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
