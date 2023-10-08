@@ -1,4 +1,4 @@
-from sserpapi.db_connection import Base
+from db_connection import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
@@ -54,3 +54,4 @@ class Users(Base):
     full_name = Column(String)
     disabled = Column(Boolean)
     password = Column(String)
+    scope = Column(String)

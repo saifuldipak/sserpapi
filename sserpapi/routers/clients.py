@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..dependency import get_db
-import sserpapi.pydantic_schemas as schemas
-import sserpapi.db_queries as db_query
+from dependency import get_db
+import pydantic_schemas as schemas
+import db_queries as db_query
 
 router = APIRouter()
 
