@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException, Form, Security
 import db_queries as db_query
 from dependency import get_db
 from sqlalchemy.orm import Session
 import pydantic_schemas as schemas
 from typing import Annotated
-from auth import oath2_scheme, get_password_hash
+from auth import oauth2_scheme, get_password_hash, get_current_active_user
 
-router = APIRouter(dependencies=[Depends(oath2_scheme)])
+router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor"])])
 
 
 @router.post("/users/add", response_model=schemas.User, summary='Add an user', tags=['Users'])

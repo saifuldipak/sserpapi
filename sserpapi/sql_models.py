@@ -54,3 +54,4 @@ class Users(Base):
     full_name = Column(String)
     disabled = Column(Boolean)
     password = Column(String)
+    scope = Column(String)
