@@ -67,8 +67,15 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
             raise HTTPException(status_code=401, detail="No username")
         token_scopes = payload.get("scopes", [])
         token_data = schemas.TokenData(scopes=[token_scopes], username=username)
-    except (JWTError, ValidationError) as e:
-        raise HTTPException(status_code=401, detail=f"Exception occured: {e}")
+    except JWTError as e:
+        detail = f'{e}'
+        status_code = status.HTTP_401_UNAUTHORIZED
+    except ValidationError as e:
+        detail = f'{e}'
+        status_code = status.HTTP_406_NOT_ACCEPTABLE
+
+    if detail in globals():
+        raise HTTPException(status_code=status_code, detail=detail)
     
     user = db_query.get_user_by_name(db=db, user_name=token_data.username)
     if user is None:
