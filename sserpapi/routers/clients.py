@@ -14,10 +14,10 @@ def create_client(client_schema: schemas.ClientBase, db: Session = Depends(get_d
     return db_query.add_client(db=db, client_schema=client_schema)
 
 
-@router.get("/clients/show", response_model=list[schemas.Client], summary='Get all clients', tags=['Clients'])
-def read_clients(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+@router.get("/clients/query/{client_name}", response_model=list[schemas.Client], summary='Get client list', tags=['Clients'])
+def read_clients(client_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = (page - 1) * page_size
-    db_clients = db_query.get_clients(db, offset=offset, limit=page_size)
+    db_clients = db_query.get_client_list(db, client_name=client_name, offset=offset, limit=page_size)
     return db_clients
 
 

@@ -8,8 +8,9 @@ def get_client(db: Session, client_id: int):
 def get_client_by_name(db: Session, client_name: str):
     return db.query(models.Clients).filter(models.Clients.name==client_name).first()
 
-def get_clients(db: Session, offset: int = 0, limit: int = 100):
-    return db.query(models.Clients).offset(offset).limit(limit).all()
+def get_client_list(db: Session, client_name: str, offset: int = 0, limit: int = 100):
+    client_name_string = f'%{client_name}%'
+    return db.query(models.Clients).filter(models.Clients.name.like(client_name_string)).offset(offset).limit(limit).all()
 
 def get_services(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Services).offset(skip).limit(limit).all()
