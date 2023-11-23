@@ -67,5 +67,8 @@ class TokenData(BaseModel):
     username: str | None = None
     scopes: list[str] = []
 
-class ClientTypes(BaseModel):
+class ClientTypesBase(BaseModel):
     name: str
+
+class ClientTypes(ClientTypesBase):
+    id: int
