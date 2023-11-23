@@ -55,3 +55,8 @@ class Users(Base):
     disabled = Column(Boolean)
     password = Column(String)
     scope = Column(String)
+
+class ClientTypes(Base):
+    __tablename__ = 'client_types'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
