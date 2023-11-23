@@ -41,3 +41,13 @@ def add_user(db: Session, user_name: str, password: str):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+def get_client_type(db: Session, client_type: str):
+    return db.query(models.Clients).filter(models.ClientTypes.name==client_type).first()
+
+def add_client_type(db: Session, client_type: schemas.ClientTypes):
+    new_client_type = models.ClientTypes(name=client_type.name)
+    db.add(new_client_type)
+    db.commit()
+    db.refresh(new_client_type)
+    return new_client_type
