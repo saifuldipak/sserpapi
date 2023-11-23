@@ -51,3 +51,6 @@ def add_client_type(db: Session, client_type: schemas.ClientTypes):
     db.commit()
     db.refresh(new_client_type)
     return new_client_type
+
+def get_client_type_list(db: Session, offset: int = 0, limit: int = 100):
+    return db.query(models.ClientTypes).offset(offset).limit(limit).all()

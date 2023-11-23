@@ -27,6 +27,12 @@ def add_client_type(client_type: schemas.ClientTypes, db: Session = Depends(get_
         raise HTTPException(status_code=400, detail="Client type exists")
     return db_query.add_client_type(db=db, client_type=client_type)
 
+@router.get("/clients/types/get", response_model=list[schemas.ClientTypes], summary='Get client type list', tags=['Clients'])
+def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    offset = (page - 1) * page_size
+    db_client_types = db_query.get_client_type_list(db, offset=offset, limit=page_size)
+    return db_client_types
+
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
     db_client = db_query.get_client(db, client_id=client_id)
