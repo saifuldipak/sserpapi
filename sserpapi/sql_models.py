@@ -9,6 +9,8 @@ class Clients(Base):
     address = Column(String)
     contacts = relationship('Contacts', back_populates='clients')
     services = relationship('Services', back_populates='clients')
+    client_type_id = Column(Integer, ForeignKey('client_types.id'))
+    client_types = relationship('ClientTypes', back_populates='clients')
 
 class Contacts(Base):
     __tablename__ = 'contacts'
@@ -60,3 +62,4 @@ class ClientTypes(Base):
     __tablename__ = 'client_types'
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    clients = relationship('Clients', back_populates='client_types')
