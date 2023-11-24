@@ -29,8 +29,8 @@ def add_client_type(client_type: schemas.ClientTypesBase, db: Session = Depends(
 
 @router.get("/clients/types/get", response_model=list[schemas.ClientTypes], summary='Get client type list', tags=['Clients'])
 def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    offset = (page - 1) * page_size
-    db_client_types = db_query.get_client_type_list(db, offset=offset, limit=page_size)
+    offset = page * page_size
+    db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
     return db_client_types
 
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
