@@ -2,8 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import clients, users
 import auth
+import logging
 
 #sql_models.Base.metadata.create_all(bind=engine)
+
+#logging config
+logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s: %(message)s', filename='sserpapi.log', level=logging.WARNING)
 
 app = FastAPI()
 
