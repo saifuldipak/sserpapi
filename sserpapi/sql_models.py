@@ -5,11 +5,11 @@ from sqlalchemy.orm import relationship
 class Clients(Base):
     __tablename__ = 'clients'
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
     address = Column(String)
     contacts = relationship('Contacts', back_populates='clients')
     services = relationship('Services', back_populates='clients')
-    client_type_id = Column(Integer, ForeignKey('client_types.id'))
+    client_type_id = Column(Integer, ForeignKey('client_types.id'), nullable=False)
     client_types = relationship('ClientTypes', back_populates='clients')
 
 class Contacts(Base):
