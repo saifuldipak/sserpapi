@@ -19,9 +19,16 @@ def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     return db_query.add_client(db=db, client=client)
 
 
-@router.get("/clients/query/{client_name}", response_model=list[schemas.Client], summary='Get client list', tags=['Clients'])
+@router.get("/clients/search/{client_name}", response_model=list[schemas.Client], summary='Search client', tags=['Clients'])
 def read_clients(client_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    offset = (page - 1) * page_size
+    """
+    ## Search client by name
+
+    **client_name**: Full or partial client name 
+
+    **Note**: If you provide partial name, it will only show client names those start with that string
+    """
+    offset = page * page_size
     db_clients = db_query.get_client_list(db, client_name=client_name, offset=offset, limit=page_size)
     return db_clients
 
