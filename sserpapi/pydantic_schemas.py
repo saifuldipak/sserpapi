@@ -27,7 +27,8 @@ class Service(ServiceBase):
 
 class ClientBase(BaseModel):
     name: str
-
+    client_type_id: int
+    
 class Client(ClientBase):
     id: int
     contacts: list[Contact] = []

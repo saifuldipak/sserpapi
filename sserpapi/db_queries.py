@@ -15,8 +15,8 @@ def get_client_list(db: Session, client_name: str, offset: int = 0, limit: int =
 def get_services(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Services).offset(skip).limit(limit).all()
 
-def add_client(db: Session, client_schema: schemas.ClientBase):
-    new_client = models.Clients(name=client_schema.name)
+def add_client(db: Session, client: schemas.ClientBase):
+    new_client = models.Clients(name=client.name, client_type_id=client.client_type_id)
     db.add(new_client)
     db.commit()
     db.refresh(new_client)
@@ -54,3 +54,6 @@ def add_client_type(db: Session, client_type: schemas.ClientTypes):
 
 def get_client_types(db: Session, offset: int = 0, limit: int = 100):
     return db.query(models.ClientTypes).offset(offset).limit(limit).all()
+
+def get_client_type_by_id(db: Session, client_type_id: int):
+    return db.query(models.ClientTypes).filter(models.ClientTypes.id==client_type_id).first()
