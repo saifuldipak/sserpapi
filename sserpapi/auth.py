@@ -78,7 +78,7 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
         detail = f'{e}'
         status_code = status.HTTP_406_NOT_ACCEPTABLE
 
-    if detail in globals():
+    if 'detail' in globals():
         raise HTTPException(status_code=status_code, detail=detail)
     
     user = db_query.get_user_by_name(db=db, user_name=token_data.username)
