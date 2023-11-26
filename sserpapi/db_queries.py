@@ -35,8 +35,8 @@ def get_user_by_name(db: Session, user_name: str):
 def get_users(db: Session, offset: int = 0, limit: int = 100):
     return db.query(models.Users).offset(offset).limit(limit).all()
 
-def add_user(db: Session, user_name: str, password: str):
-    new_user = models.Users(user_name=user_name, password=password)
+def add_user(db: Session, user: schemas.User):
+    new_user = models.Users(**user.model_dump())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
