@@ -52,7 +52,7 @@ class Users(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     user_name = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True)
+    email = Column(String, unique=True, nullable=False)
     full_name = Column(String)
     disabled = Column(Boolean, nullable=False)
     password = Column(String, nullable=False)
