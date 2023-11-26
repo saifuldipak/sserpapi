@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy.orm import Session
 from dependency import get_db
 import pydantic_schemas as schemas
 import db_queries as db_query
+from auth import get_current_active_user
 
-router = APIRouter()
+router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor", "user"])])
 
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
