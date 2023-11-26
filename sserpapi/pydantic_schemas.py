@@ -55,10 +55,14 @@ class UserBase(BaseModel):
     user_name: str
     email: str | None = None
     full_name: str | None = None
-    disabled: bool | None = None
+    disabled: bool | None = False
+    scope: str
 
 class User(UserBase):
     password: str
+
+    class Config:
+        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
