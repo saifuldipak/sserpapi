@@ -51,12 +51,12 @@ class Services(Base):
 class Users(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    user_name = Column(String)
-    email = Column(String)
+    user_name = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True)
     full_name = Column(String)
-    disabled = Column(Boolean)
-    password = Column(String)
-    scope = Column(String)
+    disabled = Column(Boolean, nullable=False)
+    password = Column(String, nullable=False)
+    scope = Column(String, nullable=False)
 
 class ClientTypes(Base):
     __tablename__ = 'client_types'
