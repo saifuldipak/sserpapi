@@ -9,13 +9,13 @@ from auth import oauth2_scheme, get_password_hash, get_current_active_user
 router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor"])])
 
 
-@router.post("/users/add", response_model=schemas.User, summary='Add an user', tags=['Users'])
-def create_user(user_name: Annotated[str, Form()], password: Annotated[str, Form()], db: Session = Depends(get_db)):
-    user_exists = db_query.get_user_by_name(db, user_name=user_name)
+@router.post("/users/add", response_model=schemas.UserBase, summary='Add an user', tags=['Users'])
+def create_user(user: schemas.User, db: Session = Depends(get_db)):
+    user_exists = db_query.get_user_by_name(db, user_name=user.user_name)
     if user_exists:
         raise HTTPException(status_code=400, detail="User exists")
-    hashed_password = get_password_hash(password)
-    return db_query.add_user(db=db, user_name=user_name, password=hashed_password)
+    user.password = get_password_hash(user.password)
+    return db_query.add_user(db=db, user=user)
 
 
 @router.get("/users/show", response_model=list[schemas.UserBase], summary='Get all users', tags=['Users'])
