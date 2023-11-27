@@ -72,19 +72,14 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
         token_scopes = payload.get("scopes", [])
         token_data = schemas.TokenData(scopes=[token_scopes], username=username)
     except JWTError as e:
-        detail = f'{e}'
-        status_code = status.HTTP_401_UNAUTHORIZED
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f'{e}')
     except ValidationError as e:
-        detail = f'{e}'
-        status_code = status.HTTP_406_NOT_ACCEPTABLE
-
-    if 'detail' in globals():
-        raise HTTPException(status_code=status_code, detail=detail)
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=f'{e}')
     
     user = db_query.get_user_by_name(db=db, user_name=token_data.username)
     if user is None:
         raise credentials_exception
-    
+
     has_permission = False
     for scope in security_scopes.scopes:
         if scope in token_data.scopes:
@@ -95,9 +90,10 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not enough permissions",
             headers={"WWW-Authenticate": authenticate_value},
-        )
-    
+    )
+
     return user
+
 
 async def get_current_active_user(current_user: Annotated[schemas.User, Security(get_current_user, scopes=[])]):
     if current_user.disabled:
