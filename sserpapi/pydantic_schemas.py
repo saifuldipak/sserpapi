@@ -44,13 +44,6 @@ class VendorBase(BaseModel):
     thana: str
     zilla: str
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    username: str | None = None
-
 class UserBase(BaseModel):
     user_name: str
     email: str
