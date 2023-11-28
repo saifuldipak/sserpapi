@@ -16,8 +16,8 @@ class Contacts(Base):
     __tablename__ = 'contacts'
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True)
-    Designation = Column(String)
-    Phone = Column(String)
+    designation = Column(String)
+    phone = Column(String)
     type = Column(String)
     client_id = Column(Integer, ForeignKey('clients.id'))
     vendor_id = Column(Integer, ForeignKey('vendors.id'))
