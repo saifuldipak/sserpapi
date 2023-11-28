@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 from dependency import get_db
 import pydantic_schemas as schemas
 import db_queries as db_query
 from auth import get_current_active_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor", "user"])])
 
@@ -45,6 +48,31 @@ def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(g
     offset = page * page_size
     db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
     return db_client_types
+
+@router.post("/clients/contacts/add", response_model=list[schemas.Contact], summary='Add a contact', tags=['Clients'])
+def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(get_db)):
+    """
+    ## Add one or multiple contacts
+    - **name***: Full name
+    - **designation***: Designation of the person
+    - **type***: "Admin"/"Technical"/"Billing"
+    - **client_id**: Client id (integer)
+    - **vendor_id**: Vendor id (integer)
+
+    **Note**: *required fields. You must provide either client_id or vendor_id.
+    """
+    for contact in contacts:
+        if contact.client_id and contact.vendor_id:
+            raise HTTPException(status_code=400, detail="Cannot provide client id or vendor id both: {contact.name}")
+        
+        if not contact.client_id and not contact.vendor_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide either client id or vendor id: {contact.name}')
+        
+        client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
+        if not client_exists:
+            raise HTTPException(status_code=400, detail="Client does not exist: {contact.name}")
+
+    return db_query.add_contacts(db=db, contacts=contacts)
 
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
