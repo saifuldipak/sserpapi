@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session
 import sql_models as models
 import pydantic_schemas as schemas
+import logging
+
+logger = logging.getLogger(__name__)
 
 def get_client(db: Session, client_id: int):
     return db.query(models.Clients).filter(models.Clients.id==client_id).first()
@@ -57,3 +60,18 @@ def get_client_types(db: Session, offset: int = 0, limit: int = 100):
 
 def get_client_type_by_id(db: Session, client_type_id: int):
     return db.query(models.ClientTypes).filter(models.ClientTypes.id==client_type_id).first()
+
+def get_client_by_id(db: Session, client_id: int):
+    return db.query(models.Clients).filter(models.Clients.id==client_id).first()
+
+def add_contacts(db: Session, contacts: list[schemas.ContactBase]):
+    new_contacts = []
+    for contact in contacts:
+        new_contact = models.Contacts(**contact.model_dump())
+        db.add(new_contact)
+        db.commit()
+        db.refresh(new_contact)
+        new_contacts.append(new_contact)
+
+    return new_contacts
+
