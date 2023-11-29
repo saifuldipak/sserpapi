@@ -28,14 +28,6 @@ class Service(ServiceBase):
 class ClientBase(BaseModel):
     name: str
     client_type_id: int
-    
-class Client(ClientBase):
-    id: int
-    contacts: list[Contact] = []
-    services: list[Service] = []
-
-    class Config:
-        from_attributes = True
 
 class VendorBase(BaseModel):
     name: str
@@ -70,3 +62,9 @@ class ClientTypesBase(BaseModel):
 
 class ClientTypes(ClientTypesBase):
     id: int
+
+class Client(ClientBase):
+    id: int
+    contacts: list[Contact] = []
+    services: list[Service] = []
+    client_type: ClientTypes

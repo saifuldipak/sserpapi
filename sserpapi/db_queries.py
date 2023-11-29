@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import sql_models as models
 import pydantic_schemas as schemas
 import logging
@@ -13,7 +13,11 @@ def get_client_by_name(db: Session, client_name: str):
 
 def get_client_list(db: Session, client_name: str, offset: int = 0, limit: int = 100):
     client_name_string = f'{client_name}%'
-    return db.query(models.Clients).filter(models.Clients.name.ilike(client_name_string)).offset(offset).limit(limit).all()
+    return (db.query(models.Clients)
+            .join(models.ClientTypes)
+            .options(joinedload(models.Clients.client_type))
+            .filter(models.Clients.name.ilike(client_name_string))
+            .offset(offset).limit(limit).all())
 
 def get_services(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Services).offset(skip).limit(limit).all()

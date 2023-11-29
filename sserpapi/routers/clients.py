@@ -33,8 +33,7 @@ def read_clients(client_name: str, page: int = 0, page_size: int = 10, db: Sessi
     **Note**: If you provide partial name, it will only show client names those start with that string
     """
     offset = page * page_size
-    db_clients = db_query.get_client_list(db, client_name=client_name, offset=offset, limit=page_size)
-    return db_clients
+    return db_query.get_client_list(db, client_name=client_name, offset=offset, limit=page_size)
 
 @router.post("/clients/types/add", response_model=schemas.ClientTypesBase, summary='Add a client type', tags=['Clients'])
 def add_client_type(client_type: schemas.ClientTypesBase, db: Session = Depends(get_db)):
