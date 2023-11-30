@@ -54,6 +54,7 @@ def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(g
     ## Add one or multiple contacts
     - **name***: Full name
     - **designation***: Designation of the person
+    - **phone**: Phone number
     - **type***: "Admin"/"Technical"/"Billing"
     - **client_id**: Client id (integer)
     - **vendor_id**: Vendor id (integer)
