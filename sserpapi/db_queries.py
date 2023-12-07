@@ -79,3 +79,7 @@ def add_contacts(db: Session, contacts: list[schemas.ContactBase]):
 
     return new_contacts
 
+def get_contact_list(db: Session, contact_name: str, offset: int = 0, limit: int = 100):
+    contact_name_string = f'%{contact_name}%'
+    return db.query(models.Contacts).join(models.Clients).filter(models.Contacts.name.ilike(contact_name_string)).offset(offset).limit(limit).all()
+   

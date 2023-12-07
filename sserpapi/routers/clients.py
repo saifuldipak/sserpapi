@@ -74,6 +74,19 @@ def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(g
 
     return db_query.add_contacts(db=db, contacts=contacts)
 
+@router.get("/clients/contacts/search/{contact_name}", response_model=list[schemas.Contact], summary='Search contact', tags=['Clients'])
+def read_contact(contact_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    """
+    ## Search contact by name
+
+    **contact_name**: Full or partial contact name 
+
+    **Note**: If you provide partial name, it will show all contacts which has that name
+    """
+    offset = page * page_size
+    return db_query.get_contact_list(db, contact_name=contact_name, offset=offset, limit=page_size)
+    
+
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
     db_client = db_query.get_client(db, client_id=client_id)
