@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session, joinedload
 import sql_models as models
 import pydantic_schemas as schemas
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -81,5 +82,6 @@ def add_contacts(db: Session, contacts: list[schemas.ContactBase]):
 
 def get_contact_list(db: Session, contact_name: str, offset: int = 0, limit: int = 100):
     contact_name_string = f'%{contact_name}%'
-    return db.query(models.Contacts).join(models.Clients).filter(models.Contacts.name.ilike(contact_name_string)).offset(offset).limit(limit).all()
+    return db.query(models.Contacts).join(models.Clients).options(joinedload(models.Contacts.clients)).filter(models.Contacts.name.ilike(contact_name_string)).offset(offset).limit(limit).all()
+    
    
