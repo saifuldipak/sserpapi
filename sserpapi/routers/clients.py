@@ -23,7 +23,7 @@ def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     return db_query.add_client(db=db, client=client)
 
 
-@router.get("/clients/search/{client_name}", response_model=list[schemas.Client], summary='Search client', tags=['Clients'])
+@router.get("/clients/search/{client_name}", response_model=list[schemas.ClientDetails], summary='Search client', tags=['Clients'])
 def read_clients(client_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     """
     ## Search client by name
@@ -74,7 +74,7 @@ def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(g
 
     return db_query.add_contacts(db=db, contacts=contacts)
 
-@router.get("/clients/contacts/search/{contact_name}", response_model=list[schemas.Contact], summary='Search contact', tags=['Clients'])
+@router.get("/clients/contacts/search/{contact_name}", response_model=list[schemas.ContactWithClientName], summary='Search contact', tags=['Clients'])
 def read_contact(contact_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     """
     ## Search contact by name
