@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Form, Security
-import db_queries as db_query
-from dependency import get_db
+import db.queries as db_query
+from db.dependency import get_db
 from sqlalchemy.orm import Session
 import pydantic_schemas as schemas
 from typing import Annotated

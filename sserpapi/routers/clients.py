@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
-from dependency import get_db
+from db.dependency import get_db
 import pydantic_schemas as schemas
-import db_queries as db_query
+import db.queries as db_query
 from auth import get_current_active_user
 import logging
 

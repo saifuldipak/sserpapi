@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session, joinedload
-import sql_models as models
+import db.models as models
 import pydantic_schemas as schemas
 import logging
-import json
 
 logger = logging.getLogger(__name__)
 

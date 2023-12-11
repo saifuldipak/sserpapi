@@ -1,8 +1,8 @@
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, SecurityScopes
 from fastapi import APIRouter, Depends, HTTPException, status, Security
-import db_queries as db_query
-from dependency import get_db
+import db.queries as db_query
+from db.dependency import get_db
 from sqlalchemy.orm import Session
 import pydantic_schemas as schemas
 from typing import Annotated
