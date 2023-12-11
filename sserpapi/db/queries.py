@@ -83,4 +83,8 @@ def get_contact_list(db: Session, contact_name: str, offset: int = 0, limit: int
     contact_name_string = f'%{contact_name}%'
     return db.query(models.Contacts).join(models.Clients).options(joinedload(models.Contacts.clients)).filter(models.Contacts.name.ilike(contact_name_string)).offset(offset).limit(limit).all()
     
-   
+def delete_client(db: Session, client_id: int):
+    client = db.query(models.Clients).filter(models.Clients.id==client_id).first()
+    db.delete(client)
+    db.commit()
+    return client_id

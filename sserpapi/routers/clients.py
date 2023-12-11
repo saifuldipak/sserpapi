@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from db.dependency import get_db
 import pydantic_schemas as schemas
@@ -21,7 +22,6 @@ def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail='Client type does not exist')
     
     return db_query.add_client(db=db, client=client)
-
 
 @router.get("/clients/search/{client_name}", response_model=list[schemas.ClientDetails], summary='Search client', tags=['Clients'])
 def read_clients(client_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
@@ -47,6 +47,16 @@ def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(g
     offset = page * page_size
     db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
     return db_client_types
+
+@router.post("/clients/delete/{client_id}", summary='Delete a client', tags=['Clients'])
+def remove_client(client_id: int, db: Session = Depends(get_db)):
+    client_exists = db_query.get_client_by_id(db, client_id=client_id)
+    if not client_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+    
+    return_value = db_query.delete_client(db=db, client_id=client_id)
+    if return_value == client_id:
+        return JSONResponse(content={'Action': 'Client deleted', 'Client id': client_id})
 
 @router.post("/contacts/add", response_model=list[schemas.Contact], summary='Add a contact', tags=['Contacts'])
 def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(get_db)):
