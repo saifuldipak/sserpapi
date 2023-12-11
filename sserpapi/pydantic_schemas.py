@@ -28,7 +28,6 @@ class Service(ServiceBase):
 class ClientBase(BaseModel):
     name: str
     client_type_id: int
-    address: str | None = None
 
 class VendorBase(BaseModel):
     name: str
@@ -67,13 +66,29 @@ class ClientTypes(ClientTypesBase):
 class Client(ClientBase):
     id: int
 
-class ClientDetails(Client):
-    contacts: list[Contact] = []
-    services: list[Service] = []
-    client_type: ClientTypes
-
 class ContactWithClientName(Contact):
     clients: Client
 
     class Config:
         from_attributes = True
+
+class AddressBase(BaseModel):
+    type: str
+    flat: str | None = None
+    floor: str | None = None
+    holding: str
+    street: str
+    thana: str
+    district: str
+    client_id: int | None = None
+    service_id: int | None = None
+    vendor_id: int | None = None
+
+class Address(AddressBase):
+    id: int
+
+class ClientDetails(Client):
+    addresses: list[Address] = []
+    contacts: list[Contact] = []
+    services: list[Service] = []
+    client_type: ClientTypes
