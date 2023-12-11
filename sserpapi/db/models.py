@@ -6,47 +6,50 @@ class Clients(Base):
     __tablename__ = 'clients'
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    address = Column(String)
-    contacts = relationship('Contacts', back_populates='clients')
-    services = relationship('Services', back_populates='clients')
     client_type_id = Column(Integer, ForeignKey('client_types.id'), nullable=False)
     client_type = relationship('ClientTypes', back_populates='clients')
+    addresses = relationship('Addresses', back_populates='clients', cascade='all, delete-orphan')
+    contacts = relationship('Contacts', back_populates='clients', cascade='all, delete-orphan')
+    services = relationship('Services', back_populates='clients', cascade='all, delete-orphan')
 
 class Contacts(Base):
     __tablename__ = 'contacts'
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True)
     designation = Column(String)
-    phone = Column(String)
     type = Column(String)
+    phone1 = Column(String)
+    phone2 = Column(String)
+    phone3 = Column(String)
     client_id = Column(Integer, ForeignKey('clients.id'))
     vendor_id = Column(Integer, ForeignKey('vendors.id'))
+    service_id = Column(Integer, ForeignKey('services.id'))
     clients = relationship('Clients', back_populates='contacts')
     vendors = relationship('Vendors', back_populates='contacts')
+    services = relationship('Services', back_populates='contacts')
 
 class Vendors(Base):
     __tablename__ = 'vendors'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    place = Column(String)
-    union = Column(String)
-    thana = Column(String)
-    zilla = Column(String)
-    contacts = relationship('Contacts', back_populates='vendors')
-    services = relationship('Services', back_populates='vendors')
+    type = Column(String)
+    contacts = relationship('Contacts', back_populates='vendors', cascade='all, delete-orphan')
+    addresses = relationship('Addresses', back_populates='vendors', cascade='all, delete-orphan')
+    backbones = relationship('Backbones', back_populates='vendors', cascade='all, delete-orphan')
+    lastmiless = relationship('Lastmiles', back_populates='vendors', cascade='all, delete-orphan')
 
 class Services(Base):
-    __tablename__ = 'service'
+    __tablename__ = 'services'
     id = Column(Integer, primary_key=True)
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
-    location = Column(String, nullable=False)
+    point = Column(String, nullable=False)
     type = Column(String, nullable=False)
     bandwidth = Column(Integer)
-    vendor_id = Column(Integer, ForeignKey('vendors.id'))
     connected_to = Column(String)
     extra_info = Column(String)
-    clients = relationship('Clients', back_populates='services')
-    vendors = relationship('Vendors', back_populates='services')
+    client = relationship('Clients', back_populates='services')
+    backbones = relationship('Backbones', back_populates='services')
+    lastmiles = relationship('Lastmiles', back_populates='services')
 
 class Users(Base):
     __tablename__ = 'users'
@@ -63,3 +66,42 @@ class ClientTypes(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     clients = relationship('Clients', back_populates='client_type')
+
+class Addresses(Base):
+    __tablename__ = 'addresses'
+    id = Column(Integer, primary_key=True)
+    type = Column(String, nullable=False)
+    flat = Column(String)
+    floor = Column(String)
+    holding = Column(String)
+    street = Column(String)
+    thana = Column(String)
+    district = Column(String)
+    client_id = Column(Integer, ForeignKey('clients.id'))
+    service_id = Column(Integer, ForeignKey('services.id'))
+    vendor_id = Column(Integer, ForeignKey('vendors.id'))
+    client = relationship('Clients', back_populates='addresses')
+    service = relationship('Services', back_populates='addresses')
+    vendor = relationship('Vendors', back_populates='addresses')
+
+class Backbones(Base):
+    __tablename__ = 'backbones'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    link_from = Column(String, nullable=False)
+    link_to = Column(String, nullable=False)
+    vendor_id = Column(Integer, ForeignKey('vendors.id'))
+    service_id = Column(Integer, ForeignKey('services.id'))
+    vendor = relationship('Vendors', back_populates='backbones')
+    services = relationship('Services', back_populates='backbones')
+
+class Lastmiles(Base):
+    __tablename__ = 'lastmiles'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    link_from = Column(String, nullable=False)
+    link_to = Column(String, nullable=False)
+    vendor_id = Column(Integer, ForeignKey('vendors.id'))
+    service_id = Column(Integer, ForeignKey('services.id'))
+    vendor = relationship('Vendors', back_populates='backbones')
+    services = relationship('Services', back_populates='backbones')
