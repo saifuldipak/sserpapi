@@ -48,7 +48,7 @@ def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(g
     db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
     return db_client_types
 
-@router.post("/clients/contacts/add", response_model=list[schemas.Contact], summary='Add a contact', tags=['Clients'])
+@router.post("/contacts/add", response_model=list[schemas.Contact], summary='Add a contact', tags=['Contacts'])
 def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(get_db)):
     """
     ## Add one or multiple contacts
@@ -74,7 +74,7 @@ def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(g
 
     return db_query.add_contacts(db=db, contacts=contacts)
 
-@router.get("/clients/contacts/search/{contact_name}", response_model=list[schemas.ContactWithClientName], summary='Search contact', tags=['Clients'])
+@router.get("/contacts/search/{contact_name}", response_model=list[schemas.ContactWithClientName], summary='Search contact', tags=['Contacts'])
 def read_contact(contact_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     """
     ## Search contact by name
