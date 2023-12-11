@@ -38,9 +38,9 @@ class Vendors(Base):
 class Services(Base):
     __tablename__ = 'service'
     id = Column(Integer, primary_key=True)
-    client_id = Column(Integer, ForeignKey('clients.id'))
-    location = Column(String)
-    type = Column(String)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
+    location = Column(String, nullable=False)
+    type = Column(String, nullable=False)
     bandwidth = Column(Integer)
     vendor_id = Column(Integer, ForeignKey('vendors.id'))
     connected_to = Column(String)
