@@ -12,8 +12,6 @@ class ContactBase(BaseModel):
     client_id: int | None = None
     vendor_id: int | None = None
     service_id: int | None = None
-    client_id: int | None = None
-    vendor_id: int | None = None
 
 class Contact(ContactBase):
     id: int
