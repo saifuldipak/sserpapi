@@ -92,3 +92,7 @@ def modify_client(db: Session, client: schemas.Client):
     db.commit()
     db.refresh(client_in_db)
     return client_in_db
+
+def get_contact_by_id(db: Session, contact_id: int):
+    contact = db.query(models.Contacts).filter(models.Contacts.id==contact_id).first()
+    return contact
