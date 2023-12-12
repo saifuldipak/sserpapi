@@ -113,3 +113,9 @@ def modify_contact(db: Session, contact: schemas.Contact):
     db.commit()
     db.refresh(contact_in_db)
     return contact_in_db
+
+def delete_contact(db: Session, contact_id: int):
+    contact = db.query(models.Contacts).filter(models.Contacts.id==contact_id).first()
+    db.delete(contact)
+    db.commit()
+    return contact_id
