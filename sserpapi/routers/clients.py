@@ -142,6 +142,29 @@ def read_contact(contact_name: str, page: int = 0, page_size: int = 10, db: Sess
     offset = page * page_size
     return db_query.get_contact_list(db, contact_name=contact_name, offset=offset, limit=page_size)
 
+@router.post("/contacts/modify", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
+def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
+    """
+    ## Modify a contact
+    - **id**: Contact id*
+    - **name**: Full name*
+    - **designation**: Designation of the person*
+    - **type**: 'Admin'/'Technical'/'Billing' *
+    - **phone1**: Phone number*
+    - **phone2**: Phone number
+    - **phone3**: Phone number
+    - **service_id**: Service id (integer)**
+    - **client_id**: Client id (integer)**
+    - **vendor_id**: Vendor id (integer)**
+
+    **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
+    """
+    check_result = check_contact_properties(db, contact)
+    if not check_result.value:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check_result.message)
+
+    return db_query.modify_contact(db=db, contact=contact)
+    
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
     db_client = db_query.get_client(db, client_id=client_id)
