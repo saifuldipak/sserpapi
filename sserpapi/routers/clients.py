@@ -74,25 +74,42 @@ def remove_client(client_id: int, db: Session = Depends(get_db)):
 def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(get_db)):
     """
     ## Add one or multiple contacts
-    - **name***: Full name
-    - **designation***: Designation of the person
-    - **phone**: Phone number
-    - **type***: "Admin"/"Technical"/"Billing"
-    - **client_id**: Client id (integer)
-    - **vendor_id**: Vendor id (integer)
+    - **name**: Full name*
+    - **designation**: Designation of the person*
+    - **type**: 'Admin'/'Technical'/'Billing' *
+    - **phone1**: Phone number*
+    - **phone2**: Phone number
+    - **phone3**: Phone number
+    - **service_id**: Service id (integer)**
+    - **client_id**: Client id (integer)**
+    - **vendor_id**: Vendor id (integer)**
 
-    **Note**: *required fields. You must provide either client_id or vendor_id.
+    **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
     for contact in contacts:
-        if contact.client_id and contact.vendor_id:
-            raise HTTPException(status_code=400, detail="Cannot provide client id or vendor id both: {contact.name}")
+        id_values = [contact.client_id, contact.service_id, contact.vendor_id]
+        id_values_exists = [item for item in id_values if item is not None]
+        if len(id_values_exists) != 1:
+            raise HTTPException(status_code=400, detail='You must provide any of client_id, service_id or vendor_id but not more than one')
         
-        if not contact.client_id and not contact.vendor_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide either client id or vendor id: {contact.name}')
-        
-        client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
-        if not client_exists:
-            raise HTTPException(status_code=400, detail="Client does not exist: {contact.name}")
+        phone_numbers = [contact.phone1, contact.phone2, contact.phone3]
+        phone_numbers_exists = [item for item in phone_numbers if item is not None]
+        for phone_number in phone_numbers_exists:
+         if len(phone_number) != 11:
+            raise HTTPException(status_code=400, detail="Phone number must be 11 digits")
+             
+        if contact.client_id:
+            client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
+            if not client_exists:
+                raise HTTPException(status_code=400, detail="Client id does not exist")
+        elif contact.service_id:
+            service_exists = db_query.get_service_by_id(db, client_id=contact.service_id)
+            if not service_exists:
+                raise HTTPException(status_code=400, detail="Service id does not exist")
+        elif contact.vendor_id:
+            vendor_exists = db_query.get_vendor_by_id(db, client_id=contact.vendor_id)
+            if not vendor_exists:
+                raise HTTPException(status_code=400, detail="Vendor id does not exist")
 
     return db_query.add_contacts(db=db, contacts=contacts)
 
