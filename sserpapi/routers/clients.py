@@ -164,6 +164,16 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check_result.message)
 
     return db_query.modify_contact(db=db, contact=contact)
+
+@router.post("/contact/delete/{contact_id}", summary='Delete a contact', tags=['Contacts'])
+def remove_contact(contact_id: int, db: Session = Depends(get_db)):
+    contact_exists = db_query.get_contact_by_id(db, contact_id=contact_id)
+    if not contact_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+    
+    return_value = db_query.delete_contact(db=db, contact_id=contact_id)
+    if return_value == contact_id:
+        return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
     
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
