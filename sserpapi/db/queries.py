@@ -88,3 +88,11 @@ def delete_client(db: Session, client_id: int):
     db.delete(client)
     db.commit()
     return client_id
+
+def modify_client(db: Session, client: schemas.Client):
+    client_in_db = db.query(models.Clients).filter(models.Clients.id==client.id).first()
+    client_in_db.name = client.name
+    client_in_db.client_type_id = client.client_type_id 
+    db.commit()
+    db.refresh(client_in_db)
+    return client_in_db

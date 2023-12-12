@@ -48,6 +48,18 @@ def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(g
     db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
     return db_client_types
 
+@router.post("/clients/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
+def remove_client(client: schemas.Client, db: Session = Depends(get_db)):
+    client_exists = db_query.get_client_by_id(db, client_id=client.id)
+    if not client_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+    
+    client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client.client_type_id)
+    if not client_type_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Client type not found')
+    
+    return db_query.modify_client(db=db, client=client)
+
 @router.post("/clients/delete/{client_id}", summary='Delete a client', tags=['Clients'])
 def remove_client(client_id: int, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_id(db, client_id=client_id)
