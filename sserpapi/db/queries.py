@@ -96,3 +96,20 @@ def modify_client(db: Session, client: schemas.Client):
 def get_contact_by_id(db: Session, contact_id: int):
     contact = db.query(models.Contacts).filter(models.Contacts.id==contact_id).first()
     return contact
+
+def modify_contact(db: Session, contact: schemas.Contact):
+    contact_in_db = db.query(models.Contacts).filter(models.Contacts.id==contact.id).first()
+    
+    contact_in_db.name = contact.name
+    contact_in_db.designation = contact.designation
+    contact_in_db.type = contact.type
+    contact_in_db.phone1 = contact.phone1
+    contact_in_db.phone2 = contact.phone2
+    contact_in_db.phone3 = contact.phone3
+    contact_in_db.client_id = contact.client_id
+    contact_in_db.vendor_id = contact.vendor_id
+    contact_in_db.service_id = contact.service_id
+
+    db.commit()
+    db.refresh(contact_in_db)
+    return contact_in_db
