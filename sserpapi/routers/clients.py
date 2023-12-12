@@ -117,10 +117,9 @@ def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(g
 def read_contact(contact_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     """
     ## Search contact by name
-
-    **contact_name**: Full or partial contact name 
-
-    **Note**: If you provide partial name, it will show all contacts which has that name
+    **contact_name**: Full or partial contact name*
+    
+    **Note**: *Required. If you provide partial name, it will show all contacts which has that name
     """
     offset = page * page_size
     return db_query.get_contact_list(db, contact_name=contact_name, offset=offset, limit=page_size)
