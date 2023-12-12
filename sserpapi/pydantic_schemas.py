@@ -5,8 +5,13 @@ from fastapi import Form
 class ContactBase(BaseModel):
     name: str
     designation: str
-    phone: str
     type: typing_extensions.Literal['Admin', 'Technical', 'Billing']
+    phone1: str
+    phone2: str | None = None
+    phone3: str | None = None
+    client_id: int | None = None
+    vendor_id: int | None = None
+    service_id: int | None = None
     client_id: int | None = None
     vendor_id: int | None = None
 
