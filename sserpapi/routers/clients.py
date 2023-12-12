@@ -70,10 +70,10 @@ def remove_client(client_id: int, db: Session = Depends(get_db)):
     if return_value == client_id:
         return JSONResponse(content={'Action': 'Client deleted', 'Client id': client_id})
 
-@router.post("/contacts/add", response_model=list[schemas.Contact], summary='Add a contact', tags=['Contacts'])
-def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(get_db)):
+@router.post("/contacts/add", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
+def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     """
-    ## Add one or multiple contacts
+    ## Add a contact
     - **name**: Full name*
     - **designation**: Designation of the person*
     - **type**: 'Admin'/'Technical'/'Billing' *
@@ -86,44 +86,43 @@ def add_client_type(contacts: list[schemas.ContactBase], db: Session = Depends(g
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
-    for contact in contacts:
-        id_values = [contact.client_id, contact.service_id, contact.vendor_id]
-        id_values_exists = [item for item in id_values if item is not None]
-        if len(id_values_exists) != 1:
-            raise HTTPException(status_code=400, detail='You must provide any of client_id, service_id or vendor_id but not more than one')
-        
-        phone_numbers = [contact.phone1, contact.phone2, contact.phone3]
-        phone_numbers_exists = [item for item in phone_numbers if item is not None]
-        for phone_number in phone_numbers_exists:
-         if len(phone_number) != 11:
+    
+    id_values = [contact.client_id, contact.service_id, contact.vendor_id]
+    id_values_exists = [item for item in id_values if item is not None]
+    if len(id_values_exists) != 1:
+        raise HTTPException(status_code=400, detail='You must provide any of client_id, service_id or vendor_id but not more than one')
+    
+    phone_numbers = [contact.phone1, contact.phone2, contact.phone3]
+    phone_numbers_exists = [item for item in phone_numbers if item is not None]
+    for phone_number in phone_numbers_exists:
+        if len(phone_number) != 11:
             raise HTTPException(status_code=400, detail="Phone number must be 11 digits")
-             
-        if contact.client_id:
-            client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
-            if not client_exists:
-                raise HTTPException(status_code=400, detail="Client id does not exist")
-        elif contact.service_id:
-            service_exists = db_query.get_service_by_id(db, client_id=contact.service_id)
-            if not service_exists:
-                raise HTTPException(status_code=400, detail="Service id does not exist")
-        elif contact.vendor_id:
-            vendor_exists = db_query.get_vendor_by_id(db, client_id=contact.vendor_id)
-            if not vendor_exists:
-                raise HTTPException(status_code=400, detail="Vendor id does not exist")
+            
+    if contact.client_id:
+        client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
+        if not client_exists:
+            raise HTTPException(status_code=400, detail="Client id does not exist")
+    elif contact.service_id:
+        service_exists = db_query.get_service_by_id(db, client_id=contact.service_id)
+        if not service_exists:
+            raise HTTPException(status_code=400, detail="Service id does not exist")
+    elif contact.vendor_id:
+        vendor_exists = db_query.get_vendor_by_id(db, client_id=contact.vendor_id)
+        if not vendor_exists:
+            raise HTTPException(status_code=400, detail="Vendor id does not exist")
 
-    return db_query.add_contacts(db=db, contacts=contacts)
+    return db_query.add_contact(db=db, contact=contact)
 
 @router.get("/contacts/search/{contact_name}", response_model=list[schemas.ContactWithClientName], summary='Search contact', tags=['Contacts'])
 def read_contact(contact_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     """
     ## Search contact by name
     **contact_name**: Full or partial contact name*
-    
+
     **Note**: *Required. If you provide partial name, it will show all contacts which has that name
     """
     offset = page * page_size
     return db_query.get_contact_list(db, contact_name=contact_name, offset=offset, limit=page_size)
-    
 
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):

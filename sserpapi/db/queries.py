@@ -68,16 +68,12 @@ def get_client_type_by_id(db: Session, client_type_id: int):
 def get_client_by_id(db: Session, client_id: int):
     return db.query(models.Clients).filter(models.Clients.id==client_id).first()
 
-def add_contacts(db: Session, contacts: list[schemas.ContactBase]):
-    new_contacts = []
-    for contact in contacts:
-        new_contact = models.Contacts(**contact.model_dump())
-        db.add(new_contact)
-        db.commit()
-        db.refresh(new_contact)
-        new_contacts.append(new_contact)
-
-    return new_contacts
+def add_contact(db: Session, contact: schemas.ContactBase):
+    new_contact = models.Contacts(**contact.model_dump())
+    db.add(new_contact)
+    db.commit()
+    db.refresh(new_contact)
+    return new_contact
 
 def get_contact_list(db: Session, contact_name: str, offset: int = 0, limit: int = 100):
     contact_name_string = f'%{contact_name}%'
