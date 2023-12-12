@@ -11,6 +11,45 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor", "user"])])
 
+class Result:
+    value: bool = True
+    message: str = ''
+
+def check_contact_properties(db: Session, contact: schemas.ContactBase) -> Result:
+    result = Result()
+    id_values = [contact.client_id, contact.service_id, contact.vendor_id]
+    id_values_exists = [item for item in id_values if item is not None]
+    if len(id_values_exists) != 1:
+        result.value = False
+        result.message = 'You must provide any of client_id, service_id or vendor_id but not more than one'
+        return result
+    
+    phone_numbers = [contact.phone1, contact.phone2, contact.phone3]
+    phone_numbers_exists = [item for item in phone_numbers if item is not None]
+    for phone_number in phone_numbers_exists:
+        if len(phone_number) != 11:
+            result.value = False
+            result.message = 'Phone number must be 11 digits'
+            return result
+
+    if contact.client_id:
+        client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
+        if not client_exists:
+            result.value = False
+            result.message = 'Client id does not exist'
+    elif contact.service_id:
+        service_exists = db_query.get_service_by_id(db, client_id=contact.service_id)
+        if not service_exists:
+            result.value = False
+            result.message = 'Service id does not exist'
+    elif contact.vendor_id:
+        vendor_exists = db_query.get_vendor_by_id(db, client_id=contact.vendor_id)
+        if not vendor_exists:
+            result.value = False
+            result.message = 'Vendor id does not exist'
+    
+    return result
+
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -86,30 +125,9 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
-    
-    id_values = [contact.client_id, contact.service_id, contact.vendor_id]
-    id_values_exists = [item for item in id_values if item is not None]
-    if len(id_values_exists) != 1:
-        raise HTTPException(status_code=400, detail='You must provide any of client_id, service_id or vendor_id but not more than one')
-    
-    phone_numbers = [contact.phone1, contact.phone2, contact.phone3]
-    phone_numbers_exists = [item for item in phone_numbers if item is not None]
-    for phone_number in phone_numbers_exists:
-        if len(phone_number) != 11:
-            raise HTTPException(status_code=400, detail="Phone number must be 11 digits")
-            
-    if contact.client_id:
-        client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
-        if not client_exists:
-            raise HTTPException(status_code=400, detail="Client id does not exist")
-    elif contact.service_id:
-        service_exists = db_query.get_service_by_id(db, client_id=contact.service_id)
-        if not service_exists:
-            raise HTTPException(status_code=400, detail="Service id does not exist")
-    elif contact.vendor_id:
-        vendor_exists = db_query.get_vendor_by_id(db, client_id=contact.vendor_id)
-        if not vendor_exists:
-            raise HTTPException(status_code=400, detail="Vendor id does not exist")
+    check_result = check_contact_properties(db, contact)
+    if not check_result.value:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check_result.message)
 
     return db_query.add_contact(db=db, contact=contact)
 
