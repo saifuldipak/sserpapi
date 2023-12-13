@@ -74,14 +74,14 @@ def read_clients(client_name: str, page: int = 0, page_size: int = 10, db: Sessi
     offset = page * page_size
     return db_query.get_client_list(db, client_name=client_name, offset=offset, limit=page_size)
 
-@router.post("/clients/types/add", response_model=schemas.ClientTypesBase, summary='Add a client type', tags=['Clients'])
-def add_client_type(client_type: schemas.ClientTypesBase, db: Session = Depends(get_db)):
+@router.post("/clients/types/add", response_model=schemas.ClientType, summary='Add a client type', tags=['Clients'])
+def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(get_db)):
     client_type_exists = db_query.get_client_type(db, client_type=client_type.name)
     if client_type_exists:
         raise HTTPException(status_code=400, detail="Client type exists")
     return db_query.add_client_type(db=db, client_type=client_type)
 
-@router.get("/clients/types/get", response_model=list[schemas.ClientTypes], summary='Get client type list', tags=['Clients'])
+@router.get("/clients/types/get", response_model=list[schemas.ClientType], summary='Get client type list', tags=['Clients'])
 def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = page * page_size
     db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
@@ -174,7 +174,8 @@ def remove_contact(contact_id: int, db: Session = Depends(get_db)):
     return_value = db_query.delete_contact(db=db, contact_id=contact_id)
     if return_value == contact_id:
         return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
-    
+
+
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
     db_client = db_query.get_client(db, client_id=client_id)
