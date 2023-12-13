@@ -204,6 +204,20 @@ def search_vendor(vendor_name: str | None = None, page: int = 0, page_size: int 
     offset = page * page_size
     return db_query.get_vendor_list(db, vendor_name=vendor_name, offset=offset, limit=page_size)
 
+@router.post("/service/type/add", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
+def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
+    '''
+    ## Add service type
+    - **name**: Service type name* 
+    - **description**: Description
+
+    *Required
+    '''
+    service_type_exists = db_query.get_service_type_by_name(db, service_type=service_type)
+    if service_type_exists:
+        raise HTTPException(status_code=400, detail="Service type exists")
+    return db_query.add_service_type(db=db, service_type=service_type)
+
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
     db_client = db_query.get_client(db, client_id=client_id)

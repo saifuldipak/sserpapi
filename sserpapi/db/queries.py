@@ -143,3 +143,12 @@ def get_vendor_list(db: Session, vendor_name: str | None = None, offset: int = 0
     else:
         return db.query(models.Vendors).offset(offset).limit(limit).all()
 
+def get_service_type_by_name(db: Session, service_type: schemas.ServiceTypeBase):
+    return db.query(models.ServiceTypes).filter(models.ServiceTypes.name==service_type.name).first()
+
+def add_service_type(db: Session, service_type: schemas.ServiceType):
+    new_service_type = models.ServiceTypes(name=service_type.name, description=service_type.description)
+    db.add(new_service_type)
+    db.commit()
+    db.refresh(new_service_type)
+    return new_service_type

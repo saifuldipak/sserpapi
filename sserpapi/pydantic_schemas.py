@@ -102,3 +102,10 @@ class VendorBase(BaseModel):
 
 class Vendor(VendorBase):
     id: int
+
+class ServiceTypeBase(BaseModel):
+    name: str
+    description: str | None = None
+
+class ServiceType(ServiceTypeBase):
+    id: int
