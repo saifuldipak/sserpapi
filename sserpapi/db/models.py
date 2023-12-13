@@ -71,7 +71,6 @@ class ClientTypes(Base):
 class Addresses(Base):
     __tablename__ = 'addresses'
     id = Column(Integer, primary_key=True)
-    type = Column(String, nullable=False)
     flat = Column(String)
     floor = Column(String)
     holding = Column(String)
@@ -81,6 +80,7 @@ class Addresses(Base):
     client_id = Column(Integer, ForeignKey('clients.id'))
     service_id = Column(Integer, ForeignKey('services.id'))
     vendor_id = Column(Integer, ForeignKey('vendors.id'))
+    extra_info = Column(String)
     clients = relationship('Clients', back_populates='addresses')
     services = relationship('Services', back_populates='addresses')
     vendors = relationship('Vendors', back_populates='addresses')
