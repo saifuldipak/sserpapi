@@ -50,6 +50,47 @@ def check_contact_properties(db: Session, contact: schemas.ContactBase) -> Resul
     
     return result
 
+def check_id_presence(db: Session, schema_object) -> Result:
+    result = Result()
+    id_values = [schema_object.client_id, schema_object.service_id, schema_object.vendor_id]
+    id_values_exists = [item for item in id_values if item is not None]
+    
+    if len(id_values_exists) != 1:
+        result.value = False
+        result.message = 'You must provide any of client_id, service_id or vendor_id but not more than one'
+        return result
+    
+    if schema_object.client_id:
+        client_exists = db_query.get_client_by_id(db, client_id=schema_object.client_id)
+        if not client_exists:
+            result.value = False
+            result.message = 'Client id does not exist'
+    elif schema_object.service_id:
+        service_exists = db_query.get_service_by_id(db, service_id=schema_object.service_id)
+        if not service_exists:
+            result.value = False
+            result.message = 'Service id does not exist'
+    elif schema_object.vendor_id:
+        vendor_exists = db_query.get_vendor_by_id(db, vendor_id=schema_object.vendor_id)
+        if not vendor_exists:
+            result.value = False
+            result.message = 'Vendor id does not exist'
+    
+    return result
+
+def check_phone_number_length(db: Session, schema_object) -> Result:
+    result = Result()
+    phone_numbers = [schema_object.phone1, schema_object.phone2, schema_object.phone3]
+    phone_numbers_exists = [item for item in phone_numbers if item is not None]
+    
+    for phone_number in phone_numbers_exists:
+        if len(phone_number) != 11:
+            result.value = False
+            result.message = 'Phone number must be 11 digits'
+            return result    
+    
+    return result
+
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -235,7 +276,7 @@ def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
     
     return_value = db_query.delete_service_type(db=db, service_type_id=service_type_id)
     if return_value == service_type_id:
-        return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})
+        return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})    
 
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
