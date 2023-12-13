@@ -152,3 +152,11 @@ def add_service_type(db: Session, service_type: schemas.ServiceType):
     db.commit()
     db.refresh(new_service_type)
     return new_service_type
+
+def get_service_type_list(db: Session, service_type: str, offset: int = 0, limit: int = 10):
+    if service_type:
+        sevice_type_string = f'{service_type}%'
+        return db.query(models.ServiceTypes).filter(models.ServiceTypes.name.ilike(sevice_type_string)).offset(offset).limit(limit).all()
+    else:
+        return db.query(models.ServiceTypes).offset(offset).limit(limit).all()
+

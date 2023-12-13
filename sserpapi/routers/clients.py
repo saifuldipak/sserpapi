@@ -218,6 +218,15 @@ def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depend
         raise HTTPException(status_code=400, detail="Service type exists")
     return db_query.add_service_type(db=db, service_type=service_type)
 
+@router.post("/service/type/search", response_model=list[schemas.ServiceType], summary='Search service type', tags=['Services'])
+def search_service_type(service_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    offset = page * page_size
+    service_type_list =  db_query.get_service_type_list(db=db, service_type=service_type, offset=offset, limit=page_size)
+    if not service_type_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return service_type_list
+
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
     db_client = db_query.get_client(db, client_id=client_id)
