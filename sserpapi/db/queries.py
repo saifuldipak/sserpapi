@@ -119,3 +119,9 @@ def delete_contact(db: Session, contact_id: int):
     db.delete(contact)
     db.commit()
     return contact_id
+
+def delete_client_type(db: Session, client_type_id: int):
+    client_type = db.query(models.ClientTypes).filter(models.ClientTypes.id==client_type_id).first()
+    db.delete(client_type)
+    db.commit()
+    return client_type_id
