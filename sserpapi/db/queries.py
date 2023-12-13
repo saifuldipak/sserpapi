@@ -160,3 +160,11 @@ def get_service_type_list(db: Session, service_type: str, offset: int = 0, limit
     else:
         return db.query(models.ServiceTypes).offset(offset).limit(limit).all()
 
+def delete_service_type(db: Session, service_type_id: int):
+    service_type = db.query(models.ServiceTypes).filter(models.ServiceTypes.id==service_type_id).first()
+    db.delete(service_type)
+    db.commit()
+    return service_type_id
+
+def get_service_type_by_id(db: Session, service_type_id: int):
+    return db.query(models.ServiceTypes).filter(models.ServiceTypes.id==service_type_id).first()
