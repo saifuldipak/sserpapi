@@ -276,7 +276,30 @@ def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
     
     return_value = db_query.delete_service_type(db=db, service_type_id=service_type_id)
     if return_value == service_type_id:
-        return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})    
+        return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})
+
+@router.post("/address/add", response_model=schemas.Address, summary='Add an address', tags=['Addresses'])
+def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
+    '''
+    ## Add address
+    - **flat**: Flat name 
+    - **floor**: Floor number
+    - **holding**: Holding number*
+    - **street**: Street name or number*
+    - **thana**: Thana name*
+    - **district**: District name*
+    - **client_id**: Client id**
+    - **service_id**: Service id**
+    - **vendor_id**: Vendor id**
+    - **extra_info**: Extra info (remark, description, landmark etc)
+
+    **Note**: *Required items, **Need to give at least any one of these items but not more than one
+    '''
+    result = check_id_presence(db=db, schema_object=address)
+    if not result.value:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
+    
+    return db_query.add_address(db=db, address=address)    
 
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):

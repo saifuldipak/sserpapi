@@ -168,3 +168,10 @@ def delete_service_type(db: Session, service_type_id: int):
 
 def get_service_type_by_id(db: Session, service_type_id: int):
     return db.query(models.ServiceTypes).filter(models.ServiceTypes.id==service_type_id).first()
+
+def add_address(db: Session, address: schemas.AddressBase):
+    new_address = models.Addresses(**address.model_dump())
+    db.add(new_address)
+    db.commit()
+    db.refresh(new_address)
+    return new_address

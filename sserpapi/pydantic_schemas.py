@@ -109,3 +109,18 @@ class ServiceTypeBase(BaseModel):
 
 class ServiceType(ServiceTypeBase):
     id: int
+    
+class AddressBase(BaseModel):
+    flat: str | None = None
+    floor: str | None = None
+    holding: str
+    street: str
+    thana: str
+    district: str
+    client_id: int | None = None
+    service_id: int | None = None
+    vendor_id: int | None = None
+    extra_info: str | None = None
+
+class Address(AddressBase):
+    id: int
