@@ -42,7 +42,7 @@ class Services(Base):
     id = Column(Integer, primary_key=True)
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
     point = Column(String, nullable=False)
-    type = Column(String, nullable=False)
+    service_type_id = Column(Integer, ForeignKey('service_types.id'))
     bandwidth = Column(Integer)
     connected_to = Column(String)
     extra_info = Column(String)
@@ -50,6 +50,7 @@ class Services(Base):
     leased_links = relationship('LeasedLinks', back_populates='services')
     contacts = relationship('Contacts', back_populates='services')
     addresses = relationship('Addresses', back_populates='services')
+    service_types = relationship('ServiceTypes', back_populates='services')
 
 class Users(Base):
     __tablename__ = 'users'
@@ -95,3 +96,10 @@ class LeasedLinks(Base):
     service_id = Column(Integer, ForeignKey('services.id'))
     vendors = relationship('Vendors', back_populates='leased_links')
     services = relationship('Services', back_populates='leased_links')
+
+class ServiceTypes(Base):
+    __tablename__ = 'service_types'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    services = relationship('Services', back_populates='service_types')
