@@ -135,3 +135,11 @@ def add_vendor(db: Session, vendor: schemas.VendorBase):
     db.commit()
     db.refresh(new_vendor)
     return new_vendor
+
+def get_vendor_list(db: Session, vendor_name: str | None = None, offset: int = 0, limit: int = 100):
+    if vendor_name:
+        vendor_name_string = f'{vendor_name}%'
+        return db.query(models.Vendors).filter(models.Vendors.name.ilike(vendor_name_string)).offset(offset).limit(limit).all()
+    else:
+        return db.query(models.Vendors).offset(offset).limit(limit).all()
+

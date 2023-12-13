@@ -193,6 +193,17 @@ def create_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     
     return db_query.add_vendor(db=db, vendor=vendor)
 
+@router.get("/vendor/search", response_model=list[schemas.Vendor], summary='Search vendor', tags=['Vendors'])
+def search_vendor(vendor_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    """
+    ## Search vendor by name
+    **vendor_name**: Full or partial vendor name
+
+    **Note**: If you provide partial name, it will show all vendors which starts with that name
+    """
+    offset = page * page_size
+    return db_query.get_vendor_list(db, vendor_name=vendor_name, offset=offset, limit=page_size)
+
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
     db_client = db_query.get_client(db, client_id=client_id)
