@@ -96,3 +96,9 @@ class ClientDetails(Client):
     services: list[Service] = []
     client_type: ClientType
 
+class VendorBase(BaseModel):
+    name: str
+    type: typing_extensions.Literal['LSP', 'NTTN', 'ISP']
+
+class Vendor(VendorBase):
+    id: int

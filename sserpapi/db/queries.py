@@ -125,3 +125,13 @@ def delete_client_type(db: Session, client_type_id: int):
     db.delete(client_type)
     db.commit()
     return client_type_id
+
+def get_vendor_by_name(db: Session, vendor: schemas.VendorBase):
+    return db.query(models.Vendors).filter(models.Vendors.name==vendor.name).first()
+
+def add_vendor(db: Session, vendor: schemas.VendorBase):
+    new_vendor = models.Vendors(name=vendor.name, type=vendor.type)
+    db.add(new_vendor)
+    db.commit()
+    db.refresh(new_vendor)
+    return new_vendor

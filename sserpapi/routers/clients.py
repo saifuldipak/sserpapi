@@ -185,6 +185,13 @@ def remove_contact(contact_id: int, db: Session = Depends(get_db)):
     if return_value == contact_id:
         return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
 
+@router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
+def create_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
+    vendor_exists = db_query.get_vendor_by_name(db, vendor=vendor)
+    if vendor_exists:
+        raise HTTPException(status_code=400, detail="Vendor exists")
+    
+    return db_query.add_vendor(db=db, vendor=vendor)
 
 """ @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
 def read_client(client_id: int, db: Session = Depends(get_db)):
