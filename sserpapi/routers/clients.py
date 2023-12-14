@@ -285,6 +285,7 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     - **flat**: Flat name 
     - **floor**: Floor number
     - **holding**: Holding number*
+    - **area**: Area name (Para/Moholla/Block/Sector/Housing society name etc.)*
     - **street**: Street name or number*
     - **thana**: Thana name*
     - **district**: District name*
@@ -300,4 +301,3 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
     
     return db_query.add_address(db=db, address=address)    
-
