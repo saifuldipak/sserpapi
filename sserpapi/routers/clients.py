@@ -303,7 +303,7 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     return db_query.add_address(db=db, address=address)    
 
 @router.post("/address/modify", response_model=schemas.Address, summary='Modify an address', tags=['Addresses'])
-def add_address(address: schemas.Address, db: Session = Depends(get_db)):
+def modify_address(address: schemas.Address, db: Session = Depends(get_db)):
     '''
     ## Modify address
     - **id**: Address id*
@@ -324,6 +324,10 @@ def add_address(address: schemas.Address, db: Session = Depends(get_db)):
     result = check_id_presence(db=db, schema_object=address)
     if not result.value:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
+    
+    address_exists = db_query.get_address_by_id(db, address_id=address.id)
+    if not address_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
     
     return db_query.modify_address(db=db, address=address)
 
