@@ -18,10 +18,9 @@ class Contact(ContactBase):
 
 class ServiceBase(BaseModel):
     client_id: int
-    location: str
-    type: typing_extensions.Literal['Internet', 'Data', 'Managed solution']
+    point: str
+    service_type_id: int
     bandwidth: int
-    vendor_id: int | None = None
     connected_to: str | None = None
     extra_info: str | None = None
 
