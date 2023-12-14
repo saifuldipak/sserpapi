@@ -175,3 +175,19 @@ def add_address(db: Session, address: schemas.AddressBase):
     db.commit()
     db.refresh(new_address)
     return new_address
+
+def modify_address(db: Session, address: schemas.Address):
+    address_in_db = db.query(models.Addresses).filter(models.Addresses.id==address.id).first()
+    address_in_db.flat = address.flat
+    address_in_db.floor = address.floor
+    address_in_db.holding = address.holding
+    address_in_db.street = address.street
+    address_in_db.area = address.area
+    address_in_db.thana = address.thana
+    address_in_db.district = address.district
+    address_in_db.client_id = address.client_id
+    address_in_db.service_id = address.service_id
+    address_in_db.vendor_id = address.vendor_id
+    db.commit()
+    db.refresh(address_in_db)
+    return address_in_db

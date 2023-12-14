@@ -301,3 +301,28 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
     
     return db_query.add_address(db=db, address=address)    
+
+@router.post("/address/modify", response_model=schemas.Address, summary='Modify an address', tags=['Addresses'])
+def add_address(address: schemas.Address, db: Session = Depends(get_db)):
+    '''
+    ## Modify address
+    - **id**: Address id*
+    - **flat**: Flat name 
+    - **floor**: Floor number
+    - **holding**: Holding number*
+    - **area**: Area name (Para/Moholla/Block/Sector/Housing society name etc.)*
+    - **street**: Street name or number*
+    - **thana**: Thana name*
+    - **district**: District name*
+    - **client_id**: Client id**
+    - **service_id**: Service id**
+    - **vendor_id**: Vendor id**
+    - **extra_info**: Extra info (remark, description, landmark etc)
+
+    **Note**: *Required items, **Need to give at least any one of these items but not more than one
+    '''
+    result = check_id_presence(db=db, schema_object=address)
+    if not result.value:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
+    
+    return db_query.modify_address(db=db, address=address)    
