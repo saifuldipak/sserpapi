@@ -359,4 +359,16 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
     if service_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service exists')
     
-    return db_query.add_service(db=db, service=service)     
+    return db_query.add_service(db=db, service=service)
+
+@router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
+def search(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    if not service_point and not client_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
+    
+    offset = page * page_size
+    service_list =  db_query.get_service_list(db=db, service_point=service_point, client_id=client_id, offset=offset, limit=page_size)
+    if not service_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return service_list

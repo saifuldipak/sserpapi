@@ -210,3 +210,22 @@ def add_service(db: Session, service: schemas.ServiceBase):
     db.commit()
     db.refresh(new_service)
     return new_service
+
+def get_service_list(db: Session, service_point: str | None = None, client_id: int | None = None, offset: int = 0, limit: int = 10):
+    base_query = (
+        db.query(models.Services)
+        .join(models.Clients)
+        .join(models.ServiceTypes)
+        .options(joinedload(models.Services.clients))
+        .options(joinedload(models.Services.service_types))
+    )
+    sevice_point_string = f'%{service_point}%'
+
+    if service_point and not client_id:
+        base_query=  base_query.filter(models.Services.point.ilike(sevice_point_string))
+    elif not service_point and client_id:
+        base_query = base_query.filter(models.Services.client_id==client_id)
+    else:
+        base_query = base_query.filter(models.Services.point.ilike(sevice_point_string), models.Services.client_id==client_id)
+
+    return base_query.offset(offset).limit(limit).all()
