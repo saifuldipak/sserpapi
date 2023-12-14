@@ -200,3 +200,13 @@ def delete_address(db: Session, address_id: int):
     db.delete(address)
     db.commit()
     return address_id
+
+def get_service_by_properties(db: Session, service: schemas.ServiceBase):
+    return db.query(models.Services).filter(models.Services.client_id==service.client_id, models.Services.point==service.point, models.Services.service_type_id==service.service_type_id, models.Services.bandwidth==service.bandwidth, models.Services.extra_info==service.extra_info).first()
+
+def add_service(db: Session, service: schemas.ServiceBase):
+    new_service = models.Services(**service.model_dump())
+    db.add(new_service)
+    db.commit()
+    db.refresh(new_service)
+    return new_service

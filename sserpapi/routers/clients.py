@@ -340,3 +340,23 @@ def remove_address(address_id: int, db: Session = Depends(get_db)):
     return_value = db_query.delete_address(db=db, address_id=address_id)
     if return_value == address_id:
         return JSONResponse(content={'Action': 'Address deleted', 'Address id': address_id})
+
+@router.post("/service/add", response_model=schemas.Service, summary='Add a service', tags=['Services'])
+def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
+    '''
+    ## Add service
+    - **client-id**: Client id*
+    - **point**: Service location* 
+    - **service_type_id**: Service type id*
+    - **bandwidth**: Bandwidth amount in Mbps*
+    - **connected_to**: Service logically connected to(DC, DR, Head Office etc)
+    - **extra_info**: Information on the service (Primary, Secondary etc)
+
+    **Note**: *Required items
+    '''
+   
+    service_exists = db_query.get_service_by_properties(db=db, service=service)
+    if service_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service exists')
+    
+    return db_query.add_service(db=db, service=service)     
