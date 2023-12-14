@@ -109,3 +109,7 @@ class ClientDetails(Client):
     contacts: list[Contact] = []
     services: list[Service] = []
     client_type: ClientType
+
+class ServiceDetails(Service):
+    service_types: ServiceType
+    clients: Client
