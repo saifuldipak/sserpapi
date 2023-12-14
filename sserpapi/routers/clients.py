@@ -301,23 +301,3 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     
     return db_query.add_address(db=db, address=address)    
 
-""" @router.get("/clients/{client_id}", response_model=schemas.Client, summary='Get one client info', tags=['Clients'])
-def read_client(client_id: int, db: Session = Depends(get_db)):
-    db_client = db_query.get_client(db, client_id=client_id)
-    if db_client is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_client
-
-
-@router.post("/clients/{client_id}/services/", response_model=schemas.ServiceBase)
-def create_service_for_client(client_id: int, service: schemas.ServiceBase, db: Session = Depends(get_db)):
-    db_client = db_query.get_client(db, client_id=client_id)
-    if db_client is None:
-        raise HTTPException(status_code=404, detail="Client not found")
-    return db_query.add_service(db=db, service=service)
-
-
-@router.get("/services/", response_model=list[schemas.Service])
-def read_services(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    items = db_query.get_services(db, skip=skip, limit=limit)
-    return items """
