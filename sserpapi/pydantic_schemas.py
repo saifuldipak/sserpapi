@@ -75,27 +75,6 @@ class ContactWithClientName(Contact):
     class Config:
         from_attributes = True
 
-class AddressBase(BaseModel):
-    type: str
-    flat: str | None = None
-    floor: str | None = None
-    holding: str
-    street: str
-    thana: str
-    district: str
-    client_id: int | None = None
-    service_id: int | None = None
-    vendor_id: int | None = None
-
-class Address(AddressBase):
-    id: int
-
-class ClientDetails(Client):
-    addresses: list[Address] = []
-    contacts: list[Contact] = []
-    services: list[Service] = []
-    client_type: ClientType
-
 class VendorBase(BaseModel):
     name: str
     type: typing_extensions.Literal['LSP', 'NTTN', 'ISP']
@@ -115,6 +94,7 @@ class AddressBase(BaseModel):
     floor: str | None = None
     holding: str
     street: str
+    area: str
     thana: str
     district: str
     client_id: int | None = None
@@ -124,3 +104,9 @@ class AddressBase(BaseModel):
 
 class Address(AddressBase):
     id: int
+
+class ClientDetails(Client):
+    addresses: list[Address] = []
+    contacts: list[Contact] = []
+    services: list[Service] = []
+    client_type: ClientType
