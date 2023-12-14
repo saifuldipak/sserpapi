@@ -325,4 +325,14 @@ def add_address(address: schemas.Address, db: Session = Depends(get_db)):
     if not result.value:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
     
-    return db_query.modify_address(db=db, address=address)    
+    return db_query.modify_address(db=db, address=address)
+
+@router.post("/address/delete/{address_id}", summary='Delete an address', tags=['Addresses'])
+def remove_address(address_id: int, db: Session = Depends(get_db)):
+    address_exists = db_query.get_address_by_id(db, address_id=address_id)
+    if not address_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
+    
+    return_value = db_query.delete_address(db=db, address_id=address_id)
+    if return_value == address_id:
+        return JSONResponse(content={'Action': 'Address deleted', 'Address id': address_id})

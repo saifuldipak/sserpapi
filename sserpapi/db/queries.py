@@ -191,3 +191,12 @@ def modify_address(db: Session, address: schemas.Address):
     db.commit()
     db.refresh(address_in_db)
     return address_in_db
+
+def get_address_by_id(db: Session, address_id: int):
+    return db.query(models.Addresses).filter(models.Addresses.id==address_id).first()
+
+def delete_address(db: Session, address_id: int):
+    address = db.query(models.Addresses).filter(models.Addresses.id==address_id).first()
+    db.delete(address)
+    db.commit()
+    return address_id
