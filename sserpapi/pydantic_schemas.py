@@ -113,3 +113,7 @@ class ClientDetails(Client):
 class ServiceDetails(Service):
     service_types: ServiceType
     clients: Client
+
+class EntryDelete(BaseModel):
+    message: str
+    id: int
