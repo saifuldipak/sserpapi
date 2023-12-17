@@ -389,7 +389,7 @@ def search(service_point: str | None = None, client_id: int | None = None, page:
     else:
         return service_list
 
-@router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Veondors'])
+@router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
 def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     '''
     ## Add vendor
@@ -405,8 +405,8 @@ def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     
     return db_query.add_vendor(db=db, vendor=vendor)
 
-@router.put("/vendor/modify", response_model=schemas.Vendor, summary='Modify a vendor', tags=['Veondors'])
-def add_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
+@router.put("/vendor/modify", response_model=schemas.Vendor, summary='Modify a vendor', tags=['Vendors'])
+def modify_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
     '''
     ## Add vendor
     - **id**: Vendor id*
@@ -421,3 +421,13 @@ def add_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
     
     return db_query.modify_vendor(db=db, vendor=vendor)
+
+@router.delete("/vendor/delete", response_model=schemas.EntryDelete, summary='Delete a vendor', tags=['Vendors'])
+def delete_vendor(vendor_id: int, db: Session = Depends(get_db)):
+    vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor_id)
+    if not vendor_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
+    
+    vendor_deleted = db_query.delete_vendor(db=db, vendor_id=vendor_id)
+    if vendor_deleted == vendor_id:
+        return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)

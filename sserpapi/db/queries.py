@@ -271,3 +271,9 @@ def modify_vendor(db: Session, vendor: schemas.Vendor):
 
 def get_vendor_by_id(db: Session, vendor_id: int):
     return db.query(models.Vendors).filter(models.Vendors.id==vendor_id).first()
+
+def delete_vendor(db: Session, vendor_id: int) -> int:
+    vendor_in_db = db.query(models.Vendors).filter(models.Vendors.id==vendor_id).first()
+    db.delete(vendor_in_db)
+    db.commit()
+    return vendor_id
