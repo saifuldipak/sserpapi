@@ -31,13 +31,6 @@ class ClientBase(BaseModel):
     name: str
     client_type_id: int
 
-class VendorBase(BaseModel):
-    name: str
-    place: str
-    union: str | None = None
-    thana: str
-    zilla: str
-
 class UserBase(BaseModel):
     user_name: str
     email: str
@@ -117,3 +110,7 @@ class ServiceDetails(Service):
 class EntryDelete(BaseModel):
     message: str
     id: int
+
+class VendorDetails(Vendor):
+    contacts: list[Contact] = []
+    addresses: list[Address] = []
