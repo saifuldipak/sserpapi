@@ -250,3 +250,13 @@ def delete_service(db: Session, service_id: int) -> int:
     db.delete(service_in_db)
     db.commit()
     return service_id
+
+def get_vendor_by_properties(db: Session, vendor: schemas.VendorBase):
+    return db.query(models.Vendors).filter(models.Vendors.name==vendor.name, models.Vendors.type==vendor.type).first()
+
+def add_vendor(db: Session, vendor: schemas.VendorBase):
+    new_vendor = models.Vendors(**vendor.model_dump())
+    db.add(new_vendor)
+    db.commit()
+    db.refresh(new_vendor)
+    return new_vendor

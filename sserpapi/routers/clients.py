@@ -388,3 +388,19 @@ def search(service_point: str | None = None, client_id: int | None = None, page:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:
         return service_list
+
+@router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Veondors'])
+def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
+    '''
+    ## Add vendor
+    - **name**: Vendor name*
+    - **type**: 'LSP'/'NTTN'/'ISP'* 
+
+    **Note**: *Required items
+    '''
+   
+    vendor_exists = db_query.get_vendor_by_properties(db=db, vendor=vendor)
+    if vendor_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor exists')
+    
+    return db_query.add_vendor(db=db, vendor=vendor)
