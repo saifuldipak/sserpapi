@@ -36,6 +36,7 @@ class Vendors(Base):
     contacts = relationship('Contacts', back_populates='vendors', cascade='all, delete-orphan')
     addresses = relationship('Addresses', back_populates='vendors', cascade='all, delete-orphan')
     leased_links = relationship('LeasedLinks', back_populates='vendors', cascade='all, delete-orphan')
+    pops = relationship('Pops', back_populates='vendors', cascade='all, delete-orphan')
 
 class Services(Base):
     __tablename__ = 'services'
@@ -44,13 +45,14 @@ class Services(Base):
     point = Column(String, nullable=False)
     service_type_id = Column(Integer, ForeignKey('service_types.id'))
     bandwidth = Column(Integer)
-    connected_to = Column(String)
     extra_info = Column(String)
+    pop_id = Column(Integer, ForeignKey('pops.id'))
     clients = relationship('Clients', back_populates='services')
     leased_links = relationship('LeasedLinks', back_populates='services')
     contacts = relationship('Contacts', back_populates='services')
     addresses = relationship('Addresses', back_populates='services')
     service_types = relationship('ServiceTypes', back_populates='services')
+    pops = relationship('Pops', back_populates='services')
 
 class Users(Base):
     __tablename__ = 'users'
@@ -104,3 +106,12 @@ class ServiceTypes(Base):
     name = Column(String, nullable=False)
     description = Column(String)
     services = relationship('Services', back_populates='service_types')
+
+class Pops(Base):
+    __tablename__ = 'pops'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    owner = Column(Integer, ForeignKey('vendors.id'), nullable=False)
+    extra_info = Column(String)
+    vendors = relationship('Vendors', back_populates='pops')
+    services = relationship('Services', back_populates='pops')
