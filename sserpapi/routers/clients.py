@@ -382,6 +382,20 @@ def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
     
     return db_query.modify_service(db=db, service=service)
 
+@router.delete("/service/delete", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
+def modify_service(service_id: int, db: Session = Depends(get_db)):
+    service_exists = db_query.get_service_by_id(db=db, service_id=service_id)
+    if not service_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
+    
+    return_value = db_query.delete_service(db=db, service_id=service_id)
+    if return_value == service_id:
+        entry_deleted = schemas.EntryDelete(message='Service deleted', id=service_id)
+        return entry_deleted
+    else:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
+        
+
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
 def search(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     if not service_point and not client_id:

@@ -244,3 +244,9 @@ def modify_service(db: Session, service: schemas.Service):
     db.commit()
     db.refresh(service_in_db)
     return service_in_db
+
+def delete_service(db: Session, service_id: int) -> int:
+    service_in_db = db.query(models.Services).filter(models.Services.id==service_id).first()
+    db.delete(service_in_db)
+    db.commit()
+    return service_id
