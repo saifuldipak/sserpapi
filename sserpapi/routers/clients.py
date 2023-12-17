@@ -91,6 +91,30 @@ def check_phone_number_length(db: Session, schema_object) -> Result:
     
     return result
 
+@router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
+def search(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    if not service_point and not client_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
+    
+    offset = page * page_size
+    service_list =  db_query.get_service_list(db=db, service_point=service_point, client_id=client_id, offset=offset, limit=page_size)
+    if not service_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return service_list
+    
+@router.get("/search/vendor", response_model=list[schemas.VendorDetails], summary='Search vendor', tags=['Searches'])
+def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    if not vendor_name and not vendor_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
+    
+    offset = page * page_size
+    vendor_list =  db_query.get_vendor_list(db=db, vendor_name=vendor_name, vendor_type=vendor_type, offset=offset, limit=page_size)
+    if not vendor_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return vendor_list
+    
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -375,31 +399,6 @@ def modify_service(service_id: int, db: Session = Depends(get_db)):
         return entry_deleted
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
-        
-
-@router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
-def search(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    if not service_point and not client_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
-    
-    offset = page * page_size
-    service_list =  db_query.get_service_list(db=db, service_point=service_point, client_id=client_id, offset=offset, limit=page_size)
-    if not service_list:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return service_list
-    
-@router.get("/search/vendor", response_model=list[schemas.VendorDetails], summary='Search vendor', tags=['Searches'])
-def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    if not vendor_name and not vendor_type:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
-    
-    offset = page * page_size
-    vendor_list =  db_query.get_vendor_list(db=db, vendor_name=vendor_name, vendor_type=vendor_type, offset=offset, limit=page_size)
-    if not vendor_list:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return vendor_list
 
 @router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
 def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
