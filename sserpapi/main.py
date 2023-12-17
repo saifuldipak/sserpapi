@@ -8,6 +8,7 @@ import logging
 
 #logging config
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s: %(message)s', filename='sserpapi.log', level=logging.WARNING)
+logging.getLogger('passlib').setLevel(logging.ERROR)
 
 app = FastAPI()
 
