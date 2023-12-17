@@ -277,3 +277,25 @@ def delete_vendor(db: Session, vendor_id: int) -> int:
     db.delete(vendor_in_db)
     db.commit()
     return vendor_id
+
+def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: str | None = None, offset: int = 0, limit: int = 10):
+    base_query = (
+        db.query(models.Vendors)
+        .outerjoin(models.Contacts)
+        .outerjoin(models.Addresses)
+        .outerjoin(models.LeasedLinks)
+        .options(joinedload(models.Vendors.contacts))    
+        .options(joinedload(models.Vendors.addresses))
+        .options(joinedload(models.Vendors.leased_links))
+    )
+
+    vendor_name_string = f'%{vendor_name}%'
+
+    if vendor_name and not vendor_type:
+        base_query=  base_query.filter(models.Vendors.name.ilike(vendor_name_string))
+    elif not vendor_name and vendor_type:
+        base_query = base_query.filter(models.Vendors.type==vendor_type)
+    else:
+        base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string), models.Vendors.type==vendor_type)
+
+    return base_query.offset(offset).limit(limit).all()
