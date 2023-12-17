@@ -226,25 +226,6 @@ def remove_contact(contact_id: int, db: Session = Depends(get_db)):
     if return_value == contact_id:
         return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
 
-@router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
-def create_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
-    vendor_exists = db_query.get_vendor_by_name(db, vendor=vendor)
-    if vendor_exists:
-        raise HTTPException(status_code=400, detail="Vendor exists")
-    
-    return db_query.add_vendor(db=db, vendor=vendor)
-
-@router.get("/vendor/search", response_model=list[schemas.Vendor], summary='Search vendor', tags=['Vendors'])
-def search_vendor(vendor_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    """
-    ## Search vendor by name
-    **vendor_name**: Full or partial vendor name
-
-    **Note**: If you provide partial name, it will show all vendors which starts with that name
-    """
-    offset = page * page_size
-    return db_query.get_vendor_list(db, vendor_name=vendor_name, offset=offset, limit=page_size)
-
 @router.post("/service/type/add", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
 def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
     '''
@@ -407,4 +388,3 @@ def search(service_point: str | None = None, client_id: int | None = None, page:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:
         return service_list
-
