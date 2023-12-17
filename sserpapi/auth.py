@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # openssl rand -hex 32
 SECRET_KEY = "852dfac7da799b2f17f9e3d0c4d571cf4946c6f4ff8fdc413d55e066f173a422"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 500
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token', scopes={"admin": "Admin user with full acces", "user": "General user with limited access", "editor": "Add or modify users"})
