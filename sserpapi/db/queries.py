@@ -260,3 +260,14 @@ def add_vendor(db: Session, vendor: schemas.VendorBase):
     db.commit()
     db.refresh(new_vendor)
     return new_vendor
+
+def modify_vendor(db: Session, vendor: schemas.Vendor):
+    vendor_in_db = db.query(models.Vendors).filter(models.Vendors.id==vendor.id).first()
+    vendor_in_db.name = vendor.name
+    vendor_in_db.type = vendor.type
+    db.commit()
+    db.refresh(vendor_in_db)
+    return vendor_in_db
+
+def get_vendor_by_id(db: Session, vendor_id: int):
+    return db.query(models.Vendors).filter(models.Vendors.id==vendor_id).first()

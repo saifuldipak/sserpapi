@@ -404,3 +404,20 @@ def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor exists')
     
     return db_query.add_vendor(db=db, vendor=vendor)
+
+@router.put("/vendor/modify", response_model=schemas.Vendor, summary='Modify a vendor', tags=['Veondors'])
+def add_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
+    '''
+    ## Add vendor
+    - **id**: Vendor id*
+    - **name**: Vendor name*
+    - **type**: 'LSP'/'NTTN'/'ISP'* 
+
+    **Note**: *Required items
+    '''
+   
+    vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor.id)
+    if not vendor_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
+    
+    return db_query.modify_vendor(db=db, vendor=vendor)
