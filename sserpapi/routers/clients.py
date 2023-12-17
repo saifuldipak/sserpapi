@@ -361,6 +361,27 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
     
     return db_query.add_service(db=db, service=service)
 
+@router.post("/service/modify", response_model=schemas.Service, summary='Modify a service', tags=['Services'])
+def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
+    '''
+    ## Modify service
+    - **service_id**: Service id* 
+    - **client_id**: Client id*
+    - **point**: Service location* 
+    - **service_type_id**: Service type id*
+    - **bandwidth**: Bandwidth amount in Mbps*
+    - **connected_to**: Service logically connected to(DC, DR, Head Office etc)
+    - **extra_info**: Information on the service (Primary, Secondary etc)
+
+    **Note**: *Required items
+    '''
+   
+    service_exists = db_query.get_service_by_id(db=db, service_id=service.id)
+    if not service_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
+    
+    return db_query.modify_service(db=db, service=service)
+
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
 def search(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     if not service_point and not client_id:
@@ -372,3 +393,4 @@ def search(service_point: str | None = None, client_id: int | None = None, page:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:
         return service_list
+

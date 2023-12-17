@@ -229,3 +229,18 @@ def get_service_list(db: Session, service_point: str | None = None, client_id: i
         base_query = base_query.filter(models.Services.point.ilike(sevice_point_string), models.Services.client_id==client_id)
 
     return base_query.offset(offset).limit(limit).all()
+
+def get_service_by_id(db: Session, service_id: int):
+    return db.query(models.Services).filter(models.Services.id==service_id).first()
+
+def modify_service(db: Session, service: schemas.Service):
+    service_in_db = db.query(models.Services).filter(models.Services.id==service.id).first()
+    service_in_db.client_id = service.client_id
+    service_in_db.point = service.point
+    service_in_db.service_type_id = service.service_type_id
+    service_in_db.bandwidth = service.bandwidth
+    service_in_db.connected_to = service.connected_to
+    service_in_db.extra_info = service.extra_info
+    db.commit()
+    db.refresh(service_in_db)
+    return service_in_db
