@@ -1,7 +1,10 @@
+# pylint: disable=missing-docstring
+# pylint: disable=E0401
+import logging
 from sqlalchemy.orm import Session, joinedload
 import db.models as models
 import pydantic_schemas as schemas
-import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -10,14 +13,6 @@ def get_client(db: Session, client_id: int):
 
 def get_client_by_name(db: Session, client_name: str):
     return db.query(models.Clients).filter(models.Clients.name==client_name).first()
-
-def get_client_list(db: Session, client_name: str, offset: int = 0, limit: int = 100):
-    client_name_string = f'{client_name}%'
-    return (db.query(models.Clients)
-            .join(models.ClientTypes)
-            .options(joinedload(models.Clients.client_type))
-            .filter(models.Clients.name.ilike(client_name_string))
-            .offset(offset).limit(limit).all())
 
 def get_services(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Services).offset(skip).limit(limit).all()
@@ -28,13 +23,6 @@ def add_client(db: Session, client: schemas.ClientBase):
     db.commit()
     db.refresh(new_client)
     return new_client
-
-def add_service(db: Session, service: schemas.ServiceBase):
-    new_service = models.Services(**service.dict())
-    db.add(new_service)
-    db.commit()
-    db.refresh(new_service)
-    return new_service
 
 def get_user_by_name(db: Session, user_name: str):
     return db.query(models.Users).filter(models.Users.user_name==user_name).first()
@@ -132,13 +120,6 @@ def delete_client_type(db: Session, client_type_id: int):
 
 def get_vendor_by_name(db: Session, vendor: schemas.VendorBase):
     return db.query(models.Vendors).filter(models.Vendors.name==vendor.name).first()
-
-def add_vendor(db: Session, vendor: schemas.VendorBase):
-    new_vendor = models.Vendors(name=vendor.name, type=vendor.type)
-    db.add(new_vendor)
-    db.commit()
-    db.refresh(new_vendor)
-    return new_vendor
 
 def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: str | None = None, offset: int = 0, limit: int = 100):
     base_query = db.query(models.Vendors)
