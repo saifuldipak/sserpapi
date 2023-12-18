@@ -309,3 +309,15 @@ def add_pop(db: Session, pop: schemas.PopBase):
     db.commit()
     db.refresh(new_pop)
     return new_pop
+
+def get_pop_by_id(db: Session, pop_id: int):
+    return db.query(models.Pops).filter(models.Pops.id==pop_id).first()
+
+def modify_pop(db: Session, pop: schemas.Pop):
+    pop_in_db = db.query(models.Pops).filter(models.Pops.id==pop.id).first()
+    pop_in_db.name = pop.name
+    pop_in_db.owner = pop.owner
+    pop_in_db.extra_info = pop.extra_info
+    db.commit()
+    db.refresh(pop_in_db)
+    return pop_in_db

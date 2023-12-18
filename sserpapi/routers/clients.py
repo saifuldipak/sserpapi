@@ -462,3 +462,24 @@ def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop exists')
     
     return db_query.add_pop(db=db, pop=pop)
+
+@router.put("/pop/modify", response_model=schemas.Pop, summary='Modify a pop', tags=['Pops'])
+def modify_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
+    '''
+    ## Modify Pop
+    - **id**: Pop id*
+    - **name**: Pop name*
+    - **owner**: Vendor id*
+    - **extra_info**: Any extra information 
+
+    **Note**: *Required items
+    '''
+    pop_owner = db_query.get_vendor_by_id(db=db, vendor_id=pop.owner)
+    if not pop_owner:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
+    
+    pop_exists = db_query.get_pop_by_id(db=db, pop_id=pop.id)
+    if not pop_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
+    
+    return db_query.modify_pop(db=db, pop=pop)
