@@ -15,41 +15,6 @@ class Check:
     failed: bool = False
     message: str = ''
 
-""" def check_contact_properties(db: Session, contact: schemas.ContactBase) -> Result:
-    result = Result()
-    id_values = [contact.client_id, contact.service_id, contact.vendor_id]
-    id_values_exists = [item for item in id_values if item is not None]
-    if len(id_values_exists) != 1:
-        result.value = False
-        result.message = 'You must provide any of client_id, service_id or vendor_id but not more than one'
-        return result
-    
-    phone_numbers = [contact.phone1, contact.phone2, contact.phone3]
-    phone_numbers_exists = [item for item in phone_numbers if item is not None]
-    for phone_number in phone_numbers_exists:
-        if len(phone_number) != 11:
-            result.value = False
-            result.message = 'Phone number must be 11 digits'
-            return result
-
-    if contact.client_id:
-        client_exists = db_query.get_client_by_id(db, client_id=contact.client_id)
-        if not client_exists:
-            result.value = False
-            result.message = 'Client id does not exist'
-    elif contact.service_id:
-        service_exists = db_query.get_service_by_id(db, client_id=contact.service_id)
-        if not service_exists:
-            result.value = False
-            result.message = 'Service id does not exist'
-    elif contact.vendor_id:
-        vendor_exists = db_query.get_vendor_by_id(db, client_id=contact.vendor_id)
-        if not vendor_exists:
-            result.value = False
-            result.message = 'Vendor id does not exist'
-    
-    return result """
-
 def check_id_presence(db: Session, schema_object) -> Check:
     check = Check()
     id_values = [schema_object.client_id, schema_object.service_id, schema_object.vendor_id]
