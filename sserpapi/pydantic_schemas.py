@@ -114,3 +114,11 @@ class EntryDelete(BaseModel):
 class VendorDetails(Vendor):
     contacts: list[Contact] = []
     addresses: list[Address] = []
+
+class PopBase(BaseModel):
+    name: str
+    owner: int
+    extra_info: str | None = None
+
+class Pop(PopBase):
+    id: int
