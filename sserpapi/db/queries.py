@@ -1,5 +1,4 @@
-# pylint: disable=missing-docstring
-# pylint: disable=E0401
+# pylint: disable=missing-docstring,E0401,C0301,C0303
 import logging
 from sqlalchemy.orm import Session, joinedload
 import db.models as models
