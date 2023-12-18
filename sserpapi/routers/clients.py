@@ -92,10 +92,7 @@ def check_phone_number_length(db: Session, schema_object) -> Check:
     return check
 
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
-def search(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    if not service_point and not client_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
-    
+def search_service(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
     offset = page * page_size
     service_list =  db_query.get_service_list(db=db, service_point=service_point, client_id=client_id, offset=offset, limit=page_size)
     if not service_list:
