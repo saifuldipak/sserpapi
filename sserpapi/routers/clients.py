@@ -375,8 +375,8 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
     - **point**: Service location* 
     - **service_type_id**: Service type id*
     - **bandwidth**: Bandwidth amount in Mbps*
-    - **connected_to**: Service logically connected to(DC, DR, Head Office etc)
-    - **extra_info**: Information on the service (Primary, Secondary etc)
+    - **pop_id**: Pop id*
+    - **extra_info**: Information on the service (Primary, Secondary, Head office/Branch office, connected to DC/DR etc)
 
     **Note**: *Required items
     '''
@@ -391,13 +391,13 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
 def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
     '''
     ## Modify service
-    - **service_id**: Service id* 
+    - **id**: Service id* 
     - **client_id**: Client id*
     - **point**: Service location* 
     - **service_type_id**: Service type id*
     - **bandwidth**: Bandwidth amount in Mbps*
-    - **connected_to**: Service logically connected to(DC, DR, Head Office etc)
-    - **extra_info**: Information on the service (Primary, Secondary etc)
+    - **pop_id**: Pop id*
+    - **extra_info**: Information on the service (Primary, Secondary, Head office/Branch office, connected to DC/DR etc)
 
     **Note**: *Required items
     '''

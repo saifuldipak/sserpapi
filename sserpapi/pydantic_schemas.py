@@ -21,7 +21,7 @@ class ServiceBase(BaseModel):
     point: str
     service_type_id: int
     bandwidth: int
-    connected_to: str | None = None
+    pop_id: int
     extra_info: str | None = None
 
 class Service(ServiceBase):
