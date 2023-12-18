@@ -15,6 +15,7 @@ class Check:
     failed: bool = False
     message: str = ''
 
+#- helper functions -#
 def check_id_presence(db: Session, schema_object) -> Check:
     check = Check()
     id_values = [schema_object.client_id, schema_object.service_id, schema_object.vendor_id]
@@ -56,6 +57,7 @@ def check_phone_number_length(db: Session, schema_object) -> Check:
     
     return check
 
+#- searches -#
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
 def search_service(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
     offset = page * page_size
@@ -122,6 +124,7 @@ def search_service_type(service_type: str | None = None, page: int = 0, page_siz
     else:
         return service_type_list
 
+#- clients -#
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -141,17 +144,7 @@ def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(g
         raise HTTPException(status_code=400, detail="Client type exists")
     return db_query.add_client_type(db=db, client_type=client_type)
 
-@router.post("/client/type/delete", response_model=schemas.ClientType, summary='Delete a client type', tags=['Clients'])
-def delete_client_type(client_type_id: int, db: Session = Depends(get_db)):
-    client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client_type_id)
-    if not client_type_exists:
-        raise HTTPException(status_code=400, detail="Client type not found")
-    
-    return_value =  db_query.delete_client_type(db=db, client_type_id=client_type_id)
-    if return_value == client_type_id:
-        return JSONResponse(content={'Action': 'Client type deleted', 'Client type id': client_type_id})
-
-@router.post("/clients/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
+@router.put("/clients/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
 def remove_client(client: schemas.Client, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_id(db, client_id=client.id)
     if not client_exists:
@@ -163,7 +156,17 @@ def remove_client(client: schemas.Client, db: Session = Depends(get_db)):
     
     return db_query.modify_client(db=db, client=client)
 
-@router.post("/clients/delete/{client_id}", summary='Delete a client', tags=['Clients'])
+@router.delete("/client/type/delete/{client_type_id}", response_model=schemas.ClientType, summary='Delete a client type', tags=['Clients'])
+def delete_client_type(client_type_id: int, db: Session = Depends(get_db)):
+    client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client_type_id)
+    if not client_type_exists:
+        raise HTTPException(status_code=400, detail="Client type not found")
+    
+    return_value =  db_query.delete_client_type(db=db, client_type_id=client_type_id)
+    if return_value == client_type_id:
+        return JSONResponse(content={'Action': 'Client type deleted', 'Client type id': client_type_id})
+    
+@router.delete("/clients/delete/{client_id}", summary='Delete a client', tags=['Clients'])
 def remove_client(client_id: int, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_id(db, client_id=client_id)
     if not client_exists:
@@ -173,6 +176,86 @@ def remove_client(client_id: int, db: Session = Depends(get_db)):
     if return_value == client_id:
         return JSONResponse(content={'Action': 'Client deleted', 'Client id': client_id})
 
+#- services -#
+@router.post("/service/type/add", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
+def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
+    '''
+    ## Add service type
+    - **name**: Service type name* 
+    - **description**: Description
+
+    *Required
+    '''
+    service_type_exists = db_query.get_service_type_by_name(db, service_type=service_type)
+    if service_type_exists:
+        raise HTTPException(status_code=400, detail="Service type exists")
+    return db_query.add_service_type(db=db, service_type=service_type)
+
+@router.post("/service/add", response_model=schemas.Service, summary='Add a service', tags=['Services'])
+def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
+    '''
+    ## Add service
+    - **client-id**: Client id*
+    - **point**: Service location* 
+    - **service_type_id**: Service type id*
+    - **bandwidth**: Bandwidth amount in Mbps*
+    - **pop_id**: Pop id*
+    - **extra_info**: Information on the service (Primary, Secondary, Head office/Branch office, connected to DC/DR etc)
+
+    **Note**: *Required items
+    '''
+   
+    service_exists = db_query.get_service_by_properties(db=db, service=service)
+    if service_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service exists')
+    
+    return db_query.add_service(db=db, service=service)
+
+@router.put("/service/modify", response_model=schemas.Service, summary='Modify a service', tags=['Services'])
+def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
+    '''
+    ## Modify service
+    - **id**: Service id* 
+    - **client_id**: Client id*
+    - **point**: Service location* 
+    - **service_type_id**: Service type id*
+    - **bandwidth**: Bandwidth amount in Mbps*
+    - **pop_id**: Pop id*
+    - **extra_info**: Information on the service (Primary, Secondary, Head office/Branch office, connected to DC/DR etc)
+
+    **Note**: *Required items
+    '''
+   
+    service_exists = db_query.get_service_by_id(db=db, service_id=service.id)
+    if not service_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
+    
+    return db_query.modify_service(db=db, service=service)
+
+@router.delete("/service/type/delete/{service_type_id}", summary='Delete a service type', tags=['Services'])
+def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
+    service_type_exists = db_query.get_service_type_by_id(db, service_type_id=service_type_id)
+    if not service_type_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service type not found")
+    
+    return_value = db_query.delete_service_type(db=db, service_type_id=service_type_id)
+    if return_value == service_type_id:
+        return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})
+
+@router.delete("/service/delete", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
+def modify_service(service_id: int, db: Session = Depends(get_db)):
+    service_exists = db_query.get_service_by_id(db=db, service_id=service_id)
+    if not service_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
+    
+    return_value = db_query.delete_service(db=db, service_id=service_id)
+    if return_value == service_id:
+        entry_deleted = schemas.EntryDelete(message='Service deleted', id=service_id)
+        return entry_deleted
+    else:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
+
+#- contacts -#
 @router.post("/contacts/add", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
 def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     """
@@ -200,7 +283,7 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
 
     return db_query.add_contact(db=db, contact=contact)
 
-@router.post("/contacts/modify", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
+@router.put("/contacts/modify", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
 def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
     """
     ## Modify a contact
@@ -228,7 +311,7 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
 
     return db_query.modify_contact(db=db, contact=contact)
 
-@router.post("/contact/delete/{contact_id}", summary='Delete a contact', tags=['Contacts'])
+@router.delete("/contact/delete/{contact_id}", summary='Delete a contact', tags=['Contacts'])
 def remove_contact(contact_id: int, db: Session = Depends(get_db)):
     contact_exists = db_query.get_contact_by_id(db, contact_id=contact_id)
     if not contact_exists:
@@ -238,30 +321,7 @@ def remove_contact(contact_id: int, db: Session = Depends(get_db)):
     if return_value == contact_id:
         return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
 
-@router.post("/service/type/add", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
-def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
-    '''
-    ## Add service type
-    - **name**: Service type name* 
-    - **description**: Description
-
-    *Required
-    '''
-    service_type_exists = db_query.get_service_type_by_name(db, service_type=service_type)
-    if service_type_exists:
-        raise HTTPException(status_code=400, detail="Service type exists")
-    return db_query.add_service_type(db=db, service_type=service_type)
-
-@router.post("/service/type/delete/{service_type_id}", summary='Delete a service type', tags=['Services'])
-def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
-    service_type_exists = db_query.get_service_type_by_id(db, service_type_id=service_type_id)
-    if not service_type_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service type not found")
-    
-    return_value = db_query.delete_service_type(db=db, service_type_id=service_type_id)
-    if return_value == service_type_id:
-        return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})
-
+#- addresses -#
 @router.post("/address/add", response_model=schemas.Address, summary='Add an address', tags=['Addresses'])
 def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     '''
@@ -286,7 +346,7 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     
     return db_query.add_address(db=db, address=address)    
 
-@router.post("/address/modify", response_model=schemas.Address, summary='Modify an address', tags=['Addresses'])
+@router.put("/address/modify", response_model=schemas.Address, summary='Modify an address', tags=['Addresses'])
 def modify_address(address: schemas.Address, db: Session = Depends(get_db)):
     '''
     ## Modify address
@@ -315,7 +375,7 @@ def modify_address(address: schemas.Address, db: Session = Depends(get_db)):
     
     return db_query.modify_address(db=db, address=address)
 
-@router.post("/address/delete/{address_id}", summary='Delete an address', tags=['Addresses'])
+@router.delete("/address/delete/{address_id}", summary='Delete an address', tags=['Addresses'])
 def remove_address(address_id: int, db: Session = Depends(get_db)):
     address_exists = db_query.get_address_by_id(db, address_id=address_id)
     if not address_exists:
@@ -325,60 +385,7 @@ def remove_address(address_id: int, db: Session = Depends(get_db)):
     if return_value == address_id:
         return JSONResponse(content={'Action': 'Address deleted', 'Address id': address_id})
 
-@router.post("/service/add", response_model=schemas.Service, summary='Add a service', tags=['Services'])
-def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
-    '''
-    ## Add service
-    - **client-id**: Client id*
-    - **point**: Service location* 
-    - **service_type_id**: Service type id*
-    - **bandwidth**: Bandwidth amount in Mbps*
-    - **pop_id**: Pop id*
-    - **extra_info**: Information on the service (Primary, Secondary, Head office/Branch office, connected to DC/DR etc)
-
-    **Note**: *Required items
-    '''
-   
-    service_exists = db_query.get_service_by_properties(db=db, service=service)
-    if service_exists:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service exists')
-    
-    return db_query.add_service(db=db, service=service)
-
-@router.post("/service/modify", response_model=schemas.Service, summary='Modify a service', tags=['Services'])
-def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
-    '''
-    ## Modify service
-    - **id**: Service id* 
-    - **client_id**: Client id*
-    - **point**: Service location* 
-    - **service_type_id**: Service type id*
-    - **bandwidth**: Bandwidth amount in Mbps*
-    - **pop_id**: Pop id*
-    - **extra_info**: Information on the service (Primary, Secondary, Head office/Branch office, connected to DC/DR etc)
-
-    **Note**: *Required items
-    '''
-   
-    service_exists = db_query.get_service_by_id(db=db, service_id=service.id)
-    if not service_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
-    
-    return db_query.modify_service(db=db, service=service)
-
-@router.delete("/service/delete", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
-def modify_service(service_id: int, db: Session = Depends(get_db)):
-    service_exists = db_query.get_service_by_id(db=db, service_id=service_id)
-    if not service_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
-    
-    return_value = db_query.delete_service(db=db, service_id=service_id)
-    if return_value == service_id:
-        entry_deleted = schemas.EntryDelete(message='Service deleted', id=service_id)
-        return entry_deleted
-    else:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
-
+#- vendors -#
 @router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
 def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     '''
@@ -422,6 +429,7 @@ def delete_vendor(vendor_id: int, db: Session = Depends(get_db)):
     if vendor_deleted == vendor_id:
         return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)
 
+#- pops -#
 @router.post("/pop/add", response_model=schemas.Pop, summary='Add a pop', tags=['Pops'])
 def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
     '''
