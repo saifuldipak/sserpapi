@@ -148,6 +148,15 @@ def read_contact(contact_name: str | None = None, page: int = 0, page_size: int 
     else:
         return contact_list
 
+@router.get("/search/service/type", response_model=list[schemas.ServiceType], summary='Search service type', tags=['Searches'])
+def search_service_type(service_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    offset = page * page_size
+    service_type_list =  db_query.get_service_type_list(db=db, service_type=service_type, offset=offset, limit=page_size)
+    if not service_type_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return service_type_list
+
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -277,15 +286,6 @@ def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depend
     if service_type_exists:
         raise HTTPException(status_code=400, detail="Service type exists")
     return db_query.add_service_type(db=db, service_type=service_type)
-
-@router.get("/service/type/search", response_model=list[schemas.ServiceType], summary='Search service type', tags=['Services'])
-def search_service_type(service_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    offset = page * page_size
-    service_type_list =  db_query.get_service_type_list(db=db, service_type=service_type, offset=offset, limit=page_size)
-    if not service_type_list:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return service_type_list
 
 @router.post("/service/type/delete/{service_type_id}", summary='Delete a service type', tags=['Services'])
 def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
