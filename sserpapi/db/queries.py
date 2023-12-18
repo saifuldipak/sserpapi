@@ -75,9 +75,13 @@ def add_contact(db: Session, contact: schemas.ContactBase):
     db.refresh(new_contact)
     return new_contact
 
-def get_contact_list(db: Session, contact_name: str, offset: int = 0, limit: int = 100):
-    contact_name_string = f'%{contact_name}%'
-    return db.query(models.Contacts).join(models.Clients).options(joinedload(models.Contacts.clients)).filter(models.Contacts.name.ilike(contact_name_string)).offset(offset).limit(limit).all()
+def get_contact_list(db: Session, contact_name: str | None = None, offset: int = 0, limit: int = 100):    
+    base_query = db.query(models.Contacts)
+    if contact_name:
+        contact_name_string = f'%{contact_name}%'
+        base_query.filter(models.Contacts.name.ilike(contact_name_string))
+    
+    return base_query.offset(offset).limit(limit).all()
     
 def delete_client(db: Session, client_id: int):
     client = db.query(models.Clients).filter(models.Clients.id==client_id).first()

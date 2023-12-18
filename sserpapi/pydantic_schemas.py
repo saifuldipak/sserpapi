@@ -61,18 +61,17 @@ class ClientType(ClientTypeBase):
 class Client(ClientBase):
     id: int
 
-class ContactWithClientName(Contact):
-    clients: Client
-
-    class Config:
-        from_attributes = True
-
 class VendorBase(BaseModel):
     name: str
     type: typing_extensions.Literal['LSP', 'NTTN', 'ISP']
 
 class Vendor(VendorBase):
     id: int
+
+class ContactDetails(Contact):
+    clients: Client | None = None
+    vendors: Vendor | None = None
+    services: Service | None = None
 
 class ServiceTypeBase(BaseModel):
     name: str

@@ -142,6 +142,15 @@ def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(g
     db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
     return db_client_types
 
+@router.get("/search/contact", response_model=list[schemas.ContactDetails], summary='Get contact list', tags=['Searches'])
+def read_contact(contact_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    offset = page * page_size
+    contact_list = db_query.get_contact_list(db, contact_name=contact_name, offset=offset, limit=page_size)
+    if not contact_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Contact not found')
+    else:
+        return contact_list
+
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -214,17 +223,6 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check_result.message)
 
     return db_query.add_contact(db=db, contact=contact)
-
-@router.get("/contacts/search/{contact_name}", response_model=list[schemas.ContactWithClientName], summary='Search contact', tags=['Contacts'])
-def read_contact(contact_name: str, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    """
-    ## Search contact by name
-    **contact_name**: Full or partial contact name*
-
-    **Note**: *Required. If you provide partial name, it will show all contacts which has that name
-    """
-    offset = page * page_size
-    return db_query.get_contact_list(db, contact_name=contact_name, offset=offset, limit=page_size)
 
 @router.post("/contacts/modify", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
 def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
