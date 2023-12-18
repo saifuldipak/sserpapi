@@ -483,3 +483,13 @@ def modify_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
     
     return db_query.modify_pop(db=db, pop=pop)
+
+@router.delete("/pop/delete", response_model=schemas.EntryDelete, summary='Delete a pop', tags=['Pops'])
+def delete_pop(pop_id: int, db: Session = Depends(get_db)):
+    pop_exists = db_query.get_pop_by_id(db=db, pop_id=pop_id)
+    if not pop_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
+    
+    vendor_deleted = db_query.delete_pop(db=db, pop_id=pop_id)
+    if vendor_deleted == pop_id:
+        return schemas.EntryDelete(message='Pop deleted', id=pop_id)

@@ -321,3 +321,9 @@ def modify_pop(db: Session, pop: schemas.Pop):
     db.commit()
     db.refresh(pop_in_db)
     return pop_in_db
+
+def delete_pop(db: Session, pop_id: int) -> int:
+    pop_in_db = db.query(models.Pops).filter(models.Pops.id==pop_id).first()
+    db.delete(pop_in_db)
+    db.commit()
+    return pop_id
