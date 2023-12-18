@@ -327,3 +327,23 @@ def delete_pop(db: Session, pop_id: int) -> int:
     db.delete(pop_in_db)
     db.commit()
     return pop_id
+
+def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: int | None = None, offset: int = 0, limit: int = 10):
+    base_query = (
+        db.query(models.Pops)
+        .outerjoin(models.Vendors)
+        .outerjoin(models.Services)
+        .options(joinedload(models.Pops.vendors))    
+        .options(joinedload(models.Pops.services))
+    )
+
+    pop_name_string = f'%{pop_name}%'
+
+    if pop_name and not pop_owner:
+        base_query=  base_query.filter(models.Pops.name.ilike(pop_name_string))
+    elif not pop_name and pop_owner:
+        base_query = base_query.filter(models.Pops.owner==pop_owner)
+    else:
+        base_query = base_query.filter(models.Pops.name.ilike(pop_name_string), models.Pops.owner==pop_owner)
+
+    return base_query.offset(offset).limit(limit).all()

@@ -115,6 +115,18 @@ def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None
     else:
         return vendor_list
     
+@router.get("/search/pop", response_model=list[schemas.PopDetails], summary='Search pop', tags=['Searches'])
+def search_pop(pop_name: str | None = None, pop_owner: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    if not pop_name and not pop_owner:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
+    
+    offset = page * page_size
+    pop_list =  db_query.get_pop_list(db=db, pop_name=pop_name, pop_owner=pop_owner, offset=offset, limit=page_size)
+    if not pop_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return pop_list
+    
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)

@@ -122,3 +122,7 @@ class PopBase(BaseModel):
 
 class Pop(PopBase):
     id: int
+
+class PopDetails(Pop):
+    vendors: Vendor = None
+    services: list[Service] = []
