@@ -347,3 +347,16 @@ def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: int | None
         base_query = base_query.filter(models.Pops.name.ilike(pop_name_string), models.Pops.owner==pop_owner)
 
     return base_query.offset(offset).limit(limit).all()
+
+def get_client_list(db: Session, client_name: str | None = None, client_type_id: int | None = None, offset: int = 0, limit: int = 10):
+    client_name_string = f'{client_name}%'
+    base_query = db.query(models.Clients)
+
+    if client_name and not client_type_id:
+        base_query=  base_query.filter(models.Clients.name.ilike(client_name_string))
+    elif not client_name and client_type_id:
+        base_query = base_query.filter(models.Clients.client_type_id==client_type_id)
+    elif client_name and client_type_id:
+        base_query = base_query.filter(models.Clients.name.ilike(client_name_string), models.Clients.client_type_id==client_type_id)
+
+    return base_query.offset(offset).limit(limit).all()

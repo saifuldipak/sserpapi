@@ -126,6 +126,15 @@ def search_pop(pop_name: str | None = None, pop_owner: int | None = None, page: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:
         return pop_list
+
+@router.get("/search/client", response_model=list[schemas.ClientDetails], summary='Search client', tags=['Searches'])
+def search_client(client_name: str | None = None, client_type_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    offset = page * page_size
+    client_list =  db_query.get_client_list(db=db, client_name=client_name, offset=offset, limit=page_size)
+    if not client_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return client_list
     
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
