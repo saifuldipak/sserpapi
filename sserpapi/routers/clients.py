@@ -135,7 +135,13 @@ def search_client(client_name: str | None = None, client_type_id: int | None = N
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:
         return client_list
-    
+
+@router.get("/search/client/type", response_model=list[schemas.ClientType], summary='Get client type list', tags=['Searches'])
+def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    offset = page * page_size
+    db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
+    return db_client_types
+
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -166,12 +172,6 @@ def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(g
     if client_type_exists:
         raise HTTPException(status_code=400, detail="Client type exists")
     return db_query.add_client_type(db=db, client_type=client_type)
-
-@router.get("/clients/types/get", response_model=list[schemas.ClientType], summary='Get client type list', tags=['Clients'])
-def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    offset = page * page_size
-    db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
-    return db_client_types
 
 @router.post("/client/type/delete", response_model=schemas.ClientType, summary='Delete a client type', tags=['Clients'])
 def delete_client_type(client_type_id: int, db: Session = Depends(get_db)):
