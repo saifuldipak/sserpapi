@@ -442,3 +442,23 @@ def delete_vendor(vendor_id: int, db: Session = Depends(get_db)):
     vendor_deleted = db_query.delete_vendor(db=db, vendor_id=vendor_id)
     if vendor_deleted == vendor_id:
         return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)
+
+@router.post("/pop/add", response_model=schemas.Pop, summary='Add a pop', tags=['Pops'])
+def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
+    '''
+    ## Add Pop
+    - **name**: Pop name*
+    - **owner**: Vendor id*
+    - **extra_info**: Any extra information 
+
+    **Note**: *Required items
+    '''
+    pop_owner = db_query.get_vendor_by_id(db=db, vendor_id=pop.owner)
+    if not pop_owner:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
+    
+    pop_exists = db_query.get_pop_by_properties(db=db, pop=pop)
+    if pop_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop exists')
+    
+    return db_query.add_pop(db=db, pop=pop)

@@ -299,3 +299,13 @@ def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: st
         base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string), models.Vendors.type==vendor_type)
 
     return base_query.offset(offset).limit(limit).all()
+
+def get_pop_by_properties(db: Session, pop: schemas.PopBase):
+    return db.query(models.Pops).filter(models.Pops.name==pop.name, models.Pops.owner==pop.owner).first()
+
+def add_pop(db: Session, pop: schemas.PopBase):
+    new_pop = models.Pops(**pop.model_dump())
+    db.add(new_pop)
+    db.commit()
+    db.refresh(new_pop)
+    return new_pop
