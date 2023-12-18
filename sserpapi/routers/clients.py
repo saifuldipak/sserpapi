@@ -86,7 +86,7 @@ def check_phone_number_length(db: Session, schema_object) -> Result:
     for phone_number in phone_numbers_exists:
         if len(phone_number) != 11:
             result.value = False
-            result.message = 'Phone number must be 11 digits'
+            result.message = f'{phone_number} - Phone number must be 11 digits'
             return result    
     
     return result
@@ -218,9 +218,14 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
-    check_result = check_contact_properties(db, contact)
+    check_result = check_id_presence(db=db, schema_object=contact)
     if not check_result.value:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check_result.message)
+
+
+    phone_number_ok = check_phone_number_length(db, contact)
+    if not phone_number_ok.value:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=phone_number_ok.message)
 
     return db_query.add_contact(db=db, contact=contact)
 
