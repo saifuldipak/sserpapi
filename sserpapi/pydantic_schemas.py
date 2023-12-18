@@ -102,10 +102,6 @@ class ClientDetails(Client):
     services: list[Service] = []
     client_type: ClientType
 
-class ServiceDetails(Service):
-    service_types: ServiceType
-    clients: Client
-
 class EntryDelete(BaseModel):
     message: str
     id: int
@@ -125,3 +121,8 @@ class Pop(PopBase):
 class PopDetails(Pop):
     vendors: Vendor = None
     services: list[Service] = []
+
+class ServiceDetails(Service):
+    service_types: ServiceType
+    pops: Pop
+    clients: Client
