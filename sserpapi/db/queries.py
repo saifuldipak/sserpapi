@@ -140,12 +140,20 @@ def add_vendor(db: Session, vendor: schemas.VendorBase):
     db.refresh(new_vendor)
     return new_vendor
 
-def get_vendor_list(db: Session, vendor_name: str | None = None, offset: int = 0, limit: int = 100):
+def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: str | None = None, offset: int = 0, limit: int = 100):
+    base_query = db.query(models.Vendors)
+
     if vendor_name:
         vendor_name_string = f'{vendor_name}%'
-        return db.query(models.Vendors).filter(models.Vendors.name.ilike(vendor_name_string)).offset(offset).limit(limit).all()
-    else:
-        return db.query(models.Vendors).offset(offset).limit(limit).all()
+    
+    if vendor_name and not vendor_type:
+        base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string))
+    elif not vendor_name and vendor_type:
+        base_query = base_query.filter(models.Vendors.type==vendor_type)
+    elif vendor_name and vendor_type:
+        base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string), models.Vendors.type==vendor_type)
+
+    return base_query.offset(offset).limit(limit).all()
 
 def get_service_type_by_name(db: Session, service_type: schemas.ServiceTypeBase):
     return db.query(models.ServiceTypes).filter(models.ServiceTypes.name==service_type.name).first()
@@ -276,28 +284,6 @@ def delete_vendor(db: Session, vendor_id: int) -> int:
     db.delete(vendor_in_db)
     db.commit()
     return vendor_id
-
-def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: str | None = None, offset: int = 0, limit: int = 10):
-    base_query = (
-        db.query(models.Vendors)
-        .outerjoin(models.Contacts)
-        .outerjoin(models.Addresses)
-        .outerjoin(models.LeasedLinks)
-        .options(joinedload(models.Vendors.contacts))    
-        .options(joinedload(models.Vendors.addresses))
-        .options(joinedload(models.Vendors.leased_links))
-    )
-
-    vendor_name_string = f'%{vendor_name}%'
-
-    if vendor_name and not vendor_type:
-        base_query=  base_query.filter(models.Vendors.name.ilike(vendor_name_string))
-    elif not vendor_name and vendor_type:
-        base_query = base_query.filter(models.Vendors.type==vendor_type)
-    else:
-        base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string), models.Vendors.type==vendor_type)
-
-    return base_query.offset(offset).limit(limit).all()
 
 def get_pop_by_properties(db: Session, pop: schemas.PopBase):
     return db.query(models.Pops).filter(models.Pops.name==pop.name, models.Pops.owner==pop.owner).first()

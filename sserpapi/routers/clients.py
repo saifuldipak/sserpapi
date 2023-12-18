@@ -68,10 +68,7 @@ def search_service(service_point: str | None = None, client_id: int | None = Non
         return service_list
     
 @router.get("/search/vendor", response_model=list[schemas.VendorDetails], summary='Search vendor', tags=['Searches'])
-def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    if not vendor_name and not vendor_type:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
-    
+def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
     offset = page * page_size
     vendor_list =  db_query.get_vendor_list(db=db, vendor_name=vendor_name, vendor_type=vendor_type, offset=offset, limit=page_size)
     if not vendor_list:
