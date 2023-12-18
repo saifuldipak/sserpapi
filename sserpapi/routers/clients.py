@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor", "user"])])
 
-class Result:
-    value: bool = True
+class Check:
+    failed: bool = False
     message: str = ''
 
-def check_contact_properties(db: Session, contact: schemas.ContactBase) -> Result:
+""" def check_contact_properties(db: Session, contact: schemas.ContactBase) -> Result:
     result = Result()
     id_values = [contact.client_id, contact.service_id, contact.vendor_id]
     id_values_exists = [item for item in id_values if item is not None]
@@ -48,48 +48,48 @@ def check_contact_properties(db: Session, contact: schemas.ContactBase) -> Resul
             result.value = False
             result.message = 'Vendor id does not exist'
     
-    return result
+    return result """
 
-def check_id_presence(db: Session, schema_object) -> Result:
-    result = Result()
+def check_id_presence(db: Session, schema_object) -> Check:
+    check = Check()
     id_values = [schema_object.client_id, schema_object.service_id, schema_object.vendor_id]
     id_values_exists = [item for item in id_values if item is not None]
     
     if len(id_values_exists) != 1:
-        result.value = False
-        result.message = 'You must provide any of client_id, service_id or vendor_id but not more than one'
-        return result
+        check.failed = True
+        check.message = 'You must provide any of client_id, service_id or vendor_id but not more than one'
+        return check
     
     if schema_object.client_id:
         client_exists = db_query.get_client_by_id(db, client_id=schema_object.client_id)
         if not client_exists:
-            result.value = False
-            result.message = 'Client id does not exist'
+            check.failed = True
+            check.message = 'Client id does not exist'
     elif schema_object.service_id:
         service_exists = db_query.get_service_by_id(db, service_id=schema_object.service_id)
         if not service_exists:
-            result.value = False
-            result.message = 'Service id does not exist'
+            check.failed = True
+            check.message = 'Service id does not exist'
     elif schema_object.vendor_id:
         vendor_exists = db_query.get_vendor_by_id(db, vendor_id=schema_object.vendor_id)
         if not vendor_exists:
-            result.value = False
-            result.message = 'Vendor id does not exist'
+            check.failed = True
+            check.message = 'Vendor id does not exist'
     
-    return result
+    return check
 
-def check_phone_number_length(db: Session, schema_object) -> Result:
-    result = Result()
+def check_phone_number_length(db: Session, schema_object) -> Check:
+    check = Check()
     phone_numbers = [schema_object.phone1, schema_object.phone2, schema_object.phone3]
     phone_numbers_exists = [item for item in phone_numbers if item is not None]
     
     for phone_number in phone_numbers_exists:
         if len(phone_number) != 11:
-            result.value = False
-            result.message = f'{phone_number} - Phone number must be 11 digits'
-            return result    
+            check.failed = True
+            check.message = f'{phone_number} - Phone number must be 11 digits'
+            return check    
     
-    return result
+    return check
 
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
 def search(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
@@ -218,14 +218,14 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
-    check_result = check_id_presence(db=db, schema_object=contact)
-    if not check_result.value:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check_result.message)
+    check = check_id_presence(db=db, schema_object=contact)
+    if check.failed:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
 
-    phone_number_ok = check_phone_number_length(db, contact)
-    if not phone_number_ok.value:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=phone_number_ok.message)
+    check = check_phone_number_length(db, contact)
+    if check.failed:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
     return db_query.add_contact(db=db, contact=contact)
 
@@ -246,9 +246,14 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
-    check_result = check_contact_properties(db, contact)
-    if not check_result.value:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check_result.message)
+    check = check_id_presence(db=db, schema_object=contact)
+    if check.failed:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
+
+
+    check = check_phone_number_length(db, contact)
+    if check.failed:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
     return db_query.modify_contact(db=db, contact=contact)
 
