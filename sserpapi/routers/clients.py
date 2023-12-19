@@ -17,31 +17,33 @@ class Check:
     message: str = ''
 
 #- helper functions -#
-def check_id_presence(db: Session, schema_object) -> Check:
+def check_id_presence(db: Session, ids: dict) -> Check:
     check = Check()
-    id_values = [schema_object.client_id, schema_object.service_id, schema_object.vendor_id]
-    id_values_exists = [item for item in id_values if item is not None]
+    no_of_ids = sum(value is not None for value in ids.values())
 
-    if len(id_values_exists) != 1:
+    if no_of_ids != 1:
         check.failed = True
         check.message = 'You must provide any of client_id, service_id, or vendor_id but not more than one'
         return check
 
-    if schema_object.client_id:
-        client_exists = db_query.get_client_by_id(db, client_id=schema_object.client_id)
+    if ids['client_id']:
+        client_exists = db_query.get_client_by_id(db, client_id=ids['client_id'])
         if not client_exists:
             check.failed = True
             check.message = 'Client id does not exist'
-    elif schema_object.service_id:
-        service_exists = db_query.get_service_by_id(db, service_id=schema_object.service_id)
+    elif ids['service_id']:
+        service_exists = db_query.get_service_by_id(db, service_id=ids['service_id'])
         if not service_exists:
             check.failed = True
             check.message = 'Service id does not exist'
-    elif schema_object.vendor_id:
-        vendor_exists = db_query.get_vendor_by_id(db, vendor_id=schema_object.vendor_id)
+    elif ids['vendor_id']:
+        vendor_exists = db_query.get_vendor_by_id(db, vendor_id=ids['vendor_id'])
         if not vendor_exists:
             check.failed = True
             check.message = 'Vendor id does not exist'
+    else:
+        check.failed = True
+        check.message = 'Key names should be "client_id", "service_id" and "vendor_id"'
 
     return check
 
@@ -270,7 +272,8 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
-    check = check_id_presence(db=db, schema_object=contact)
+    ids = {'client_id': contact.client_id, 'service_id': contact.service_id, 'vendor_id': contact.vendor_id}
+    check = check_id_presence(db=db, ids=ids)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
@@ -298,7 +301,8 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
-    check = check_id_presence(db=db, schema_object=contact)
+    ids = {'client_id': contact.client_id, 'service_id': contact.service_id, 'vendor_id': contact.vendor_id}
+    check = check_id_presence(db=db, ids=ids)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
@@ -338,7 +342,8 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
 
     **Note**: *Required items, **Need to give at least any one of these items but not more than one
     '''
-    check = check_id_presence(db=db, schema_object=address)
+    ids = {'client_id': address.client_id, 'service_id': address.service_id, 'vendor_id': address.vendor_id}
+    check = check_id_presence(db=db, ids=ids)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
     
@@ -363,7 +368,8 @@ def modify_address(address: schemas.Address, db: Session = Depends(get_db)):
 
     **Note**: *Required items, **Need to give at least any one of these items but not more than one
     '''
-    check = check_id_presence(db=db, schema_object=address)
+    ids = {'client_id': address.client_id, 'service_id': address.service_id, 'vendor_id': address.vendor_id}
+    check = check_id_presence(db=db, ids=ids)
     if not check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
     
