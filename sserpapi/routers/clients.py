@@ -35,7 +35,7 @@ class Check:
     failed: bool = False
     message: str = ''
 
-#- helper functions -#
+#-- Helper functions --#
 def check_id_presence(db: Session, ids: dict) -> Check:
     """
     Checks the presence and validity of identifiers (client_id, service_id, vendor_id) in the provided dictionary.
@@ -125,7 +125,9 @@ def check_phone_number_length(phone_numbers: tuple) -> Check:
 
     return check
 
-#-- Search different types of records --#
+#-- API routes --#
+
+# Search different types of records #
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
 def search_service(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
     offset = page * page_size
@@ -189,7 +191,7 @@ def search_service_type(service_type: str | None = None, page: int = 0, page_siz
     else:
         return service_type_list
 
-#- client and client types add, update & delete -#
+# client and client types add, update & delete #
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -241,7 +243,7 @@ def remove_client(client_id: int, db: Session = Depends(get_db)):
     if return_value == client_id:
         return JSONResponse(content={'Action': 'Client deleted', 'Client id': client_id})
 
-#-- Service and service types add, update and delete --#
+# Service and service types add, update and delete #
 @router.post("/service/type/add", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
 def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
     '''
@@ -320,7 +322,7 @@ def remove_service(service_id: int, db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
 
-#-- Contacts add, update & delete --#
+# Contacts add, update & delete #
 @router.post("/contacts/add", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
 def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     """
@@ -388,7 +390,7 @@ def remove_contact(contact_id: int, db: Session = Depends(get_db)):
     if return_value == contact_id:
         return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
 
-#-- Address add, update & modify --#
+# Address add, update & modify #
 @router.post("/address/add", response_model=schemas.Address, summary='Add an address', tags=['Addresses'])
 def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     '''
@@ -454,7 +456,7 @@ def remove_address(address_id: int, db: Session = Depends(get_db)):
     if return_value == address_id:
         return JSONResponse(content={'Action': 'Address deleted', 'Address id': address_id})
 
-#-- Vendors add, update & modify --#
+# Vendors add, update & modify #
 @router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
 def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     '''
@@ -498,7 +500,7 @@ def remove_vendor(vendor_id: int, db: Session = Depends(get_db)):
     if vendor_deleted == vendor_id:
         return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)
 
-#-- Pops add, update & delete --#
+# Pops add, update & delete #
 @router.post("/pop/add", response_model=schemas.Pop, summary='Add a pop', tags=['Pops'])
 def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
     '''
