@@ -13,11 +13,56 @@ logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor", "user"])])
 
 class Check:
+    """
+    Represents the result of a check operation.
+
+    Attributes:
+    - failed (bool): Indicates whether the check failed (True) or succeeded (False).
+    - message (str): A message providing additional information about the check result.
+
+    Example:
+    >>> result = Check()
+    >>> result.failed = True
+    >>> result.message = 'Validation failed due to missing data'
+    >>> print(result.failed)  # True
+    >>> print(result.message)  # 'Validation failed due to missing data'
+
+    Note:
+    - Instances of this class are typically used to convey the outcome of validation or verification checks.
+    - The 'failed' attribute is a boolean indicating the success or failure of the check.
+    - The 'message' attribute provides additional details or reasons for the check result.
+    """
     failed: bool = False
     message: str = ''
 
 #- helper functions -#
 def check_id_presence(db: Session, ids: dict) -> Check:
+    """
+    Checks the presence and validity of identifiers (client_id, service_id, vendor_id) in the provided dictionary.
+
+    Parameters:
+    - db (Session): The database session to perform queries.
+    - ids (dict): A dictionary containing identifiers with keys 'client_id', 'service_id', and 'vendor_id'.
+
+    Returns:
+    - Check: An object indicating the result of the checks, including success or failure status and messages.
+
+    Example:
+    >>> from sqlalchemy.orm import Session
+    >>> import db.queries as db_query
+
+    >>> session = Session()  # Replace with your actual database session
+    >>> id_dict = {'client_id': 1, 'service_id': None, 'vendor_id': None}
+    >>> result = check_id_presence(session, id_dict)
+    >>> print(result.failed)  # True or False
+    >>> print(result.message)  # Failure or success message
+
+    Note:
+    - The function checks that exactly one of client_id, service_id, or vendor_id is provided in the dictionary.
+    - It then validates the presence of the provided identifier in the respective database table.
+    - The dictionary keys should be 'client_id', 'service_id', and 'vendor_id'.
+    - If the dictionary structure is incorrect, the check fails with an appropriate message.
+    """
     check = Check()
     no_of_ids = sum(value is not None for value in ids.values())
 
@@ -43,20 +88,41 @@ def check_id_presence(db: Session, ids: dict) -> Check:
             check.message = 'Vendor id does not exist'
     else:
         check.failed = True
-        check.message = 'Key names should be "client_id", "service_id" and "vendor_id"'
+        check.message = 'Key names should be "client_id", "service_id", and "vendor_id"'
 
     return check
 
 def check_phone_number_length(phone_numbers: tuple) -> Check:
+    """
+    Checks the length of phone numbers in the provided tuple.
+
+    Parameters:
+    - phone_numbers (tuple): A tuple containing phone numbers to be checked.
+
+    Returns:
+    - Check: An object indicating the result of the phone number length checks, including success or failure status
+      and messages.
+
+    Example:
+    >>> phone_numbers = ('12345678901', '98765432109', None)
+    >>> result = check_phone_number_length(phone_numbers=phone_numbers)
+    >>> print(result.failed)  # True or False
+    >>> print(result.message)  # Failure or success message
+
+    Note:
+    - The function checks the length of each provided phone number (11 digits expected).
+    - If any phone number has a length other than 11 digits, the check fails, and an appropriate message is set.
+    - The 'failed' attribute in the returned Check object indicates the overall success or failure of the checks.
+    """
     check = Check()
     phone_numbers_exists = [phone_number for phone_number in phone_numbers if phone_number is not None]
-    
+
     for phone_number in phone_numbers_exists:
         if len(phone_number) != 11:
             check.failed = True
             check.message = f'{phone_number} - Phone number must be 11 digits'
-            return check    
-    
+            return check
+
     return check
 
 #-- Search different types of records --#
