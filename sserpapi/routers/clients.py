@@ -47,10 +47,9 @@ def check_id_presence(db: Session, ids: dict) -> Check:
 
     return check
 
-def check_phone_number_length(schema_object) -> Check:
+def check_phone_number_length(phone_numbers: tuple) -> Check:
     check = Check()
-    phone_numbers = [schema_object.phone1, schema_object.phone2, schema_object.phone3]
-    phone_numbers_exists = [item for item in phone_numbers if item is not None]
+    phone_numbers_exists = [phone_number for phone_number in phone_numbers if phone_number is not None]
     
     for phone_number in phone_numbers_exists:
         if len(phone_number) != 11:
@@ -277,8 +276,8 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
-
-    check = check_phone_number_length(contact)
+    phone_numbers = (contact.phone1, contact.phone2, contact.phone3)
+    check = check_phone_number_length(phone_numbers=phone_numbers)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
@@ -306,8 +305,8 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
-
-    check = check_phone_number_length(contact)
+    phone_numbers = (contact.phone1, contact.phone2, contact.phone3)
+    check = check_phone_number_length(phone_numbers=phone_numbers)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
