@@ -1,7 +1,41 @@
-from pydantic import BaseModel, constr
+# pylint: disable=missing-docstring,E0401,C0301,C0303
+from pydantic import BaseModel
 import typing_extensions
-from fastapi import Form
 
+#-- table 'clients' and 'client_types' --#
+class ClientBase(BaseModel):
+    name: str
+    client_type_id: int
+
+class Client(ClientBase):
+    id: int
+
+class ClientTypeBase(BaseModel):
+    name: str
+
+class ClientType(ClientTypeBase):
+    id: int
+
+#-- table 'services' and 'service_types' --#
+class ServiceBase(BaseModel):
+    client_id: int
+    point: str
+    service_type_id: int
+    bandwidth: int
+    pop_id: int
+    extra_info: str | None = None
+
+class Service(ServiceBase):
+    id: int
+
+class ServiceTypeBase(BaseModel):
+    name: str
+    description: str | None = None
+
+class ServiceType(ServiceTypeBase):
+    id: int
+
+#-- table 'contacts' --#
 class ContactBase(BaseModel):
     name: str
     designation: str
@@ -16,51 +50,7 @@ class ContactBase(BaseModel):
 class Contact(ContactBase):
     id: int
 
-class ServiceBase(BaseModel):
-    client_id: int
-    point: str
-    service_type_id: int
-    bandwidth: int
-    pop_id: int
-    extra_info: str | None = None
-
-class Service(ServiceBase):
-    id: int
-
-class ClientBase(BaseModel):
-    name: str
-    client_type_id: int
-
-class UserBase(BaseModel):
-    user_name: str
-    email: str
-    full_name: str | None = None
-    disabled: bool | None = False
-    scope: str
-
-class User(UserBase):
-    password: str
-
-    class Config:
-        from_attributes = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    username: str | None = None
-    scopes: list[str] = []
-
-class ClientTypeBase(BaseModel):
-    name: str
-
-class ClientType(ClientTypeBase):
-    id: int
-
-class Client(ClientBase):
-    id: int
-
+#-- table 'vendors' --#
 class VendorBase(BaseModel):
     name: str
     type: typing_extensions.Literal['LSP', 'NTTN', 'ISP']
@@ -68,18 +58,7 @@ class VendorBase(BaseModel):
 class Vendor(VendorBase):
     id: int
 
-class ContactDetails(Contact):
-    clients: Client | None = None
-    vendors: Vendor | None = None
-    services: Service | None = None
-
-class ServiceTypeBase(BaseModel):
-    name: str
-    description: str | None = None
-
-class ServiceType(ServiceTypeBase):
-    id: int
-    
+#-- table 'addresses' --#
 class AddressBase(BaseModel):
     flat: str | None = None
     floor: str | None = None
@@ -96,20 +75,7 @@ class AddressBase(BaseModel):
 class Address(AddressBase):
     id: int
 
-class ClientDetails(Client):
-    addresses: list[Address] = []
-    contacts: list[Contact] = []
-    services: list[Service] = []
-    client_type: ClientType
-
-class EntryDelete(BaseModel):
-    message: str
-    id: int
-
-class VendorDetails(Vendor):
-    contacts: list[Contact] = []
-    addresses: list[Address] = []
-
+#-- table 'pops' --#
 class PopBase(BaseModel):
     name: str
     owner: int
@@ -118,11 +84,52 @@ class PopBase(BaseModel):
 class Pop(PopBase):
     id: int
 
-class PopDetails(Pop):
-    vendors: Vendor = None
+#-- table 'users' --#
+class UserBase(BaseModel):
+    user_name: str
+    email: str
+    full_name: str | None = None
+    disabled: bool | None = False
+    scope: str
+
+class User(UserBase):
+    password: str
+
+#-- JWT token generation --#
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+    scopes: list[str] = []
+
+#-- Return values for record deletion functions --#
+class EntryDelete(BaseModel):
+    message: str
+    id: int
+
+#-- records from different tables --#
+class ClientDetails(Client):
+    addresses: list[Address] = []
+    contacts: list[Contact] = []
     services: list[Service] = []
+    client_type: ClientType
 
 class ServiceDetails(Service):
     service_types: ServiceType
     pops: Pop
     clients: Client
+
+class PopDetails(Pop):
+    vendors: Vendor = None
+    services: list[Service] = []
+
+class ContactDetails(Contact):
+    clients: Client | None = None
+    vendors: Vendor | None = None
+    services: Service | None = None
+
+class VendorDetails(Vendor):
+    contacts: list[Contact] = []
+    addresses: list[Address] = []

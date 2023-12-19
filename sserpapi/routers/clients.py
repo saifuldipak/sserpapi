@@ -1,3 +1,4 @@
+# pylint: disable=E0401
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -20,12 +21,12 @@ def check_id_presence(db: Session, schema_object) -> Check:
     check = Check()
     id_values = [schema_object.client_id, schema_object.service_id, schema_object.vendor_id]
     id_values_exists = [item for item in id_values if item is not None]
-    
+
     if len(id_values_exists) != 1:
         check.failed = True
-        check.message = 'You must provide any of client_id, service_id or vendor_id but not more than one'
+        check.message = 'You must provide any of client_id, service_id, or vendor_id but not more than one'
         return check
-    
+
     if schema_object.client_id:
         client_exists = db_query.get_client_by_id(db, client_id=schema_object.client_id)
         if not client_exists:
@@ -41,10 +42,10 @@ def check_id_presence(db: Session, schema_object) -> Check:
         if not vendor_exists:
             check.failed = True
             check.message = 'Vendor id does not exist'
-    
+
     return check
 
-def check_phone_number_length(db: Session, schema_object) -> Check:
+def check_phone_number_length(schema_object) -> Check:
     check = Check()
     phone_numbers = [schema_object.phone1, schema_object.phone2, schema_object.phone3]
     phone_numbers_exists = [item for item in phone_numbers if item is not None]
@@ -57,7 +58,7 @@ def check_phone_number_length(db: Session, schema_object) -> Check:
     
     return check
 
-#- searches -#
+#-- Search different types of records --#
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
 def search_service(service_point: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
     offset = page * page_size
@@ -121,7 +122,7 @@ def search_service_type(service_type: str | None = None, page: int = 0, page_siz
     else:
         return service_type_list
 
-#- clients -#
+#- client and client types add, update & delete -#
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name(db, client_name=client.name)
@@ -142,7 +143,7 @@ def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(g
     return db_query.add_client_type(db=db, client_type=client_type)
 
 @router.put("/clients/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
-def remove_client(client: schemas.Client, db: Session = Depends(get_db)):
+def update_client(client: schemas.Client, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_id(db, client_id=client.id)
     if not client_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
@@ -173,7 +174,7 @@ def remove_client(client_id: int, db: Session = Depends(get_db)):
     if return_value == client_id:
         return JSONResponse(content={'Action': 'Client deleted', 'Client id': client_id})
 
-#- services -#
+#-- Service and service types add, update and delete --#
 @router.post("/service/type/add", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
 def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
     '''
@@ -240,7 +241,7 @@ def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
         return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})
 
 @router.delete("/service/delete", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
-def modify_service(service_id: int, db: Session = Depends(get_db)):
+def remove_service(service_id: int, db: Session = Depends(get_db)):
     service_exists = db_query.get_service_by_id(db=db, service_id=service_id)
     if not service_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
@@ -252,7 +253,7 @@ def modify_service(service_id: int, db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
 
-#- contacts -#
+#-- Contacts add, update & delete --#
 @router.post("/contacts/add", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
 def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     """
@@ -274,7 +275,7 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
 
-    check = check_phone_number_length(db, contact)
+    check = check_phone_number_length(contact)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
@@ -302,7 +303,7 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
 
-    check = check_phone_number_length(db, contact)
+    check = check_phone_number_length(contact)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
@@ -318,7 +319,7 @@ def remove_contact(contact_id: int, db: Session = Depends(get_db)):
     if return_value == contact_id:
         return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
 
-#- addresses -#
+#-- Address add, update & modify --#
 @router.post("/address/add", response_model=schemas.Address, summary='Add an address', tags=['Addresses'])
 def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     '''
@@ -337,9 +338,9 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
 
     **Note**: *Required items, **Need to give at least any one of these items but not more than one
     '''
-    result = check_id_presence(db=db, schema_object=address)
-    if not result.value:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
+    check = check_id_presence(db=db, schema_object=address)
+    if check.failed:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
     
     return db_query.add_address(db=db, address=address)    
 
@@ -362,9 +363,9 @@ def modify_address(address: schemas.Address, db: Session = Depends(get_db)):
 
     **Note**: *Required items, **Need to give at least any one of these items but not more than one
     '''
-    result = check_id_presence(db=db, schema_object=address)
-    if not result.value:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.message)
+    check = check_id_presence(db=db, schema_object=address)
+    if not check.failed:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
     
     address_exists = db_query.get_address_by_id(db, address_id=address.id)
     if not address_exists:
@@ -382,7 +383,7 @@ def remove_address(address_id: int, db: Session = Depends(get_db)):
     if return_value == address_id:
         return JSONResponse(content={'Action': 'Address deleted', 'Address id': address_id})
 
-#- vendors -#
+#-- Vendors add, update & modify --#
 @router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
 def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     '''
@@ -400,7 +401,7 @@ def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     return db_query.add_vendor(db=db, vendor=vendor)
 
 @router.put("/vendor/modify", response_model=schemas.Vendor, summary='Modify a vendor', tags=['Vendors'])
-def modify_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
+def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
     '''
     ## Add vendor
     - **id**: Vendor id*
@@ -417,7 +418,7 @@ def modify_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
     return db_query.modify_vendor(db=db, vendor=vendor)
 
 @router.delete("/vendor/delete", response_model=schemas.EntryDelete, summary='Delete a vendor', tags=['Vendors'])
-def delete_vendor(vendor_id: int, db: Session = Depends(get_db)):
+def remove_vendor(vendor_id: int, db: Session = Depends(get_db)):
     vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor_id)
     if not vendor_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
@@ -426,7 +427,7 @@ def delete_vendor(vendor_id: int, db: Session = Depends(get_db)):
     if vendor_deleted == vendor_id:
         return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)
 
-#- pops -#
+#-- Pops add, update & delete --#
 @router.post("/pop/add", response_model=schemas.Pop, summary='Add a pop', tags=['Pops'])
 def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
     '''
@@ -448,7 +449,7 @@ def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
     return db_query.add_pop(db=db, pop=pop)
 
 @router.put("/pop/modify", response_model=schemas.Pop, summary='Modify a pop', tags=['Pops'])
-def modify_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
+def update_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
     '''
     ## Modify Pop
     - **id**: Pop id*
@@ -469,7 +470,7 @@ def modify_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
     return db_query.modify_pop(db=db, pop=pop)
 
 @router.delete("/pop/delete", response_model=schemas.EntryDelete, summary='Delete a pop', tags=['Pops'])
-def delete_pop(pop_id: int, db: Session = Depends(get_db)):
+def remove_pop(pop_id: int, db: Session = Depends(get_db)):
     pop_exists = db_query.get_pop_by_id(db=db, pop_id=pop_id)
     if not pop_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
