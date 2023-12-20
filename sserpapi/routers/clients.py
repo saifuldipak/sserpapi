@@ -159,9 +159,9 @@ def search_pop(pop_name: str | None = None, pop_owner: int | None = None, page: 
         return pop_list
 
 @router.get("/search/client", response_model=list[schemas.ClientDetails], summary='Search client', tags=['Searches'])
-def search_client(client_name: str | None = None, client_type_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+def search_client(client_name: str | None = None, client_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = page * page_size
-    client_list =  db_query.get_client_list(db=db, client_name=client_name, client_type_id=client_type_id, offset=offset, limit=page_size)
+    client_list =  db_query.get_client_list(db=db, client_name=client_name, client_type=client_type, offset=offset, limit=page_size)
     if not client_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:

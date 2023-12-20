@@ -25,16 +25,20 @@ def get_client(db: Session, client_id: int):
 def get_client_by_name(db: Session, client_name: str):
     return db.query(models.Clients).filter(models.Clients.name==client_name).first()
 
-def get_client_list(db: Session, client_name: str | None = None, client_type_id: int | None = None, offset: int = 0, limit: int = 10):
+def get_client_list(db: Session, client_name: str | None = None, client_type: str | None = None, offset: int = 0, limit: int = 10):
     client_name_string = f'{client_name}%'
+    client_type_string = f'{client_type}%'
     base_query = db.query(models.Clients)
 
-    if client_name and not client_type_id:
+    if client_type:
+        base_query = base_query.join(models.ClientTypes)
+
+    if client_name and not client_type:
         base_query=  base_query.filter(models.Clients.name.ilike(client_name_string))
-    elif not client_name and client_type_id:
-        base_query = base_query.filter(models.Clients.client_type_id==client_type_id)
-    elif client_name and client_type_id:
-        base_query = base_query.filter(models.Clients.name.ilike(client_name_string), models.Clients.client_type_id==client_type_id)
+    elif not client_name and client_type:
+        base_query = base_query.filter(models.ClientTypes.name.ilike(client_type_string))
+    elif client_name and client_type:
+        base_query = base_query.filter(models.Clients.name.ilike(client_name_string), models.ClientTypes.name.ilike(client_type_string))
 
     return base_query.offset(offset).limit(limit).all()
 
