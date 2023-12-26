@@ -120,6 +120,8 @@ class ServiceDetails(Service):
     service_types: ServiceType
     pops: Pop
     clients: Client
+    contacts: list[Contact] = []
+    addresses: list[Address] = []
 
 class PopDetails(Pop):
     vendors: Vendor = None
