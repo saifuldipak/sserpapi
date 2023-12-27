@@ -83,17 +83,21 @@ def get_services(db: Session, skip: int = 0, limit: int = 100):
 def get_service_by_properties(db: Session, service: schemas.ServiceBase):
     return db.query(models.Services).filter(models.Services.client_id==service.client_id, models.Services.point==service.point, models.Services.service_type_id==service.service_type_id, models.Services.bandwidth==service.bandwidth, models.Services.extra_info==service.extra_info).first()
 
-def get_service_list(db: Session, service_point: str | None = None, client_id: int | None = None, offset: int = 0, limit: int = 10):
+def get_service_list(db: Session, service_point: str | None = None, client_name: str | None = None, offset: int = 0, limit: int = 50):
     base_query = db.query(models.Services)
     if service_point:
         sevice_point_string = f'%{service_point}%'
+    
+    if client_name:
+        client_name_string = f'{client_name}%'
+        base_query = base_query.join(models.Clients)
 
-    if service_point and not client_id:
+    if service_point and not client_name:
         base_query=  base_query.filter(models.Services.point.ilike(sevice_point_string))
-    elif not service_point and client_id:
-        base_query = base_query.filter(models.Services.client_id==client_id)
-    elif service_point and client_id:
-        base_query = base_query.filter(models.Services.point.ilike(sevice_point_string), models.Services.client_id==client_id)
+    elif not service_point and client_name:
+        base_query = base_query.filter(models.Clients.name.ilike(client_name_string))
+    elif service_point and client_name:
+        base_query = base_query.filter(models.Services.point.ilike(sevice_point_string), models.Clients.name.ilike(client_name_string))
     
     return base_query.offset(offset).limit(limit).all()
 
