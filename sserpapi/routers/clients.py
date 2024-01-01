@@ -213,13 +213,17 @@ def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(g
 
 @router.put("/clients/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
 def update_client(client: schemas.Client, db: Session = Depends(get_db)):
-    client_exists = db_query.get_client_by_id(db, client_id=client.id)
-    if not client_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+    client_id_exists = db_query.get_client_by_id(db, client_id=client.id)
+    if not client_id_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client id not found")
     
     client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client.client_type_id)
     if not client_type_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Client type not found')
+    
+    client_name_exists = db_query.get_client_by_name(db, client_name=client.name)
+    if client_name_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client name exists')
     
     return db_query.modify_client(db=db, client=client)
 
