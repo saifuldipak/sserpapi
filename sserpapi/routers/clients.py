@@ -1,4 +1,5 @@
 # pylint: disable=E0401
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -6,7 +7,6 @@ from db.dependency import get_db
 import pydantic_schemas as schemas
 import db.queries as db_query
 from auth import get_current_active_user
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +194,7 @@ def search_service_type(service_type: str | None = None, page: int = 0, page_siz
 # client and client types add, update & delete #
 @router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
-    client_exists = db_query.get_client_by_name(db, client_name=client.name)
+    client_exists = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
     if client_exists:
         raise HTTPException(status_code=400, detail="Client exists")
     
@@ -221,9 +221,9 @@ def update_client(client: schemas.Client, db: Session = Depends(get_db)):
     if not client_type_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Client type not found')
     
-    client_name_exists = db_query.get_client_by_name(db, client_name=client.name)
-    if client_name_exists:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client name exists')
+    client_name_and_type_exists = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
+    if client_name_and_type_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client with this name and type exists')
     
     return db_query.modify_client(db=db, client=client)
 

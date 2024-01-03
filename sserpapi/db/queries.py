@@ -22,8 +22,8 @@ def get_client_by_id(db: Session, client_id: int):
 def get_client(db: Session, client_id: int):
     return db.query(models.Clients).filter(models.Clients.id==client_id).first()
 
-def get_client_by_name(db: Session, client_name: str):
-    return db.query(models.Clients).filter(models.Clients.name==client_name).first()
+def get_client_by_name_and_type(db: Session, client_name: str, client_type_id: int):
+    return db.query(models.Clients).filter(models.Clients.name==client_name, models.Clients.client_type_id==client_type_id).first()
 
 def get_client_list(db: Session, client_name: str | None = None, client_type: str | None = None, offset: int = 0, limit: int = 10):
     client_name_string = f'{client_name}%'
