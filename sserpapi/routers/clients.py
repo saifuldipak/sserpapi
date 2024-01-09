@@ -147,7 +147,7 @@ def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None
         return vendor_list
     
 @router.get("/search/pop", response_model=list[schemas.PopDetails], summary='Search pop', tags=['Searches'])
-def search_pop(pop_name: str | None = None, pop_owner: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+def search_pop(pop_name: str | None = None, pop_owner: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     if not pop_name and not pop_owner:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
     
