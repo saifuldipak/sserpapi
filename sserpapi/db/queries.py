@@ -86,7 +86,7 @@ def get_service_by_properties(db: Session, service: schemas.ServiceBase):
 def get_service_list(db: Session, service_point: str | None = None, client_name: str | None = None, offset: int = 0, limit: int = 50):
     base_query = db.query(models.Services)
     if service_point:
-        sevice_point_string = f'%{service_point}%'
+        sevice_point_string = f'{service_point}%'
     
     if client_name:
         client_name_string = f'{client_name}%'
@@ -293,14 +293,15 @@ def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: int | None
         .options(joinedload(models.Pops.services))
     )
 
-    pop_name_string = f'%{pop_name}%'
+    pop_name_string = f'{pop_name}%'
+    pop_owner_string = f'{pop_owner}%'
 
     if pop_name and not pop_owner:
         base_query=  base_query.filter(models.Pops.name.ilike(pop_name_string))
     elif not pop_name and pop_owner:
-        base_query = base_query.filter(models.Pops.owner==pop_owner)
-    else:
-        base_query = base_query.filter(models.Pops.name.ilike(pop_name_string), models.Pops.owner==pop_owner)
+        base_query = base_query.filter(models.Vendors.name.ilike(pop_owner_string))
+    elif pop_name and pop_owner:
+        base_query = base_query.filter(models.Pops.name.ilike(pop_name_string), models.Vendors.name.ilike(pop_owner_string))
 
     return base_query.offset(offset).limit(limit).all()
 
