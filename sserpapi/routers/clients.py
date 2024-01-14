@@ -163,6 +163,9 @@ def search_pop(pop_name: str | None = None, pop_owner: str | None = None, page: 
 
 @router.get("/search/client", response_model=list[schemas.ClientDetails], summary='Search client', tags=['Searches'])
 def search_client(client_name: str | None = None, client_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    if not client_name and not client_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter, please see API documentation')
+    
     offset = page * page_size
     client_list =  db_query.get_client_list(db=db, client_name=client_name, client_type=client_type, offset=offset, limit=page_size)
     if not client_list:
