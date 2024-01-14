@@ -198,7 +198,7 @@ def search_service_type(service_type: str | None = None, page: int = 0, page_siz
         return service_type_list
 
 # client and client types add, update & delete #
-@router.post("/clients/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
+@router.post("/client/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
     if client_exists:
@@ -210,14 +210,14 @@ def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
     
     return db_query.add_client(db=db, client=client)
 
-@router.post("/clients/types/add", response_model=schemas.ClientType, summary='Add a client type', tags=['Clients'])
+@router.post("/client/types/add", response_model=schemas.ClientType, summary='Add a client type', tags=['Clients'])
 def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(get_db)):
     client_type_exists = db_query.get_client_type(db, client_type=client_type.name)
     if client_type_exists:
         raise HTTPException(status_code=400, detail="Client type exists")
     return db_query.add_client_type(db=db, client_type=client_type)
 
-@router.put("/clients/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
+@router.put("/client/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
 def update_client(client: schemas.Client, db: Session = Depends(get_db)):
     client_id_exists = db_query.get_client_by_id(db, client_id=client.id)
     if not client_id_exists:
@@ -243,7 +243,7 @@ def delete_client_type(client_type_id: int, db: Session = Depends(get_db)):
     if return_value == client_type_id:
         return JSONResponse(content={'Action': 'Client type deleted', 'Client type id': client_type_id})
     
-@router.delete("/clients/delete/{client_id}", summary='Delete a client', tags=['Clients'])
+@router.delete("/client/delete/{client_id}", summary='Delete a client', tags=['Clients'])
 def remove_client(client_id: int, db: Session = Depends(get_db)):
     client_exists = db_query.get_client_by_id(db, client_id=client_id)
     if not client_exists:
