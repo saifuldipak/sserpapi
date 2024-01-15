@@ -137,7 +137,7 @@ def modify_service(db: Session, service: schemas.Service):
     service_in_db.point = service.point
     service_in_db.service_type_id = service.service_type_id
     service_in_db.bandwidth = service.bandwidth
-    service_in_db.connected_to = service.connected_to
+    service_in_db.pop_id = service.pop_id
     service_in_db.extra_info = service.extra_info
     db.commit()
     db.refresh(service_in_db)
