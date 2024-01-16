@@ -319,7 +319,7 @@ def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
     if return_value == service_type_id:
         return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})
 
-@router.delete("/service/delete", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
+@router.delete("/service/delete/{service_id}", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
 def remove_service(service_id: int, db: Session = Depends(get_db)):
     service_exists = db_query.get_service_by_id(db=db, service_id=service_id)
     if not service_exists:
