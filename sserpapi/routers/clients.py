@@ -552,7 +552,7 @@ def update_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
     
     return db_query.modify_pop(db=db, pop=pop)
 
-@router.delete("/pop/delete", response_model=schemas.EntryDelete, summary='Delete a pop', tags=['Pops'])
+@router.delete("/pop/delete/{pop_id}", response_model=schemas.EntryDelete, summary='Delete a pop', tags=['Pops'])
 def remove_pop(pop_id: int, db: Session = Depends(get_db)):
     pop_exists = db_query.get_pop_by_id(db=db, pop_id=pop_id)
     if not pop_exists:
