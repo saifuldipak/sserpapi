@@ -26,11 +26,13 @@ def get_client_by_name_and_type(db: Session, client_name: str, client_type_id: i
     return db.query(models.Clients).filter(models.Clients.name==client_name, models.Clients.client_type_id==client_type_id).first()
 
 def get_client_list(db: Session, client_name: str | None = None, client_type: str | None = None, offset: int = 0, limit: int = 10):
-    client_name_string = f'{client_name}%'
-    client_type_string = f'{client_type}%'
     base_query = db.query(models.Clients)
 
-    if client_type:
+    if (client_name):
+        client_name_string = f'{client_name}%'
+
+    if (client_type):
+        client_type_string = f'{client_type}%'
         base_query = base_query.join(models.ClientTypes)
 
     if client_name and not client_type:
