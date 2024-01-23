@@ -9,7 +9,7 @@ class Clients(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, index=True, nullable=False)
     client_type_id = Column(Integer, ForeignKey('client_types.id'), nullable=False)
-    client_type = relationship('ClientTypes', back_populates='clients')
+    client_types = relationship('ClientTypes', back_populates='clients')
     addresses = relationship('Addresses', back_populates='clients', cascade='all, delete-orphan')
     contacts = relationship('Contacts', back_populates='clients', cascade='all, delete-orphan')
     services = relationship('Services', back_populates='clients', cascade='all, delete-orphan')
@@ -70,7 +70,7 @@ class ClientTypes(Base):
     __tablename__ = 'client_types'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    clients = relationship('Clients', back_populates='client_type')
+    clients = relationship('Clients', back_populates='client_types')
 
 class Addresses(Base):
     __tablename__ = 'addresses'

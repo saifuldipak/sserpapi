@@ -114,7 +114,7 @@ class ClientDetails(Client):
     addresses: list[Address] = []
     contacts: list[Contact] = []
     services: list[Service] = []
-    client_type: ClientType
+    client_types: ClientType
 
 class ServiceDetails(Service):
     service_types: ServiceType
