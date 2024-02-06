@@ -135,3 +135,8 @@ class ContactDetails(Contact):
 class VendorDetails(Vendor):
     contacts: list[Contact] = []
     addresses: list[Address] = []
+
+class AddressDetails(Address):
+    clients: Client | None = None
+    vendors: Vendor | None = None
+    services: Service | None = None

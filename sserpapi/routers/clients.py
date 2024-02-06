@@ -197,6 +197,18 @@ def search_service_type(service_type: str | None = None, page: int = 0, page_siz
     else:
         return service_type_list
 
+@router.get("/search/address", response_model=list[schemas.AddressDetails], summary='Search address', tags=['Searches'])
+def search_address(client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, page: int = 0, page_size: int = 20, db: Session = Depends(get_db)):
+    if (not client_name and not service_point and not vendor_name):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide any of client_name, service_point or vendor_name')
+    
+    offset = page * page_size
+    address_list =  db_query.get_address_list(db=db, client_name=client_name, service_point=service_point, vendor_name=vendor_name, offset=offset, limit=page_size)
+    if not address_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    return address_list
+
 # client and client types add, update & delete #
 @router.post("/client/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):

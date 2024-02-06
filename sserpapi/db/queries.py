@@ -204,6 +204,38 @@ def delete_contact(db: Session, contact_id: int):
 def get_address_by_id(db: Session, address_id: int):
     return db.query(models.Addresses).filter(models.Addresses.id==address_id).first()
 
+def get_address_list(db: Session, client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, offset: int = 0, limit: int = 20):
+    base_query = db.query(models.Addresses)
+
+    if client_name:
+        client_name_string = f'{client_name}%'        
+        base_query = (
+            base_query
+            .join(models.Clients)
+            .options(joinedload(models.Addresses.clients))
+            .filter(models.Clients.name.ilike(client_name_string))
+        )
+
+    if service_point:
+        service_point_string = f'{service_point}%'
+        base_query = (
+            base_query
+            .join(models.Services)
+            .options(joinedload(models.Addresses.services))
+            .filter(models.Services.point.ilike(service_point_string))
+        )
+
+    if vendor_name:
+        vendor_name_string = f'{vendor_name}%'
+        base_query = (
+            base_query
+            .join(models.Vendors)
+            .options(joinedload(models.Addresses.vendors))
+            .filter(models.Vendors.name.ilike(vendor_name_string))
+        )
+
+    return base_query.offset(offset).limit(limit).all()
+
 def add_address(db: Session, address: schemas.AddressBase):
     new_address = models.Addresses(**address.model_dump())
     db.add(new_address)
