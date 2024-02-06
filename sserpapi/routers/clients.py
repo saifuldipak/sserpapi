@@ -345,7 +345,7 @@ def remove_service(service_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
 
 # Contacts add, update & delete #
-@router.post("/contacts/add", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
+@router.post("/contact/add", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
 def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     """
     ## Add a contact
@@ -373,7 +373,7 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
 
     return db_query.add_contact(db=db, contact=contact)
 
-@router.put("/contacts/modify", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
+@router.put("/contact/modify", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
 def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
     """
     ## Modify a contact
