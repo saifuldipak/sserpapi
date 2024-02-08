@@ -180,13 +180,31 @@ def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(g
     return db_client_types
 
 @router.get("/search/contact", response_model=list[schemas.ContactDetails], summary='Get contact list', tags=['Searches'])
-def read_contact(contact_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+def search_contact(
+    client_name: str | None = None,
+    service_point: str | None = None,
+    vendor_name: str | None = None,
+    page: int = 0, 
+    page_size: int = 10, 
+    db: Session = Depends(get_db)
+    ):
+    
+    if service_point and not client_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide client name with service point')
+     
     offset = page * page_size
-    contact_list = db_query.get_contact_list(db, contact_name=contact_name, offset=offset, limit=page_size)
+    contact_list = db_query.get_contact_list(
+        db, 
+        client_name=client_name,
+        service_point=service_point,
+        vendor_name=vendor_name, 
+        offset=offset, 
+        limit=page_size)
+    
     if not contact_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Contact not found')
-    else:
-        return contact_list
+    
+    return contact_list
 
 @router.get("/search/service/type", response_model=list[schemas.ServiceType], summary='Search service type', tags=['Searches'])
 def search_service_type(service_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
