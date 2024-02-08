@@ -165,11 +165,45 @@ def add_contact(db: Session, contact: schemas.ContactBase):
     db.refresh(new_contact)
     return new_contact
 
-def get_contact_list(db: Session, contact_name: str | None = None, offset: int = 0, limit: int = 100):    
+def get_contact_list(
+        db: Session, 
+        client_name: str | None = None,
+        service_point: str | None = None,
+        vendor_name: str | None = None,
+        offset: int = 0, 
+        limit: int = 100
+        ):    
+    
     base_query = db.query(models.Contacts)
-    if contact_name:
-        contact_name_string = f'%{contact_name}%'
-        base_query.filter(models.Contacts.name.ilike(contact_name_string))
+    
+    if client_name and service_point:
+        client_name_string = f'{client_name}%'
+        service_point_string = f'{service_point}%'
+        base_query = (
+            base_query
+            .join(models.Clients)
+            .join(models.Services)
+            .options(joinedload(models.Contacts.clients))
+            .options(joinedload(models.Contacts.services))
+            .filter(models.Clients.name.ilike(client_name_string))
+            .filter(models.Services.point.ilike(service_point_string))
+        )
+    elif client_name:
+        client_name_string = f'{client_name}%'
+        base_query = (
+            base_query
+            .join(models.Clients)
+            .options(joinedload(models.Contacts.clients))
+            .filter(models.Clients.name.ilike(client_name_string))
+        )
+    elif vendor_name:
+        vendor_name_string = f'{vendor_name}%'
+        base_query = (
+            base_query
+            .join(models.Vendors)
+            .options(joinedload(models.Contacts.vendors))
+            .filter(models.Vendors.name.ilike(vendor_name_string))
+        )
     
     return base_query.offset(offset).limit(limit).all()
 
