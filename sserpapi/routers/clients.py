@@ -530,7 +530,7 @@ def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
     
     return db_query.modify_vendor(db=db, vendor=vendor)
 
-@router.delete("/vendor/delete", response_model=schemas.EntryDelete, summary='Delete a vendor', tags=['Vendors'])
+@router.delete("/vendor/delete/{vendor_id}", response_model=schemas.EntryDelete, summary='Delete a vendor', tags=['Vendors'])
 def remove_vendor(vendor_id: int, db: Session = Depends(get_db)):
     vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor_id)
     if not vendor_exists:
