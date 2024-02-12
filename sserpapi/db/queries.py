@@ -3,6 +3,7 @@ import logging
 from sqlalchemy.orm import Session, joinedload
 import db.models as models
 import pydantic_schemas as schemas
+from sqlalchemy.exc import IntegrityError
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,6 @@ def get_client_list(db: Session, client_name: str | None = None, client_type: st
 
     if (client_type):
         client_type_string = f'{client_type}%'
-        base_query = base_query.join(models.ClientTypes)
 
     if client_name and not client_type:
         base_query=  base_query.filter(models.Clients.name.ilike(client_name_string))
@@ -51,7 +51,7 @@ def add_client(db: Session, client: schemas.ClientBase):
     db.refresh(new_client)
     return new_client
 
-def add_client_type(db: Session, client_type: schemas.ClientType):
+def add_client_type(db: Session, client_type: schemas.ClientTypeBase):
     new_client_type = models.ClientTypes(name=client_type.name)
     db.add(new_client_type)
     db.commit()
@@ -112,7 +112,7 @@ def get_service_by_id(db: Session, service_id: int):
 def get_service_type_by_id(db: Session, service_type_id: int):
     return db.query(models.ServiceTypes).filter(models.ServiceTypes.id==service_type_id).first()
 
-def get_service_type_list(db: Session, service_type: str, offset: int = 0, limit: int = 10):
+def get_service_type_list(db: Session, service_type: str | None = None, offset: int = 0, limit: int = 10):
     if service_type:
         sevice_type_string = f'{service_type}%'
         return db.query(models.ServiceTypes).filter(models.ServiceTypes.name.ilike(sevice_type_string)).offset(offset).limit(limit).all()
@@ -126,7 +126,7 @@ def add_service(db: Session, service: schemas.ServiceBase):
     db.refresh(new_service)
     return new_service
 
-def add_service_type(db: Session, service_type: schemas.ServiceType):
+def add_service_type(db: Session, service_type: schemas.ServiceTypeBase):
     new_service_type = models.ServiceTypes(name=service_type.name, description=service_type.description)
     db.add(new_service_type)
     db.commit()
@@ -145,7 +145,7 @@ def modify_service(db: Session, service: schemas.Service):
     db.refresh(service_in_db)
     return service_in_db
 
-def delete_service(db: Session, service_id: int) -> int:
+def delete_service(db: Session, service_id: int) -> any:
     service_in_db = db.query(models.Services).filter(models.Services.id==service_id).first()
     db.delete(service_in_db)
     db.commit()
@@ -355,7 +355,7 @@ def get_pop_by_properties(db: Session, pop: schemas.PopBase):
 def get_pop_by_id(db: Session, pop_id: int):
     return db.query(models.Pops).filter(models.Pops.id==pop_id).first()
 
-def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: int | None = None, offset: int = 0, limit: int = 10):
+def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: str | None = None, offset: int = 0, limit: int = 10):
     base_query = (
         db.query(models.Pops)
         .outerjoin(models.Vendors)
@@ -392,10 +392,14 @@ def modify_pop(db: Session, pop: schemas.Pop):
     db.refresh(pop_in_db)
     return pop_in_db
 
-def delete_pop(db: Session, pop_id: int) -> int:
+def delete_pop(db: Session, pop_id: int) -> any:
     pop_in_db = db.query(models.Pops).filter(models.Pops.id==pop_id).first()
-    db.delete(pop_in_db)
-    db.commit()
+    try:
+        db.delete(pop_in_db)
+        db.commit()
+    except IntegrityError as e:
+        return f'Integrity error: {e}'
+    
     return pop_id
 
 #-- Table 'users' queries --#
