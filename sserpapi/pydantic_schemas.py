@@ -124,7 +124,7 @@ class ServiceDetails(Service):
     addresses: list[Address] = []
 
 class PopDetails(Pop):
-    vendors: Vendor = None
+    vendors: Vendor | None = None
     services: list[Service] = []
 
 class ContactDetails(Contact):
