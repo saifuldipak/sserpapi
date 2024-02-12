@@ -170,8 +170,8 @@ def search_client(client_name: str | None = None, client_type: str | None = None
     client_list =  db_query.get_client_list(db=db, client_name=client_name, client_type=client_type, offset=offset, limit=page_size)
     if not client_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return client_list
+    
+    return client_list
 
 @router.get("/search/client/type", response_model=list[schemas.ClientType], summary='Get client type list', tags=['Searches'])
 def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
@@ -589,5 +589,8 @@ def remove_pop(pop_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
     
     vendor_deleted = db_query.delete_pop(db=db, pop_id=pop_id)
-    if vendor_deleted == pop_id:
-        return schemas.EntryDelete(message='Pop deleted', id=pop_id)
+    if vendor_deleted != pop_id:
+        logger.warning('%s', vendor_deleted)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Cannot delete pop, may be this pop is assigned to any service')
+    
+    return schemas.EntryDelete(message='Pop deleted', id=pop_id)
