@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 import pydantic_schemas as schemas
 from auth import get_password_hash, get_current_active_user
 
-router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor"])])
+router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["Admin", "Editor"])])
 
 @router.post("/users/add", response_model=schemas.UserBase, summary='Add an user', tags=['Users'])
 def create_user(user: schemas.User, db: Session = Depends(get_db)):

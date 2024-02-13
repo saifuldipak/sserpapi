@@ -10,7 +10,7 @@ from auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin", "editor", "user"])])
+router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["Admin", "Editor", "User"])])
 
 class Check:
     """

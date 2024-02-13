@@ -21,7 +21,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 500
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token', scopes={"admin": "Admin user with full acces", "user": "General user with limited access", "editor": "Add or modify users"})
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token', scopes={"Admin": "Admin user with full acces", "User": "General user with limited access", "editor": "Add or modify users"})
 
 router = APIRouter()
 
