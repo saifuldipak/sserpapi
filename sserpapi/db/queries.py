@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 import db.models as models
 import pydantic_schemas as schemas
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import delete
 
 logger = logging.getLogger(__name__)
 
@@ -393,10 +394,9 @@ def modify_pop(db: Session, pop: schemas.Pop):
     return pop_in_db
 
 def delete_pop(db: Session, pop_id: int) -> any:
-    pop_in_db = db.query(models.Pops).filter(models.Pops.id==pop_id).first()
+    stmt = delete(models.Pops).where(models.Pops.id==pop_id)
     try:
-        db.delete(pop_in_db)
-        db.commit()
+        db.execute(stmt)
     except IntegrityError as e:
         return f'Integrity error: {e}'
     
