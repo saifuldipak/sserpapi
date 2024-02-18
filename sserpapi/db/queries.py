@@ -61,8 +61,9 @@ def add_client_type(db: Session, client_type: schemas.ClientTypeBase):
 
 def modify_client(db: Session, client: schemas.Client):
     client_in_db = db.query(models.Clients).filter(models.Clients.id==client.id).first()
-    client_in_db.name = client.name
-    client_in_db.client_type_id = client.client_type_id 
+    
+    client_in_db.name = client.name # type: ignore 
+    client_in_db.client_type_id = client.client_type_id # type: ignore
     db.commit()
     db.refresh(client_in_db)
     return client_in_db
@@ -136,12 +137,12 @@ def add_service_type(db: Session, service_type: schemas.ServiceTypeBase):
 
 def modify_service(db: Session, service: schemas.Service):
     service_in_db = db.query(models.Services).filter(models.Services.id==service.id).first()
-    service_in_db.client_id = service.client_id
-    service_in_db.point = service.point
-    service_in_db.service_type_id = service.service_type_id
-    service_in_db.bandwidth = service.bandwidth
-    service_in_db.pop_id = service.pop_id
-    service_in_db.extra_info = service.extra_info
+    service_in_db.client_id = service.client_id # type: ignore
+    service_in_db.point = service.point # type: ignore
+    service_in_db.service_type_id = service.service_type_id # type: ignore
+    service_in_db.bandwidth = service.bandwidth # type: ignore
+    service_in_db.pop_id = service.pop_id # type: ignore
+    service_in_db.extra_info = service.extra_info # type: ignore
     db.commit()
     db.refresh(service_in_db)
     return service_in_db
@@ -215,15 +216,15 @@ def get_contact_by_id(db: Session, contact_id: int):
 def modify_contact(db: Session, contact: schemas.Contact):
     contact_in_db = db.query(models.Contacts).filter(models.Contacts.id==contact.id).first()
     
-    contact_in_db.name = contact.name
-    contact_in_db.designation = contact.designation
-    contact_in_db.type = contact.type
-    contact_in_db.phone1 = contact.phone1
-    contact_in_db.phone2 = contact.phone2
-    contact_in_db.phone3 = contact.phone3
-    contact_in_db.client_id = contact.client_id
-    contact_in_db.vendor_id = contact.vendor_id
-    contact_in_db.service_id = contact.service_id
+    contact_in_db.name = contact.name # type: ignore
+    contact_in_db.designation = contact.designation # type: ignore
+    contact_in_db.type = contact.type # type: ignore
+    contact_in_db.phone1 = contact.phone1 # type: ignore
+    contact_in_db.phone2 = contact.phone2 # type: ignore
+    contact_in_db.phone3 = contact.phone3 # type: ignore
+    contact_in_db.client_id = contact.client_id # type: ignore
+    contact_in_db.vendor_id = contact.vendor_id # type: ignore
+    contact_in_db.service_id = contact.service_id # type: ignore
 
     db.commit()
     db.refresh(contact_in_db)
@@ -280,16 +281,16 @@ def add_address(db: Session, address: schemas.AddressBase):
 
 def modify_address(db: Session, address: schemas.Address):
     address_in_db = db.query(models.Addresses).filter(models.Addresses.id==address.id).first()
-    address_in_db.flat = address.flat
-    address_in_db.floor = address.floor
-    address_in_db.holding = address.holding
-    address_in_db.street = address.street
-    address_in_db.area = address.area
-    address_in_db.thana = address.thana
-    address_in_db.district = address.district
-    address_in_db.client_id = address.client_id
-    address_in_db.service_id = address.service_id
-    address_in_db.vendor_id = address.vendor_id
+    address_in_db.flat = address.flat # type: ignore
+    address_in_db.floor = address.floor # type: ignore
+    address_in_db.holding = address.holding # type: ignore
+    address_in_db.street = address.street # type: ignore
+    address_in_db.area = address.area # type: ignore
+    address_in_db.thana = address.thana # type: ignore
+    address_in_db.district = address.district # type: ignore
+    address_in_db.client_id = address.client_id # type: ignore
+    address_in_db.service_id = address.service_id # type: ignore
+    address_in_db.vendor_id = address.vendor_id # type: ignore
     db.commit()
     db.refresh(address_in_db)
     return address_in_db
@@ -337,8 +338,8 @@ def add_vendor(db: Session, vendor: schemas.VendorBase):
 
 def modify_vendor(db: Session, vendor: schemas.Vendor):
     vendor_in_db = db.query(models.Vendors).filter(models.Vendors.id==vendor.id).first()
-    vendor_in_db.name = vendor.name
-    vendor_in_db.type = vendor.type
+    vendor_in_db.name = vendor.name # type: ignore
+    vendor_in_db.type = vendor.type # type: ignore
     db.commit()
     db.refresh(vendor_in_db)
     return vendor_in_db
@@ -386,9 +387,9 @@ def add_pop(db: Session, pop: schemas.PopBase):
 
 def modify_pop(db: Session, pop: schemas.Pop):
     pop_in_db = db.query(models.Pops).filter(models.Pops.id==pop.id).first()
-    pop_in_db.name = pop.name
-    pop_in_db.owner = pop.owner
-    pop_in_db.extra_info = pop.extra_info
+    pop_in_db.name = pop.name # type: ignore
+    pop_in_db.owner = pop.owner # type: ignore
+    pop_in_db.extra_info = pop.extra_info # type: ignore
     db.commit()
     db.refresh(pop_in_db)
     return pop_in_db
