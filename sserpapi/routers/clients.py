@@ -130,12 +130,15 @@ def check_phone_number_length(phone_numbers: tuple) -> Check:
 # Search different types of records #
 @router.get("/search/service", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Searches'])
 def search_service(service_point: str | None = None, client_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
+    if not service_point and not client_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide service_name and/or client_name')
+
     offset = page * page_size
     service_list =  db_query.get_service_list(db=db, service_point=service_point, client_name=client_name, offset=offset, limit=page_size)
     if not service_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return service_list
+    
+    return service_list
     
 @router.get("/search/vendor", response_model=list[schemas.VendorDetails], summary='Search vendor', tags=['Searches'])
 def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
