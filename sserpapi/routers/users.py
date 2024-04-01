@@ -4,6 +4,9 @@ from db.dependency import get_db
 from sqlalchemy.orm import Session
 import pydantic_schemas as schemas
 from auth import get_password_hash, get_current_active_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["Admin", "Editor"])])
 
@@ -11,6 +14,7 @@ router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["Admi
 def create_user(user: schemas.User, db: Session = Depends(get_db)):
     user_exists = db_query.get_user_by_name(db, user_name=user.user_name)
     if user_exists:
+        logger.warning('User "%s" exists', user.user_name)
         raise HTTPException(status_code=400, detail="User exists")
     user.password = get_password_hash(user.password)
     return db_query.add_user(db=db, user=user)

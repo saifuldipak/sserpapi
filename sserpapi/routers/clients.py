@@ -1,5 +1,4 @@
 # pylint: disable=E0401
-import logging
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -7,6 +6,7 @@ from db.dependency import get_db
 import pydantic_schemas as schemas
 import db.queries as db_query
 from auth import get_current_active_user
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +136,7 @@ def search_service(service_point: str | None = None, client_name: str | None = N
     offset = page * page_size
     service_list =  db_query.get_service_list(db=db, service_point=service_point, client_name=client_name, offset=offset, limit=page_size)
     if not service_list:
+        logger.warning('No service named "%s"', service_point)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
     return service_list

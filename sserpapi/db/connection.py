@@ -1,9 +1,12 @@
-import logging
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import logging
+from logger_config import create_file_handler
 
 logger = logging.getLogger(__name__)
+file_handler = create_file_handler()
+logger.addHandler(file_handler)
 
 POSTGRES_SECRETS = "./db/postgres_secrets.txt"
 
@@ -23,8 +26,9 @@ def read_db_config(file_path):
 db_config = read_db_config(POSTGRES_SECRETS)
 
 # Construct database URL
-SQLALCHEMY_DATABASE_URL = f"postgresql://{db_config['POSTGRES_USER']}:{db_config['POSTGRES_PASSWORD']}@{db_config['POSTGRES_HOST']}:{db_config['POSTGRES_PORT']}/{db_config['POSTGRES_DB']}"
+DB_URL = f"""postgresql://{db_config['POSTGRES_USER']}:{db_config['POSTGRES_PASSWORD']}\
+@{db_config['POSTGRES_HOST']}:{db_config['POSTGRES_PORT']}/{db_config['POSTGRES_DB']}"""
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(DB_URL)
 SessionLocal = sessionmaker(autoflush=False, autocommit=False, bind=engine)
 Base = declarative_base()

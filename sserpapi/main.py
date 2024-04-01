@@ -3,11 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import clients, users
 import auth
 import logging
+from logger_config import create_console_handler, create_file_handler
 
-#sql_models.Base.metadata.create_all(bind=engine)
-
-#logging config
-logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s: %(message)s', filename='sserpapi.log', level=logging.WARNING)
+# Configure logging
+logger = logging.getLogger()
+logger.addHandler(create_file_handler())
+logger.addHandler(create_console_handler())
 logging.getLogger('passlib').setLevel(logging.ERROR)
 
 app = FastAPI()
