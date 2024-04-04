@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Security
-import db.queries as db_query
-from db.dependency import get_db
-from sqlalchemy.orm import Session
-import pydantic_schemas as schemas
-from auth import get_password_hash, get_current_active_user
 import logging
+from fastapi import APIRouter, Depends, HTTPException, Security
+from sqlalchemy.orm import Session
+import sserpapi.db.queries as db_query
+from sserpapi.db.dependency import get_db
+from sserpapi.auth import get_password_hash, get_current_active_user
+import sserpapi.pydantic_schemas as schemas
 
 logger = logging.getLogger(__name__)
 

@@ -1,14 +1,14 @@
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import logging
-from logger_config import create_file_handler
+from sserpapi.logger_config import create_file_handler
 
 logger = logging.getLogger(__name__)
 file_handler = create_file_handler()
 logger.addHandler(file_handler)
 
-POSTGRES_SECRETS = "./db/postgres_secrets.txt"
+POSTGRES_SECRETS = ".env"
 
 # Function to read config file and extract database connection info
 def read_db_config(file_path):

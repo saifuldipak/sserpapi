@@ -1,8 +1,8 @@
 # pylint: disable=missing-docstring
 # pylint: disable=E0401
-from db.connection import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
+from sserpapi.db.connection import Base
 
 class ClientTypes(Base):
     __tablename__ = 'client_types'

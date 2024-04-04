@@ -1,9 +1,9 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import clients, users
-import auth
-import logging
-from logger_config import create_console_handler, create_file_handler
+from sserpapi.routers import clients, users
+from sserpapi import auth
+from sserpapi.logger_config import create_console_handler, create_file_handler
 
 # Configure logging
 logger = logging.getLogger()

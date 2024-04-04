@@ -1,4 +1,4 @@
-from db.connection import SessionLocal
+from sserpapi.db.connection import SessionLocal
 
 # Database connection
 def get_db():

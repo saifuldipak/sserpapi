@@ -1,16 +1,19 @@
 # pylint: disable=E0401
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from db.dependency import get_db
-import pydantic_schemas as schemas
-import db.queries as db_query
-from auth import get_current_active_user
-import logging
+import sserpapi.pydantic_schemas as schemas
+from sserpapi.db.dependency import get_db
+import sserpapi.db.queries as db_query
+from sserpapi.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["Admin", "Editor", "User"])])
+router = APIRouter(
+            dependencies=[Security(get_current_active_user,
+            scopes=["Admin", "Editor", "User"])]
+            )
 
 class Check:
     """

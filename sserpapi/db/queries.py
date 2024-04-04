@@ -1,10 +1,10 @@
 # pylint: disable=E0401
 import logging
 from sqlalchemy.orm import Session, joinedload
-import db.models as models
-import pydantic_schemas as schemas
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import delete
+from sserpapi.db import models
+import sserpapi.pydantic_schemas as schemas
 
 logger = logging.getLogger(__name__)
 
