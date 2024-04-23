@@ -1,31 +1,59 @@
 # pylint: disable=E0401
 import logging
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, DataError, OperationalError, SQLAlchemyError
 from sqlalchemy import delete
 from sserpapi.db import models
 import sserpapi.pydantic_schemas as schemas
 
 logger = logging.getLogger(__name__)
 
+def execute_query(query):
+    """
+    Executes the given query and handles any potential errors that may occur during the execution.
+
+    Parameters:
+        query (callable): The query to be executed.
+
+    Returns:
+        The result of the query if it executes successfully.
+
+    Raises:
+        DataError: If there is a data error during the execution of the query.
+        IntegrityError: If there is an integrity error during the execution of the query.
+        OperationalError: If there is an operational error during the execution of the query.
+        SQLAlchemyError: If there is an SQLAlchemy error during the execution of the query.
+    """
+    try:
+        logger.warning('%s', query)
+        return query()
+    except DataError as e:
+        logging.error("Data error: %s", e)
+    except IntegrityError as e:
+        logging.error("Integrity error: %s", e)
+    except OperationalError as e:
+        logging.error("Operational error: %s", e)
+    except SQLAlchemyError as e:
+        logging.error("SQLAlchemy error: %s", e)
+
 #-- Table 'clients' queries --#
 def get_client_types(db: Session, offset: int = 0, limit: int = 100):
-    return db.query(models.ClientTypes).offset(offset).limit(limit).all()
+    return execute_query(db.query(models.ClientTypes).offset(offset).limit(limit).all)
 
 def get_client_type(db: Session, client_type: str):
-    return db.query(models.Clients).filter(models.ClientTypes.name==client_type).first()
+    return execute_query(db.query(models.Clients).filter(models.ClientTypes.name==client_type).first)
 
 def get_client_type_by_id(db: Session, client_type_id: int):
-    return db.query(models.ClientTypes).filter(models.ClientTypes.id==client_type_id).first()
+    return execute_query(db.query(models.ClientTypes).filter(models.ClientTypes.id==client_type_id).first)
 
 def get_client_by_id(db: Session, client_id: int):
-    return db.query(models.Clients).filter(models.Clients.id==client_id).first()
+    return execute_query(db.query(models.Clients).filter(models.Clients.id==client_id).first)
 
 def get_client(db: Session, client_id: int):
-    return db.query(models.Clients).filter(models.Clients.id==client_id).first()
+    return execute_query(db.query(models.Clients).filter(models.Clients.id==client_id).first)
 
 def get_client_by_name_and_type(db: Session, client_name: str, client_type_id: int):
-    return db.query(models.Clients).filter(models.Clients.name==client_name, models.Clients.client_type_id==client_type_id).first()
+    return execute_query(db.query(models.Clients).filter(models.Clients.name==client_name, models.Clients.client_type_id==client_type_id).first)
 
 def get_client_list(db: Session, client_name: str | None = None, client_type: str | None = None, offset: int = 0, limit: int = 10):
     base_query = db.query(models.Clients)
@@ -39,11 +67,11 @@ def get_client_list(db: Session, client_name: str | None = None, client_type: st
     if client_name and not client_type:
         base_query=  base_query.filter(models.Clients.name.ilike(client_name_string))
     elif not client_name and client_type:
-        base_query = base_query.filter(models.ClientTypes.name.ilike(client_type_string))
+        base_query = base_query.join(models.ClientTypes).filter(models.ClientTypes.name.ilike(client_type_string))
     elif client_name and client_type:
-        base_query = base_query.filter(models.Clients.name.ilike(client_name_string), models.ClientTypes.name.ilike(client_type_string))
+        base_query = base_query.join(models.ClientTypes).filter(models.Clients.name.ilike(client_name_string), models.ClientTypes.name.ilike(client_type_string))
 
-    return base_query.offset(offset).limit(limit).all()
+    return execute_query(base_query.offset(offset).limit(limit).all)
 
 def add_client(db: Session, client: schemas.ClientBase):
     new_client = models.Clients(name=client.name, client_type_id=client.client_type_id)
@@ -82,10 +110,10 @@ def delete_client_type(db: Session, client_type_id: int):
 
 #-- Table 'services' queries --#
 def get_services(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Services).offset(skip).limit(limit).all()
+    return execute_query(db.query(models.Services).offset(skip).limit(limit).all)
 
 def get_service_by_properties(db: Session, service: schemas.ServiceBase):
-    return db.query(models.Services).filter(models.Services.client_id==service.client_id, models.Services.point==service.point, models.Services.service_type_id==service.service_type_id, models.Services.bandwidth==service.bandwidth, models.Services.extra_info==service.extra_info).first()
+    return execute_query(db.query(models.Services).filter(models.Services.client_id==service.client_id, models.Services.point==service.point, models.Services.service_type_id==service.service_type_id, models.Services.bandwidth==service.bandwidth, models.Services.extra_info==service.extra_info).first)
 
 def get_service_list(db: Session, service_point: str | None = None, client_name: str | None = None, offset: int = 0, limit: int = 50):
     base_query = db.query(models.Services)
@@ -103,23 +131,23 @@ def get_service_list(db: Session, service_point: str | None = None, client_name:
     elif service_point and client_name:
         base_query = base_query.filter(models.Services.point.ilike(sevice_point_string), models.Clients.name.ilike(client_name_string))
     
-    return base_query.offset(offset).limit(limit).all()
+    return execute_query(base_query.offset(offset).limit(limit).all)
 
 def get_service_type_by_name(db: Session, service_type: schemas.ServiceTypeBase):
-    return db.query(models.ServiceTypes).filter(models.ServiceTypes.name==service_type.name).first()
+    return execute_query(db.query(models.ServiceTypes).filter(models.ServiceTypes.name==service_type.name).first)
 
 def get_service_by_id(db: Session, service_id: int):
-    return db.query(models.Services).filter(models.Services.id==service_id).first()
+    return execute_query(db.query(models.Services).filter(models.Services.id==service_id).first)
 
 def get_service_type_by_id(db: Session, service_type_id: int):
-    return db.query(models.ServiceTypes).filter(models.ServiceTypes.id==service_type_id).first()
+    return execute_query(db.query(models.ServiceTypes).filter(models.ServiceTypes.id==service_type_id).first)
 
 def get_service_type_list(db: Session, service_type: str | None = None, offset: int = 0, limit: int = 10):
     if service_type:
         sevice_type_string = f'{service_type}%'
-        return db.query(models.ServiceTypes).filter(models.ServiceTypes.name.ilike(sevice_type_string)).offset(offset).limit(limit).all()
+        return execute_query(db.query(models.ServiceTypes).filter(models.ServiceTypes.name.ilike(sevice_type_string)).offset(offset).limit(limit).all())
     else:
-        return db.query(models.ServiceTypes).offset(offset).limit(limit).all()
+        return execute_query(db.query(models.ServiceTypes).offset(offset).limit(limit).all)
 
 def add_service(db: Session, service: schemas.ServiceBase):
     new_service = models.Services(**service.model_dump())
@@ -207,11 +235,10 @@ def get_contact_list(
             .filter(models.Vendors.name.ilike(vendor_name_string))
         )
     
-    return base_query.offset(offset).limit(limit).all()
+    return execute_query(base_query.offset(offset).limit(limit).all)
 
 def get_contact_by_id(db: Session, contact_id: int):
-    contact = db.query(models.Contacts).filter(models.Contacts.id==contact_id).first()
-    return contact
+    return execute_query(db.query(models.Contacts).filter(models.Contacts.id==contact_id).first)
 
 def modify_contact(db: Session, contact: schemas.Contact):
     contact_in_db = db.query(models.Contacts).filter(models.Contacts.id==contact.id).first()
@@ -238,7 +265,7 @@ def delete_contact(db: Session, contact_id: int):
 
 #-- Table 'addresses' queries --#
 def get_address_by_id(db: Session, address_id: int):
-    return db.query(models.Addresses).filter(models.Addresses.id==address_id).first()
+    return execute_query(db.query(models.Addresses).filter(models.Addresses.id==address_id).first)
 
 def get_address_list(db: Session, client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, offset: int = 0, limit: int = 20):
     base_query = db.query(models.Addresses)
@@ -270,7 +297,7 @@ def get_address_list(db: Session, client_name: str | None = None, service_point:
             .filter(models.Vendors.name.ilike(vendor_name_string))
         )
 
-    return base_query.offset(offset).limit(limit).all()
+    return execute_query(base_query.offset(offset).limit(limit).all)
 
 def add_address(db: Session, address: schemas.AddressBase):
     new_address = models.Addresses(**address.model_dump())
@@ -303,7 +330,7 @@ def delete_address(db: Session, address_id: int):
 
 #-- Table 'vendors' queries --#
 def get_vendor_by_name(db: Session, vendor: schemas.VendorBase):
-    return db.query(models.Vendors).filter(models.Vendors.name==vendor.name).first()
+    return execute_query(db.query(models.Vendors).filter(models.Vendors.name==vendor.name).first)
 
 def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: str | None = None, offset: int = 0, limit: int = 100):
     base_query = db.query(models.Vendors)
@@ -321,13 +348,13 @@ def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: st
     elif vendor_name and vendor_type:
         base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string), models.Vendors.type.ilike(vendor_type_string))
 
-    return base_query.offset(offset).limit(limit).all()
+    return execute_query(base_query.offset(offset).limit(limit).all)
 
 def get_vendor_by_properties(db: Session, vendor: schemas.VendorBase):
-    return db.query(models.Vendors).filter(models.Vendors.name==vendor.name, models.Vendors.type==vendor.type).first()
+    return execute_query(db.query(models.Vendors).filter(models.Vendors.name==vendor.name, models.Vendors.type==vendor.type).first)
 
 def get_vendor_by_id(db: Session, vendor_id: int):
-    return db.query(models.Vendors).filter(models.Vendors.id==vendor_id).first()
+    return execute_query(db.query(models.Vendors).filter(models.Vendors.id==vendor_id).first)
 
 def add_vendor(db: Session, vendor: schemas.VendorBase):
     new_vendor = models.Vendors(**vendor.model_dump())
@@ -352,10 +379,10 @@ def delete_vendor(db: Session, vendor_id: int) -> int:
 
 #-- Table 'pops' queries --#
 def get_pop_by_properties(db: Session, pop: schemas.PopBase):
-    return db.query(models.Pops).filter(models.Pops.name==pop.name, models.Pops.owner==pop.owner).first()
+    return execute_query(db.query(models.Pops).filter(models.Pops.name==pop.name, models.Pops.owner==pop.owner).first)
 
 def get_pop_by_id(db: Session, pop_id: int):
-    return db.query(models.Pops).filter(models.Pops.id==pop_id).first()
+    return execute_query(db.query(models.Pops).filter(models.Pops.id==pop_id).first)
 
 def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: str | None = None, offset: int = 0, limit: int = 10):
     base_query = (
@@ -376,7 +403,7 @@ def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: str | None
     elif pop_name and pop_owner:
         base_query = base_query.filter(models.Pops.name.ilike(pop_name_string), models.Vendors.name.ilike(pop_owner_string))
 
-    return base_query.offset(offset).limit(limit).all()
+    return execute_query(base_query.offset(offset).limit(limit).all)
 
 def add_pop(db: Session, pop: schemas.PopBase):
     new_pop = models.Pops(**pop.model_dump())
@@ -405,10 +432,10 @@ def delete_pop(db: Session, pop_id: int) -> any:
 
 #-- Table 'users' queries --#
 def get_user_by_name(db: Session, user_name: str):
-    return db.query(models.Users).filter(models.Users.user_name==user_name).first()
+    return execute_query(db.query(models.Users).filter(models.Users.user_name==user_name).first)
 
 def get_users(db: Session, offset: int = 0, limit: int = 100):
-    return db.query(models.Users).offset(offset).limit(limit).all()
+    return execute_query(db.query(models.Users).offset(offset).limit(limit).all)
 
 def add_user(db: Session, user: schemas.User):
     new_user = models.Users(**user.model_dump())
