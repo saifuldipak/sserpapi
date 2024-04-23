@@ -1,0 +1,28 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+  verbose:
+    format: "%(asctime)s-[%(levelname)s]-[%(name)s]-%(message)s"
+  simple:
+    format: "%(asctime)s [%(levelname)s] %(message)s"
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: ERROR
+    formatter: simple
+    stream: ext://sys.stdout
+  file:
+    class: logging.FileHandler
+    filename: app.log
+    level: DEBUG
+    formatter: verbose
+    mode: a
+loggers:
+  sserpapi:
+    handlers: [console, file]
+    level: WARNING
+    propagate: True
+  sqlalchemy.engine:
+    handlers: [console, file]
+    level: WARNING
+    propagate: True
