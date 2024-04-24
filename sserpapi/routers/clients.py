@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import sserpapi.pydantic_schemas as schemas
 from sserpapi.db.dependency import get_db
-import sserpapi.db.queries as db_query
+from sserpapi.db import queries as db_query
 from sserpapi.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
@@ -150,7 +150,12 @@ def search_vendor(vendor_name: str | None = None, vendor_type: str | None = None
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
     
     offset = page * page_size
-    vendor_list =  db_query.get_vendor_list(db=db, vendor_name=vendor_name, vendor_type=vendor_type, offset=offset, limit=page_size)
+    try:
+        vendor_list =  db_query.get_vendor_list(db=db, vendor_name=vendor_name, vendor_type=vendor_type, offset=offset, limit=page_size)
+    except Exception as e:
+        logger.error('get_vendor_list(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not vendor_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
@@ -162,11 +167,16 @@ def search_pop(pop_name: str | None = None, pop_owner: str | None = None, page: 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
     
     offset = page * page_size
-    pop_list =  db_query.get_pop_list(db=db, pop_name=pop_name, pop_owner=pop_owner, offset=offset, limit=page_size)
+    try:
+        pop_list =  db_query.get_pop_list(db=db, pop_name=pop_name, pop_owner=pop_owner, offset=offset, limit=page_size)
+    except Exception as e:
+        logger.error('get_pop_list(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not pop_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return pop_list
+    
+    return pop_list
 
 @router.get("/search/client", response_model=list[schemas.ClientDetails], summary='Search client', tags=['Searches'])
 def search_client(client_name: str | None = None, client_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
@@ -174,17 +184,30 @@ def search_client(client_name: str | None = None, client_type: str | None = None
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter, please see API documentation')
     
     offset = page * page_size
-    client_list =  db_query.get_client_list(db=db, client_name=client_name, client_type=client_type, offset=offset, limit=page_size)
+    try:
+        client_list =  db_query.get_client_list(db, client_name=client_name, client_type=client_type, offset=offset, limit=page_size)
+    except Exception as e:
+        logger.error('get_client_list(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not client_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
     return client_list
-
+    
 @router.get("/search/client/type", response_model=list[schemas.ClientType], summary='Get client type list', tags=['Searches'])
 def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = page * page_size
-    db_client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
-    return db_client_types
+    try:
+        client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
+    except Exception as e:
+        logger.error('get_client_types(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+
+    if not client_types:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    return client_types
 
 @router.get("/search/contact", response_model=list[schemas.ContactDetails], summary='Get contact list', tags=['Searches'])
 def search_contact(
@@ -200,13 +223,17 @@ def search_contact(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide client name with service point')
      
     offset = page * page_size
-    contact_list = db_query.get_contact_list(
-        db, 
-        client_name=client_name,
-        service_point=service_point,
-        vendor_name=vendor_name, 
-        offset=offset, 
-        limit=page_size)
+    try:
+        contact_list = db_query.get_contact_list(
+            db, 
+            client_name=client_name,
+            service_point=service_point,
+            vendor_name=vendor_name, 
+            offset=offset, 
+            limit=page_size)
+    except Exception as e:
+        logger.error('get_contact_list(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not contact_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Contact not found')
@@ -216,11 +243,16 @@ def search_contact(
 @router.get("/search/service/type", response_model=list[schemas.ServiceType], summary='Search service type', tags=['Searches'])
 def search_service_type(service_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = page * page_size
-    service_type_list =  db_query.get_service_type_list(db=db, service_type=service_type, offset=offset, limit=page_size)
+    try:
+        service_type_list =  db_query.get_service_type_list(db=db, service_type=service_type, offset=offset, limit=page_size)
+    except Exception as e:
+        logger.error('get_service_type_list(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not service_type_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return service_type_list
+    
+    return service_type_list
 
 @router.get("/search/address", response_model=list[schemas.AddressDetails], summary='Search address', tags=['Searches'])
 def search_address(client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, page: int = 0, page_size: int = 20, db: Session = Depends(get_db)):
@@ -228,7 +260,12 @@ def search_address(client_name: str | None = None, service_point: str | None = N
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide any of client_name, service_point or vendor_name')
     
     offset = page * page_size
-    address_list =  db_query.get_address_list(db=db, client_name=client_name, service_point=service_point, vendor_name=vendor_name, offset=offset, limit=page_size)
+    try:
+        address_list =  db_query.get_address_list(db=db, client_name=client_name, service_point=service_point, vendor_name=vendor_name, offset=offset, limit=page_size)
+    except Exception as e:
+        logger.error('get_address_list(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not address_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
@@ -237,11 +274,21 @@ def search_address(client_name: str | None = None, service_point: str | None = N
 # client and client types add, update & delete #
 @router.post("/client/add", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
 def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
-    client_exists = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
+    try:
+        client_exists = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
+    except Exception as e:
+        logger.error('get_client_by_name_and_type(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if client_exists:
         raise HTTPException(status_code=400, detail="Client exists")
     
-    client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client.client_type_id)
+    try:
+        client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client.client_type_id)
+    except Exception as e:
+        logger.error('get_client_type_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not client_type_exists:
         raise HTTPException(status_code=400, detail='Client type does not exist')
     
@@ -249,47 +296,94 @@ def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
 
 @router.post("/client/types/add", response_model=schemas.ClientType, summary='Add a client type', tags=['Clients'])
 def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(get_db)):
-    client_type_exists = db_query.get_client_type(db, client_type=client_type.name)
+    try:
+        client_type_exists = db_query.get_client_type(db, client_type=client_type.name)
+    except Exception as e:
+        logger.error('get_client_type(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if client_type_exists:
         raise HTTPException(status_code=400, detail="Client type exists")
+    
     return db_query.add_client_type(db=db, client_type=client_type)
 
 @router.put("/client/modify", response_model=schemas.Client, summary='Modify a client', tags=['Clients'])
 def update_client(client: schemas.Client, db: Session = Depends(get_db)):
-    client_id_exists = db_query.get_client_by_id(db, client_id=client.id)
-    if not client_id_exists:
+    try:
+        client_id = db_query.get_client_by_id(db, client_id=client.id)
+    except Exception as e:
+        logger.error('get_client_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not client_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client id not found")
     
-    client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client.client_type_id)
-    if not client_type_exists:
+    try:
+        client_type = db_query.get_client_type_by_id(db, client_type_id=client.client_type_id)
+    except Exception as e:
+        logger.error('get_client_type_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not client_type:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Client type not found')
     
-    client_name_and_type_exists = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
-    if client_name_and_type_exists:
+    try:
+        client_name_and_type = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
+    except Exception as e:
+        logger.error('get_client_by_name_and_type(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if client_name_and_type:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client with this name and type exists')
     
     return db_query.modify_client(db=db, client=client)
 
 @router.delete("/client/type/delete/{client_type_id}", response_model=schemas.ClientType, summary='Delete a client type', tags=['Clients'])
-def delete_client_type(client_type_id: int, db: Session = Depends(get_db)):
-    client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client_type_id)
+def remove_client_type(client_type_id: int, db: Session = Depends(get_db)):
+    try:
+        client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client_type_id)
+    except Exception as e:
+        logger.error('get_client_type_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not client_type_exists:
         raise HTTPException(status_code=400, detail="Client type not found")
     
-    return_value =  db_query.delete_client_type(db=db, client_type_id=client_type_id)
-    if return_value == client_type_id:
-        return JSONResponse(content={'Action': 'Client type deleted', 'Client type id': client_type_id})
+    try:
+        return_value =  db_query.delete_client_type(db=db, client_type_id=client_type_id)
+    except Exception as e:
+        logger.error('delete_client_type(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if return_value != client_type_id:
+        logger.error('remove_client_type()-failed to delete client type: %s', client_type_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return JSONResponse(content={'Action': 'Client type deleted', 'Client type id': client_type_id})        
     
 @router.delete("/client/delete/{client_id}", summary='Delete a client', tags=['Clients'])
 def remove_client(client_id: int, db: Session = Depends(get_db)):
-    client_exists = db_query.get_client_by_id(db, client_id=client_id)
+    try:
+        client_exists = db_query.get_client_by_id(db, client_id=client_id)
+    except Exception as e:
+        logger.error('get_client_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not client_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
     
-    return_value = db_query.delete_client(db=db, client_id=client_id)
-    if return_value == client_id:
-        return JSONResponse(content={'Action': 'Client deleted', 'Client id': client_id})
-
+    try:
+        return_value = db_query.delete_client(db=db, client_id=client_id)
+    except Exception as e:
+        logger.error('delete_client(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if return_value != client_id:
+        logger.error('remove_client()-failed to delete client type: %s', client_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return JSONResponse(content={'Action': 'Client deleted', 'Client id': client_id})
+    
 # Service and service types add, update and delete #
 @router.post("/service/type/add", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
 def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
@@ -300,12 +394,22 @@ def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depend
 
     *Required
     '''
-    service_type_exists = db_query.get_service_type_by_name(db, service_type=service_type)
+    try:
+        service_type_exists = db_query.get_service_type_by_name(db, service_type=service_type)
+    except Exception as e:
+        logger.error('get_service_type_by_name(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if service_type_exists:
         raise HTTPException(status_code=400, detail="Service type exists")
-    return db_query.add_service_type(db=db, service_type=service_type)
-
-@router.post("/service/add", response_model=schemas.Service, summary='Add a service', tags=['Services'])
+    
+    try:
+        return db_query.add_service_type(db=db, service_type=service_type)
+    except Exception as e:
+        logger.error('add_service_type(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+@router.post("/service", response_model=schemas.Service, summary='Add a service', tags=['Services'])
 def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
     '''
     ## Add service
@@ -319,7 +423,12 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
     **Note**: *Required items
     '''
    
-    service_exists = db_query.get_service_by_properties(db=db, service=service)
+    try:
+        service_exists = db_query.get_service_by_properties(db=db, service=service)
+    except Exception as e:
+        logger.error('get_service_by_properties(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if service_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service exists')
     
@@ -339,12 +448,21 @@ def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
 
     **Note**: *Required items
     '''
-   
-    service_exists = db_query.get_service_by_id(db=db, service_id=service.id)
+
+    try:
+        service_exists = db_query.get_service_by_id(db=db, service_id=service.id)
+    except Exception as e:
+        logger.error('get_service_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not service_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
     
-    return db_query.modify_service(db=db, service=service)
+    try:
+        return db_query.modify_service(db=db, service=service)
+    except Exception as e:
+        logger.error('modify_service(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.delete("/service/type/delete/{service_type_id}", summary='Delete a service type', tags=['Services'])
 def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
@@ -352,9 +470,13 @@ def remove_service_type(service_type_id: int, db: Session = Depends(get_db)):
     if not service_type_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service type not found")
     
-    return_value = db_query.delete_service_type(db=db, service_type_id=service_type_id)
-    if return_value == service_type_id:
-        return JSONResponse(content={'Action': 'Service type deleted', 'Service type id': service_type_id})
+    try:
+        db_query.delete_service_type(db=db, service_type_id=service_type_id)
+    except Exception as e:
+        logger.error('delete_service_type(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+
+    return JSONResponse(content={'message': 'Service type deleted', 'id': service_type_id})
 
 @router.delete("/service/delete/{service_id}", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
 def remove_service(service_id: int, db: Session = Depends(get_db)):
@@ -362,12 +484,13 @@ def remove_service(service_id: int, db: Session = Depends(get_db)):
     if not service_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
     
-    return_value = db_query.delete_service(db=db, service_id=service_id)
-    if return_value == service_id:
-        entry_deleted = schemas.EntryDelete(message='Service deleted', id=service_id)
-        return entry_deleted
-    else:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Failed to delete service')
+    try:
+        db_query.delete_service(db=db, service_id=service_id)
+    except Exception as e:
+        logger.error('delete_service(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    return JSONResponse(content={'message': 'Service deleted', 'id': service_id})
 
 # Contacts add, update & delete #
 @router.post("/contact/add", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
@@ -396,7 +519,11 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
-    return db_query.add_contact(db=db, contact=contact)
+    try:
+        return db_query.add_contact(db=db, contact=contact)
+    except Exception as e:
+        logger.error('add_contact(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.put("/contact/modify", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
 def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
@@ -425,21 +552,34 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
-    return db_query.modify_contact(db=db, contact=contact)
+    try:
+        return db_query.modify_contact(db=db, contact=contact)
+    except Exception as e:
+        logger.error('modify_contact(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.delete("/contact/delete/{contact_id}", summary='Delete a contact', tags=['Contacts'])
-def remove_contact(contact_id: int, db: Session = Depends(get_db)):
-    contact_exists = db_query.get_contact_by_id(db, contact_id=contact_id)
+def remove_contact(contact_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
+    try:
+        contact_exists = db_query.get_contact_by_id(db, contact_id=contact_id)
+    except Exception as e:
+        logger.error('get_contact_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not contact_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
     
-    return_value = db_query.delete_contact(db=db, contact_id=contact_id)
-    if return_value == contact_id:
-        return JSONResponse(content={'Action': 'Contact deleted', 'Contact id': contact_id})
+    try:
+        db_query.delete_contact(db=db, contact_id=contact_id)
+    except Exception as e:
+        logger.error('delete_contact(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    return schemas.EntryDelete(message='Contact deleted', id=contact_id)
 
 # Address add, update & modify #
-@router.post("/address/add", response_model=schemas.Address, summary='Add an address', tags=['Addresses'])
-def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
+@router.post("/address/add", summary='Add an address', tags=['Addresses'])
+def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)) -> schemas.Address:
     '''
     ## Add address
     - **flat**: Flat name 
@@ -461,10 +601,14 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)):
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
     
-    return db_query.add_address(db=db, address=address)    
+    try:
+        return db_query.add_address(db=db, address=address)
+    except Exception as e:
+        logger.error('add_address(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
-@router.put("/address/modify", response_model=schemas.Address, summary='Modify an address', tags=['Addresses'])
-def modify_address(address: schemas.Address, db: Session = Depends(get_db)):
+@router.put("/address/modify", summary='Modify an address', tags=['Addresses'])
+def modify_address(address: schemas.Address, db: Session = Depends(get_db)) -> schemas.Address:
     '''
     ## Modify address
     - **id**: Address id*
@@ -491,21 +635,29 @@ def modify_address(address: schemas.Address, db: Session = Depends(get_db)):
     if not address_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
     
-    return db_query.modify_address(db=db, address=address)
+    try:
+        return db_query.modify_address(db=db, address=address)
+    except Exception as e:
+        logger.error('modify_address(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.delete("/address/delete/{address_id}", summary='Delete an address', tags=['Addresses'])
-def remove_address(address_id: int, db: Session = Depends(get_db)):
+def remove_address(address_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     address_exists = db_query.get_address_by_id(db, address_id=address_id)
     if not address_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
     
-    return_value = db_query.delete_address(db=db, address_id=address_id)
-    if return_value == address_id:
-        return JSONResponse(content={'Action': 'Address deleted', 'Address id': address_id})
+    try:
+        db_query.delete_address(db=db, address_id=address_id)
+    except Exception as e:
+        logger.error('remove_address(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    return schemas.EntryDelete(message='Address deleted', id=address_id)
 
 # Vendors add, update & modify #
-@router.post("/vendor/add", response_model=schemas.Vendor, summary='Add a vendor', tags=['Vendors'])
-def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
+@router.post("/vendor/add", summary='Add a vendor', tags=['Vendors'])
+def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)) -> schemas.Vendor:
     '''
     ## Add vendor
     - **name**: Vendor name*
@@ -518,10 +670,14 @@ def add_vendor(vendor: schemas.VendorBase, db: Session = Depends(get_db)):
     if vendor_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor exists')
     
-    return db_query.add_vendor(db=db, vendor=vendor)
+    try:
+        return db_query.add_vendor(db=db, vendor=vendor)
+    except Exception as e:
+        logger.error('add_vendor(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
-@router.put("/vendor/modify", response_model=schemas.Vendor, summary='Modify a vendor', tags=['Vendors'])
-def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
+@router.put("/vendor/modify", summary='Modify a vendor', tags=['Vendors'])
+def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)) -> schemas.Vendor: 
     '''
     ## Add vendor
     - **id**: Vendor id*
@@ -535,21 +691,29 @@ def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)):
     if not vendor_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
     
-    return db_query.modify_vendor(db=db, vendor=vendor)
+    try:
+        return db_query.modify_vendor(db=db, vendor=vendor)
+    except Exception as e:
+        logger.error('modify_vendor(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
-@router.delete("/vendor/delete/{vendor_id}", response_model=schemas.EntryDelete, summary='Delete a vendor', tags=['Vendors'])
-def remove_vendor(vendor_id: int, db: Session = Depends(get_db)):
+@router.delete("/vendor/delete/{vendor_id}", summary='Delete a vendor', tags=['Vendors'])
+def remove_vendor(vendor_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor_id)
     if not vendor_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
     
-    vendor_deleted = db_query.delete_vendor(db=db, vendor_id=vendor_id)
-    if vendor_deleted == vendor_id:
-        return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)
+    try:
+        db_query.delete_vendor(db=db, vendor_id=vendor_id)
+    except Exception as e:
+        logger.error('remove_vendor(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+
+    return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)
 
 # Pops add, update & delete #
-@router.post("/pop/add", response_model=schemas.Pop, summary='Add a pop', tags=['Pops'])
-def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
+@router.post("/pop/add", summary='Add a pop', tags=['Pops'])
+def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)) -> schemas.Pop:
     '''
     ## Add Pop
     - **name**: Pop name*
@@ -566,10 +730,14 @@ def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)):
     if pop_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop exists')
     
-    return db_query.add_pop(db=db, pop=pop)
+    try:
+        return db_query.add_pop(db=db, pop=pop)
+    except Exception as e:
+        logger.error('add_pop(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
-@router.put("/pop/modify", response_model=schemas.Pop, summary='Modify a pop', tags=['Pops'])
-def update_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
+@router.put("/pop/modify", summary='Modify a pop', tags=['Pops'])
+def update_pop(pop: schemas.Pop, db: Session = Depends(get_db)) -> schemas.Pop:
     '''
     ## Modify Pop
     - **id**: Pop id*
@@ -587,10 +755,14 @@ def update_pop(pop: schemas.Pop, db: Session = Depends(get_db)):
     if not pop_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
     
-    return db_query.modify_pop(db=db, pop=pop)
+    try:
+        return db_query.modify_pop(db=db, pop=pop)
+    except Exception as e:
+        logger.error('modify_pop(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
-@router.delete("/pop/delete/{pop_id}", response_model=schemas.EntryDelete, summary='Delete a pop', tags=['Pops'])
-def remove_pop(pop_id: int, db: Session = Depends(get_db)):
+@router.delete("/pop/delete/{pop_id}", summary='Delete a pop', tags=['Pops'])
+def remove_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     pop_exists = db_query.get_pop_by_id(db=db, pop_id=pop_id)
     if not pop_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
