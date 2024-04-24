@@ -107,6 +107,7 @@ def delete_client(db: Session, client_id: int) -> int:
     stmt = delete(models.Clients).where(models.Clients.id==client_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
@@ -118,6 +119,7 @@ def delete_client_type(db: Session, client_type_id: int) -> int:
     stmt = delete(models.ClientTypes).where(models.ClientTypes.id==client_type_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
@@ -233,6 +235,7 @@ def delete_service(db: Session, service_id: int) -> int:
     stmt = delete(models.Services).where(models.Services.id==service_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
@@ -244,6 +247,7 @@ def delete_service_type(db: Session, service_type_id: int) -> int:
     stmt = delete(models.ServiceTypes).where(models.ServiceTypes.id==service_type_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
@@ -339,6 +343,7 @@ def delete_contact(db: Session, contact_id: int) -> int:
     stmt = delete(models.Contacts).where(models.Contacts.id==contact_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
@@ -422,6 +427,7 @@ def delete_address(db: Session, address_id: int) -> int:
     stmt = delete(models.Addresses).where(models.Addresses.id==address_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
@@ -496,6 +502,7 @@ def delete_vendor(db: Session, vendor_id: int) -> int:
     stmt = delete(models.Vendors).where(models.Vendors.id==vendor_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
@@ -568,6 +575,7 @@ def delete_pop(db: Session, pop_id: int) -> int:
     stmt = delete(models.Pops).where(models.Pops.id==pop_id)
     try:
         db.execute(stmt)
+        db.commit()
     except IntegrityError as e:
         raise IntegrityError from e
     except Exception as e:
