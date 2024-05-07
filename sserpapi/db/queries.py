@@ -44,9 +44,9 @@ def get_client_by_name_and_type(db: Session, client_name: str, client_type_id: i
         return db.query(models.Clients).filter(models.Clients.name==client_name, models.Clients.client_type_id==client_type_id).first()
     except Exception as e:
         raise e
-def get_client_list(db: Session, client_name: str | None = None, client_type: str | None = None, offset: int = 0, limit: int = 10) -> list[models.Clients]:
-    if not client_name and not client_type:
-        raise TypeError('Must provide either client_name or client_type or both')
+def get_clients(db: Session, client_name: str | None = None, client_type: str | None = None, client_id: int | None = None, offset: int = 0, limit: int = 10) -> list[models.Clients]:
+    if not client_name and not client_type and not client_id:
+        raise TypeError('Must provide at least client_name, client_type or client_id')
     
     base_query = db.query(models.Clients)
 
@@ -56,12 +56,14 @@ def get_client_list(db: Session, client_name: str | None = None, client_type: st
     if (client_type):
         client_type_string = f'{client_type}%'
 
-    if client_name and not client_type:
-        base_query=  base_query.filter(models.Clients.name.ilike(client_name_string))
-    elif not client_name and client_type:
+    if client_name:
+        base_query =  base_query.filter(models.Clients.name.ilike(client_name_string))
+
+    if client_type:
         base_query = base_query.join(models.ClientTypes).filter(models.ClientTypes.name.ilike(client_type_string))
-    elif client_name and client_type:
-        base_query = base_query.join(models.ClientTypes).filter(models.Clients.name.ilike(client_name_string), models.ClientTypes.name.ilike(client_type_string))
+
+    if client_id:
+        base_query = base_query.filter(models.Clients.id==client_id)
 
     try:
         return base_query.offset(offset).limit(limit).all()

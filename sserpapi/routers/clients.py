@@ -132,13 +132,13 @@ def check_phone_number_length(phone_numbers: tuple) -> Check:
 
 # client and client types query, add, update & delete #
 @router.get("/clients", response_model=list[schemas.ClientDetails], summary='Get client list', tags=['Clients'])
-def search_client(client_name: str | None = None, client_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    if not client_name and not client_type:
+def get_clients(client_name: str | None = None, client_type: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    if not client_name and not client_type and not client_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter, please see API documentation')
     
     offset = page * page_size
     try:
-        client_list =  db_query.get_client_list(db, client_name=client_name, client_type=client_type, offset=offset, limit=page_size)
+        client_list =  db_query.get_clients(db, client_name=client_name, client_type=client_type, client_id=client_id, offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_client_list(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
