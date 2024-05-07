@@ -11,8 +11,14 @@ data = {
 }
 
 new_client = {
+    'id': 0,
     'name': 'test_client',
     'client_type_id': 1
+}
+
+updated_client = {
+    'name': 'test_client_updated',
+    'client_type_id': 2
 }
 
 client_data = {
@@ -63,7 +69,26 @@ def test_create_client(auth_header):
     delete_response = client.delete(f'/client/{create_response.json()["id"]}', headers=auth_header)
     assert delete_response.status_code == 200
     assert delete_response.json()['message'] == 'Client deleted'
-    assert delete_response.json()['id'] == create_response.json()['id'] 
+    assert delete_response.json()['id'] == create_response.json()['id']
+
+def test_update_client(auth_header):
+    create_response = client.post('/client', json=new_client, headers=auth_header)
+    assert create_response.status_code == 200
+    assert create_response.json()['name'] == new_client['name']
+    assert create_response.json()['client_type_id'] == new_client['client_type_id']
+
+    copy_updated_client = dict(updated_client)
+    copy_updated_client['id'] = create_response.json()['id']
+    update_response = client.put('/client', json=copy_updated_client, headers=auth_header)
+    assert update_response.status_code == 200
+    
+    get_response = client.get(f'/clients?client_name={create_response.json()["name"]}', headers=auth_header)
+    assert get_response.status_code == 200
+    assert get_response.json()[0]['name'] == copy_updated_client['name']
+    assert get_response.json()[0]['client_type_id'] == copy_updated_client['client_type_id']
+
+    delete_response = client.delete(f'/client/{create_response.json()["id"]}', headers=auth_header)
+    assert delete_response.status_code == 200
 
 def test_create_client_exists(auth_header):
     response = client.post('/client', json=new_client, headers=auth_header)
