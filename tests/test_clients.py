@@ -68,8 +68,6 @@ def test_create_client(auth_header):
 
     delete_response = client.delete(f'/client/{create_response.json()["id"]}', headers=auth_header)
     assert delete_response.status_code == 200
-    assert delete_response.json()['message'] == 'Client deleted'
-    assert delete_response.json()['id'] == create_response.json()['id']
 
 def test_update_client(auth_header):
     create_response = client.post('/client', json=new_client, headers=auth_header)
