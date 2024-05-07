@@ -90,6 +90,21 @@ def test_update_client(auth_header):
     delete_response = client.delete(f'/client/{create_response.json()["id"]}', headers=auth_header)
     assert delete_response.status_code == 200
 
+def test_delete_client(auth_header):
+    create_response = client.post('/client', json=new_client, headers=auth_header)
+    assert create_response.status_code == 200
+    
+    get_response = client.get(f'/clients?client_name={create_response.json()["name"]}', headers=auth_header)
+    assert get_response.status_code == 200
+
+    delete_response = client.delete(f'/client/{create_response.json()["id"]}', headers=auth_header)
+    assert delete_response.status_code == 200
+    assert delete_response.json()['message'] == 'Client deleted'
+    assert delete_response.json()['id'] == create_response.json()['id']
+
+    get_response = client.get(f'/clients?client_name={create_response.json()["name"]}', headers=auth_header)
+    assert get_response.status_code == 404
+
 def test_create_client_exists(auth_header):
     response = client.post('/client', json=new_client, headers=auth_header)
     assert response.status_code == 400
