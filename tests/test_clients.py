@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from sserpapi.main import app
+import os
 
 client = TestClient(app)
 
@@ -36,7 +37,11 @@ def read_token():
 
 @pytest.fixture
 def auth_header():
-    token = read_token()
+    if os.path.exists('token.txt'):
+        token = read_token()
+    else:
+        token = ''
+
     if not token:
         get_access_token()
         token = read_token()
@@ -45,10 +50,20 @@ def auth_header():
 
 # test "create_client"
 def test_create_client(auth_header):
-    response = client.post('/client', json=new_client, headers=auth_header)
-    assert response.status_code == 200
-    assert response.json()['name'] == new_client['name']
-    assert response.json()['client_type_id'] == new_client['client_type_id']
+    create_response = client.post('/client', json=new_client, headers=auth_header)
+    assert create_response.status_code == 200
+    assert create_response.json()['name'] == new_client['name']
+    assert create_response.json()['client_type_id'] == new_client['client_type_id']
+    
+    get_response = client.get(f'/clients?client_name={create_response.json()["name"]}', headers=auth_header)
+    assert get_response.status_code == 200
+    assert get_response.json()[0]['name'] == new_client['name']
+    assert get_response.json()[0]['client_type_id'] == new_client['client_type_id']
+
+    delete_response = client.delete(f'/client/{create_response.json()["id"]}', headers=auth_header)
+    assert delete_response.status_code == 200
+    assert delete_response.json()['message'] == 'Client deleted'
+    assert delete_response.json()['id'] == create_response.json()['id'] 
 
 def test_create_client_exists(auth_header):
     response = client.post('/client', json=new_client, headers=auth_header)
