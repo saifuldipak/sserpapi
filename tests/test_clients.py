@@ -1,8 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
 from sserpapi.main import app
-import json
-import requests
 
 client = TestClient(app)
 
@@ -75,12 +73,12 @@ def test_get_clients_by_name(auth_header):
     response = client.get(f'/clients?client_name={client_data["client_name"]}', headers=auth_header)
     assert response.status_code == 200
 
-def test_get_clients_by_name_wrong_name(access_token):
+def test_get_clients_by_wrong_name(access_token):
     headers = {'Authorization': f'Bearer {access_token}'}
     response = client.get(f'/clients?client_name={client_data["wrong_client_name"]}', headers=headers)
     assert response.status_code == 404
 
-def test_get_clients_by_name_none_value(access_token):
+def test_get_clients_by_none_name_value(access_token):
     headers = {'Authorization': f'Bearer {access_token}'}
     response = client.get(f'/clients?client_name={client_data["none_client_name"]}', headers=headers)
     assert response.status_code == 404
@@ -90,12 +88,12 @@ def test_get_clients_by_type(access_token):
     response = client.get(f'/clients?client_type={client_data["client_type"]}', headers=headers)
     assert response.status_code == 200
 
-def test_get_clients_by_type_wrong_type(access_token):
+def test_get_clients_by_wrong_type(access_token):
     headers = {'Authorization': f'Bearer {access_token}'}
     response = client.get(f'/clients?client_type={client_data["wrong_client_type"]}', headers=headers)
     assert response.status_code == 404
 
-def test_get_clients_by_type_none_value(access_token):
+def test_get_clients_by_none_type_value(access_token):
     headers = {'Authorization': f'Bearer {access_token}'}
     response = client.get(f'/clients?client_type={client_data["none_client_type"]}', headers=headers)
     assert response.status_code == 404
@@ -105,7 +103,7 @@ def test_get_clients_by_name_and_type(access_token):
     response = client.get(f'/clients?client_name={client_data["client_name"]}&client_type={client_data["client_type"]}', headers=headers)
     assert response.status_code == 200
 
-def test_get_clients_by_name_and_type_wrong_name_and_type(access_token):
+def test_get_clients_by_wrong_name_and_type(access_token):
     headers = {'Authorization': f'Bearer {access_token}'}
     response = client.get(f'/clients?client_name={client_data["wrong_client_name"]}&client_type={client_data["client_type"]}', headers=headers)
     assert response.status_code == 404
@@ -114,7 +112,7 @@ def test_get_clients_by_name_and_type_wrong_name_and_type(access_token):
     response = client.get(f'/clients?client_name={client_data["wrong_client_name"]}&client_type={client_data["wrong_client_type"]}', headers=headers)
     assert response.status_code == 404
 
-def test_get_clients_by_name_and_type_none_value(access_token):
+def test_get_clients_by_none_name_and_type_value(access_token):
     headers = {'Authorization': f'Bearer {access_token}'}
     response = client.get(f'/clients?client_name={client_data["none_client_name"]}&client_type={client_data["client_type"]}', headers=headers)
     assert response.status_code == 404
