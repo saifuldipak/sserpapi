@@ -26,14 +26,7 @@ updated_client = {
     'client_type_id': 2
 }
 
-client_data = {
-    'client_name': 'test_client',
-    'client_type': 'bank',
-    'wrong_client_name': 'nothing',
-    'wrong_client_type': 'nothing',
-    'none_client_name': None,
-    'none_client_type': None,
-}
+client_type = 'bank'
 
 def get_access_token():
     response = client.post('/token', data=data)
@@ -90,6 +83,7 @@ def test_create_client(auth_header):
     delete_response = client.delete(f'/client/{client_id}', headers=auth_header)
     assert delete_response.status_code == 200
 
+#test "update_client"
 def test_update_client(auth_header):
     create_client = client.post('/client', json=new_client, headers=auth_header)
     assert create_client.status_code == 200
@@ -119,70 +113,61 @@ def test_update_client(auth_header):
     delete_response = client.delete(f"client/{create_client.json()['id']}", headers=auth_header)
     assert delete_response.status_code == 200
 
+#test "delete_client"
 def test_delete_client(auth_header):
-    create_response = client.post('/client', json=new_client, headers=auth_header)
-    assert create_response.status_code == 200
+    create_client = client.post('/client', json=new_client, headers=auth_header)
+    assert create_client.status_code == 200
     
-    get_response = client.get(f'/clients?client_name={create_response.json()["name"]}', headers=auth_header)
-    assert get_response.status_code == 200
+    get_client = client.get(f'/clients?client_name={create_client.json()["name"]}', headers=auth_header)
+    assert get_client.status_code == 200
 
-    delete_response = client.delete(f'/client/{create_response.json()["id"]}', headers=auth_header)
-    assert delete_response.status_code == 200
-    assert delete_response.json()['message'] == 'Client deleted'
-    assert delete_response.json()['id'] == create_response.json()['id']
+    delete_client = client.delete(f'/client/{create_client.json()["id"]}', headers=auth_header)
+    assert delete_client.status_code == 200
+    assert delete_client.json()['message'] == 'Client deleted'
+    assert delete_client.json()['id'] == create_client.json()['id']
 
-    get_response = client.get(f'/clients?client_name={create_response.json()["name"]}', headers=auth_header)
-    assert get_response.status_code == 404
+    get_client = client.get(f'/clients?client_name={create_client.json()["name"]}', headers=auth_header)
+    assert get_client.status_code == 404
+
+    delete_client_not_found = client.delete(f'/client/{create_client.json()["id"]}', headers=auth_header)
+    assert delete_client_not_found.status_code == 404
 
 # test "get_clients"
-def test_get_clients_by_name(auth_header):
-    response = client.get(f'/clients?client_name={client_data["client_name"]}', headers=auth_header)
-    assert response.status_code == 200
+def test_get_clients(auth_header):
+    create_client = client.post('/client', json=new_client, headers=auth_header)
+    assert create_client.status_code == 200
 
-def test_get_clients_by_wrong_name(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_name={client_data["wrong_client_name"]}', headers=headers)
-    assert response.status_code == 404
+    get_clients_by_name = client.get(f'/clients?client_name={new_client["name"]}', headers=auth_header)
+    assert get_clients_by_name.status_code == 200
+    assert get_clients_by_name.json()[0]['name'] == new_client['name']
+    assert get_clients_by_name.json()[0]['client_type_id'] == new_client['client_type_id']
 
-def test_get_clients_by_none_name_value(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_name={client_data["none_client_name"]}', headers=headers)
-    assert response.status_code == 404
+    get_clients_by_id = client.get(f"/clients?client_id={create_client.json()['id']}", headers=auth_header)
+    assert get_clients_by_id.status_code == 200
+    assert get_clients_by_id.json()[0]['name'] == new_client['name']
+    assert get_clients_by_id.json()[0]['client_type_id'] == new_client['client_type_id']
 
-def test_get_clients_by_type(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_type={client_data["client_type"]}', headers=headers)
-    assert response.status_code == 200
+    get_clients_by_name_type = client.get(f"/clients?client_name={new_client['name']}&client_type={client_type}", headers=auth_header)
+    assert get_clients_by_name_type.status_code == 200
+    assert get_clients_by_name_type.json()[0]['name'] == new_client['name']
+    assert get_clients_by_name_type.json()[0]['client_type_id'] == new_client['client_type_id']
 
-def test_get_clients_by_wrong_type(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_type={client_data["wrong_client_type"]}', headers=headers)
-    assert response.status_code == 404
+    get_clients_by_name_wrong_type = client.get(f"/clients?client_name={new_client['name']}&client_type='wrong_type", headers=auth_header)
+    assert get_clients_by_name_wrong_type.status_code == 404
+    
+    get_clients_by_id_name_type = client.get(f"/clients?client_id={create_client.json()['id']}&client_name={new_client['name']}&client_type={client_type}", headers=auth_header)
+    assert get_clients_by_id_name_type.status_code == 200
+    assert get_clients_by_id_name_type.json()[0]['name'] == new_client['name']
+    assert get_clients_by_id_name_type.json()[0]['client_type_id'] == new_client['client_type_id']
 
-def test_get_clients_by_none_type_value(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_type={client_data["none_client_type"]}', headers=headers)
-    assert response.status_code == 404
+    get_clients_missing_parameters = client.get('/clients', headers=auth_header)
+    assert get_clients_missing_parameters.status_code == 400
 
-def test_get_clients_by_name_and_type(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_name={client_data["client_name"]}&client_type={client_data["client_type"]}', headers=headers)
-    assert response.status_code == 200
+    get_clients_wrong_parameters = client.get(f"/clients?clients_name={new_client['name']}", headers=auth_header)
+    assert get_clients_wrong_parameters.status_code == 400
 
-def test_get_clients_by_wrong_name_and_type(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_name={client_data["wrong_client_name"]}&client_type={client_data["client_type"]}', headers=headers)
-    assert response.status_code == 404
-    response = client.get(f'/clients?client_name={client_data["client_name"]}&client_type={client_data["wrong_client_type"]}', headers=headers)
-    assert response.status_code == 404
-    response = client.get(f'/clients?client_name={client_data["wrong_client_name"]}&client_type={client_data["wrong_client_type"]}', headers=headers)
-    assert response.status_code == 404
+    delete_client = client.delete(f"/client/{create_client.json()['id']}", headers=auth_header)
+    assert delete_client.status_code == 200
 
-def test_get_clients_by_none_name_and_type_value(access_token):
-    headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.get(f'/clients?client_name={client_data["none_client_name"]}&client_type={client_data["client_type"]}', headers=headers)
-    assert response.status_code == 404
-    response = client.get(f'/clients?client_name={client_data["client_name"]}&client_type={client_data["none_client_type"]}', headers=headers)
-    assert response.status_code == 404
-    response = client.get(f'/clients?client_name={client_data["none_client_name"]}&client_type={client_data["none_client_type"]}', headers=headers)
-    assert response.status_code == 404
+    get_clients_not_found = client.get(f"/clients?client_id={create_client.json()['id']}&client_name={new_client['name']}", headers=auth_header)
+    assert get_clients_not_found.status_code == 404
