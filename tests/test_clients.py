@@ -28,6 +28,12 @@ updated_client = {
 
 client_type = 'bank'
 
+new_client_type = {
+    'name': 'test_client_type'
+}
+
+another_new_client_type = {}
+
 def get_access_token():
     response = client.post('/token', data=data)
     response_data = response.json()
@@ -171,3 +177,22 @@ def test_get_clients(auth_header):
 
     get_clients_not_found = client.get(f"/clients?client_id={create_client.json()['id']}&client_name={new_client['name']}", headers=auth_header)
     assert get_clients_not_found.status_code == 404
+
+def test_create_client_type(auth_header):
+    create_client_type = client.post('/client/type', json=new_client_type, headers=auth_header)
+    assert create_client_type.status_code == 200
+    assert create_client_type.json()['name'] == new_client_type['name']
+    
+    get_client_types = client.get(f"/client/types?client_type_name={new_client_type['name']}", headers=auth_header)
+    assert get_client_types.status_code == 200
+    assert get_client_types.json()[0]['name'] == new_client_type['name']
+
+    create_same_client_type = client.post('/client/type', json=new_client_type, headers=auth_header)
+    assert create_same_client_type.status_code == 400
+    assert create_same_client_type.json()['detail'] == 'Client type exists'
+
+    create_client_type_missing_data = client.post('/client', json=another_new_client_type, headers=auth_header)
+    assert create_client_type_missing_data.status_code == 422
+
+    delete_client_type = client.delete(f"/client/type/{create_client_type.json()['id']}", headers=auth_header)
+    assert delete_client_type.status_code == 200
