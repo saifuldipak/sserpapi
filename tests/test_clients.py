@@ -178,12 +178,13 @@ def test_get_clients(auth_header):
     get_clients_not_found = client.get(f"/clients?client_id={create_client.json()['id']}&client_name={new_client['name']}", headers=auth_header)
     assert get_clients_not_found.status_code == 404
 
+#test "create_client_type"
 def test_create_client_type(auth_header):
     create_client_type = client.post('/client/type', json=new_client_type, headers=auth_header)
     assert create_client_type.status_code == 200
     assert create_client_type.json()['name'] == new_client_type['name']
     
-    get_client_types = client.get(f"/client/types?client_type_name={new_client_type['name']}", headers=auth_header)
+    get_client_types = client.get(f"/client/types?type_name={new_client_type['name']}", headers=auth_header)
     assert get_client_types.status_code == 200
     assert get_client_types.json()[0]['name'] == new_client_type['name']
 
@@ -197,6 +198,7 @@ def test_create_client_type(auth_header):
     delete_client_type = client.delete(f"/client/type/{create_client_type.json()['id']}", headers=auth_header)
     assert delete_client_type.status_code == 200
 
+#test "delete_client_type"
 def test_delete_client_type(auth_header):
     create_client_type = client.post('/client/type', json=new_client_type, headers=auth_header)
     assert create_client_type.status_code == 200
@@ -214,3 +216,35 @@ def test_delete_client_type(auth_header):
 
     delete_client_type_missing_id = client.delete("/client/type/", headers=auth_header)
     assert delete_client_type_missing_id.status_code == 422
+
+#test "get_client_types"
+def test_get_client_types(auth_header):
+    create_client_type = client.post('/client/type', json=new_client_type, headers=auth_header)
+    assert create_client_type.status_code == 200
+    
+    get_client_types = client.get('/client/types', headers=auth_header)
+    assert get_client_types.status_code == 200
+    assert get_client_types.json().__len__() > 1
+
+    get_client_types_by_name = client.get(f"/client/types?type_name={new_client_type['name']}", headers=auth_header)
+    assert get_client_types_by_name.status_code == 200
+    assert get_client_types_by_name.json()[0]['name'] == new_client_type['name']
+
+    get_client_types_by_id = client.get(f"/client/types?type_id={create_client_type.json()['id']}", headers=auth_header)
+    assert get_client_types_by_id.status_code == 200
+    assert get_client_types_by_id.json()[0]['name'] == new_client_type['name']
+    assert get_client_types_by_id.json()[0]['id'] == create_client_type.json()['id']
+
+    get_client_types_by_name_id = client.get(f"/client/types?type_name={new_client_type['name']}&type_id={create_client_type.json()['id']}", headers=auth_header)
+    assert get_client_types_by_name_id.status_code == 200
+    assert get_client_types_by_name_id.json()[0]['name'] == new_client_type['name']
+    assert get_client_types_by_name_id.json()[0]['id'] == create_client_type.json()['id']
+
+    get_client_types_by_wrong_name = client.get("/client/types?type_name='wrong_type_name'", headers=auth_header)
+    assert get_client_types_by_wrong_name.status_code == 404
+    
+    get_client_types_by_wrong_id = client.get("/client/types?type_id=101", headers=auth_header)
+    assert get_client_types_by_wrong_id.status_code == 404
+
+    delete_client = client.delete(f"/client/type/{create_client_type.json()['id']}", headers=auth_header)
+    assert delete_client.status_code == 200
