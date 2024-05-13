@@ -233,7 +233,7 @@ def update_client(client: schemas.Client, db: Session = Depends(get_db)):
     
     return db_query.modify_client(db=db, client=client)
 
-@router.delete("/client/type/{client_type_id}", response_model=schemas.ClientType, summary='Delete a client type', tags=['Clients'])
+@router.delete("/client/type/{client_type_id}", response_model=schemas.EntryDelete, summary='Delete a client type', tags=['Clients'])
 def delete_client_type(client_type_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     try:
         client_type_exists = db_query.get_client_type_by_id(db, client_type_id=client_type_id)
