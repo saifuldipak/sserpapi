@@ -149,10 +149,16 @@ def get_clients(client_name: str | None = None, client_type: str | None = None, 
     return client_list
     
 @router.get("/client/types", response_model=list[schemas.ClientType], summary='Get client type list', tags=['Clients'])
-def get_client_types(page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+def get_client_types(client_type_name: str | None = None, 
+                     client_type_id: int | None = None, 
+                     page: int = 0, page_size: int = 10, 
+                     db: Session = Depends(get_db)):
     offset = page * page_size
     try:
-        client_types = db_query.get_client_types(db, offset=offset, limit=page_size)
+        client_types = db_query.get_client_types(db, 
+                                                 client_type_name=client_type_name, 
+                                                 client_type_id=client_type_id, 
+                                                 offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_client_types(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e

@@ -9,9 +9,18 @@ import sserpapi.pydantic_schemas as schemas
 logger = logging.getLogger(__name__)
 
 #-- Table 'clients' queries --#
-def get_client_types(db: Session, offset: int = 0, limit: int = 100) -> list[models.ClientTypes]:
+def get_client_types(db: Session, client_type_name: str | None = None, client_type_id: int | None = None, offset: int = 0, limit: int = 100) -> list[models.ClientTypes]:
+    base_query = db.query(models.ClientTypes)
+
+    if client_type_name:
+        client_type_name_string = f'{client_type_name}%'
+        base_query = base_query.filter(models.ClientTypes.name.ilike(client_type_name_string))
+    
+    if client_type_id:
+        base_query = base_query.filter(models.ClientTypes.id==client_type_id)
+
     try:
-        return db.query(models.ClientTypes).offset(offset).limit(limit).all()
+        return base_query.offset(offset).limit(limit).all()
     except Exception as e:
         raise e
     
