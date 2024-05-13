@@ -149,16 +149,10 @@ def get_clients(client_name: str | None = None, client_type: str | None = None, 
     return client_list
     
 @router.get("/client/types", response_model=list[schemas.ClientType], summary='Get client type list', tags=['Clients'])
-def get_client_types(client_type_name: str | None = None, 
-                     client_type_id: int | None = None, 
-                     page: int = 0, page_size: int = 10, 
-                     db: Session = Depends(get_db)):
+def get_client_types(type_name: str | None = None, type_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = page * page_size
     try:
-        client_types = db_query.get_client_types(db, 
-                                                 client_type_name=client_type_name, 
-                                                 client_type_id=client_type_id, 
-                                                 offset=offset, limit=page_size)
+        client_types = db_query.get_client_types(db, type_name=type_name, type_id=type_id, offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_client_types(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
@@ -192,7 +186,7 @@ def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
 @router.post("/client/type", response_model=schemas.ClientType, summary='Add a client type', tags=['Clients'])
 def add_client_type(client_type: schemas.ClientTypeBase, db: Session = Depends(get_db)):
     try:
-        client_type_exists = db_query.get_client_types(db, client_type_name=client_type.name)
+        client_type_exists = db_query.get_client_types(db, type_name=client_type.name)
     except Exception as e:
         logger.error('get_client_type(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
