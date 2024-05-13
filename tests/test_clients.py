@@ -196,3 +196,21 @@ def test_create_client_type(auth_header):
 
     delete_client_type = client.delete(f"/client/type/{create_client_type.json()['id']}", headers=auth_header)
     assert delete_client_type.status_code == 200
+
+def test_delete_client_type(auth_header):
+    create_client_type = client.post('/client/type', json=new_client_type, headers=auth_header)
+    assert create_client_type.status_code == 200
+    assert create_client_type.json()['name'] == new_client_type['name']
+    
+    delete_client_type = client.delete(f"/client/type/{create_client_type.json()['id']}", headers=auth_header)
+    assert delete_client_type.status_code == 200
+
+    get_client_types = client.get(f"/client/types?type_name={new_client_type['name']}", headers=auth_header)
+    assert get_client_types.status_code == 404
+
+    delete_client_type_wrong_id = client.delete("/client/type/0", headers=auth_header)
+    assert delete_client_type_wrong_id.status_code == 400
+    assert delete_client_type_wrong_id.json()['detail'] == 'Client type not found'
+
+    delete_client_type_missing_id = client.delete("/client/type/", headers=auth_header)
+    assert delete_client_type_missing_id.status_code == 422
