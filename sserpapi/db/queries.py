@@ -453,7 +453,11 @@ def get_vendor_by_name(db: Session, vendor: schemas.VendorBase) -> models.Vendor
     except Exception as e:
         raise e
 
-def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: str | None = None, offset: int = 0, limit: int = 100) -> list[models.Vendors]:
+def get_vendor_list(db: Session, 
+                    vendor_name: str | None = None, 
+                    vendor_type: str | None = None,
+                    vendor_id: int | None = None, 
+                    offset: int = 0, limit: int = 100) -> list[models.Vendors]:
     base_query = db.query(models.Vendors)
 
     if vendor_name:
@@ -467,6 +471,9 @@ def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: st
     
     if vendor_type:
         base_query = base_query.filter(models.Vendors.type.ilike(vendor_type_string))
+    
+    if vendor_id:
+        base_query = base_query.filter(models.Vendors.id==vendor_id)
 
     try:
         return base_query.offset(offset).limit(limit).all()

@@ -609,13 +609,21 @@ def remove_address(address_id: int, db: Session = Depends(get_db)) -> schemas.En
 
 # Vendors add, update & modify #
 @router.get("/vendors", response_model=list[schemas.VendorDetails], summary='Search vendor', tags=['Vendors'])
-def get_vendors(vendor_name: str | None = None, vendor_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
-    if not vendor_name and not vendor_type:
+def get_vendors(vendor_name: str | None = None, 
+                vendor_type: str | None = None, 
+                vendor_id: int | None = None, 
+                page: int = 0, page_size: int = 10, 
+                db: Session = Depends(get_db)):    
+    if not vendor_name and not vendor_type and not vendor_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
     
     offset = page * page_size
     try:
-        vendor_list =  db_query.get_vendor_list(db=db, vendor_name=vendor_name, vendor_type=vendor_type, offset=offset, limit=page_size)
+        vendor_list =  db_query.get_vendor_list(db=db, 
+                                                vendor_name=vendor_name, 
+                                                vendor_type=vendor_type, 
+                                                vendor_id=vendor_id, 
+                                                offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_vendor_list(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
