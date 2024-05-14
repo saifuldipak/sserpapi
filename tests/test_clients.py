@@ -53,6 +53,11 @@ new_pop = {
     'extra_info': 'Test POP'
 }
 
+updated_new_pop = {
+    'name': 'Updated Test POP',
+    'owner': 1,
+    'extra_info': 'Updated Test POP'
+}
 blank_new_pop = {}
 
 def get_access_token():
@@ -400,6 +405,40 @@ def test_add_pop(auth_header):
 
     add_pop_missing_body_response = client.post('/pop', headers=auth_header)
     assert add_pop_missing_body_response.status_code == 422
+
+    delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    assert delete_pop_response.status_code == 200
+
+    delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    assert delete_vendor_response.status_code == 200
+
+#test "update_pop"
+def test_update_pop(auth_header):
+    add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
+    assert add_vendor_response.status_code == 200
+
+    add_pop_response = client.post('/pop', json=new_pop, headers=auth_header)
+    assert add_pop_response.status_code == 200
+
+    copy_updated_new_pop = dict(updated_new_pop)
+    copy_updated_new_pop['id'] = add_pop_response.json()['id']
+    update_pop_response = client.put('/pop', json=copy_updated_new_pop, headers=auth_header)
+    assert update_pop_response.status_code == 200
+    assert update_pop_response.json()['name'] == copy_updated_new_pop['name']
+    assert update_pop_response.json()['owner'] == copy_updated_new_pop['owner']
+    assert update_pop_response.json()['extra_info'] == copy_updated_new_pop['extra_info']
+
+    copy_updated_new_pop['id'] = 10001
+    update_pop_wrong_id_response = client.put('/pop', json=copy_updated_new_pop, headers=auth_header)
+    assert  update_pop_wrong_id_response.status_code == 400
+
+    copy_blank_new_pop = dict(blank_new_pop)
+    copy_blank_new_pop['id'] = add_pop_response.json()['id']
+    update_pop_missing_data_response = client.put('/pop', json=copy_blank_new_pop, headers=auth_header)
+    assert update_pop_missing_data_response.status_code == 422
+
+    update_pop_missing_body_response = client.put('/pop', headers=auth_header)
+    assert update_pop_missing_body_response.status_code == 422
 
     delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
     assert delete_pop_response.status_code == 200
