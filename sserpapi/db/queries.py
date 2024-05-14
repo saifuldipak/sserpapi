@@ -462,12 +462,11 @@ def get_vendor_list(db: Session, vendor_name: str | None = None, vendor_type: st
     if vendor_type:
         vendor_type_string = f'{vendor_type}%'
     
-    if vendor_name and not vendor_type:
+    if vendor_name:
         base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string))
-    elif not vendor_name and vendor_type:
+    
+    if vendor_type:
         base_query = base_query.filter(models.Vendors.type.ilike(vendor_type_string))
-    elif vendor_name and vendor_type:
-        base_query = base_query.filter(models.Vendors.name.ilike(vendor_name_string), models.Vendors.type.ilike(vendor_type_string))
 
     try:
         return base_query.offset(offset).limit(limit).all()
