@@ -39,7 +39,13 @@ new_vendor = {
     'type': 'LSP'
 }
 
-another_new_vendor = {}
+updated_new_vendor = {
+    'id': 0,
+    'name': 'Updated Test Vendor',
+    'type': 'ISP'
+}
+
+blank_new_vendor = {}
 
 def get_access_token():
     response = client.post('/token', data=data)
@@ -272,8 +278,36 @@ def test_add_vendor(auth_header):
     assert create_same_vendor.status_code == 400
     assert create_same_vendor.json()['detail'] == 'Vendor exists'
 
-    create_vendor_no_data = client.post('/vendor', json=another_new_vendor, headers=auth_header)
+    create_vendor_no_data = client.post('/vendor', json=blank_new_vendor, headers=auth_header)
     assert create_vendor_no_data.status_code == 422
+
+    delete_vendors = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
+    assert delete_vendors.status_code == 200
+
+#test "update_vendor"
+def test_update_vendor(auth_header):
+    create_vendor = client.post('/vendor', json=new_vendor, headers=auth_header)
+    assert create_vendor.status_code == 200
+
+    updated_new_vendor['id'] = create_vendor.json()['id']
+    update_vendor = client.put("/vendor", json=updated_new_vendor, headers=auth_header)
+    assert update_vendor.status_code == 200
+
+    get_vendors = client.get(f"/vendors?vendor_id={create_vendor.json()['id']}", headers=auth_header)
+    assert get_vendors.status_code == 200
+    assert get_vendors.json()[0]['name'] == updated_new_vendor['name']
+    assert get_vendors.json()[0]['type'] == updated_new_vendor['type']
+
+    updated_new_vendor['id'] = 1001
+    update_vendor_wrong_id = client.put("/vendor", json=updated_new_vendor, headers=auth_header)
+    assert update_vendor_wrong_id.status_code == 400
+
+    blank_new_vendor['id'] = create_vendor.json()['id']
+    update_vendor_missing_data = client.put("/vendor", json=blank_new_vendor, headers=auth_header)
+    assert update_vendor_missing_data.status_code == 422
+
+    update_vendor_missing_body = client.put("/vendor", headers=auth_header)
+    assert update_vendor_missing_body.status_code == 422
 
     delete_vendors = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
     assert delete_vendors.status_code == 200
