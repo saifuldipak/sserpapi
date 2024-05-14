@@ -47,6 +47,14 @@ updated_new_vendor = {
 
 blank_new_vendor = {}
 
+new_pop = {
+    'name': 'Test POP',
+    'owner': 1,
+    'extra_info': 'Test POP'
+}
+
+blank_new_pop = {}
+
 def get_access_token():
     response = client.post('/token', data=data)
     response_data = response.json()
@@ -369,3 +377,32 @@ def test_delete_vendor(auth_header):
 
     delete_vendor_missing_id = client.delete("/vendor", headers=auth_header)
     assert delete_vendor_missing_id.status_code == 405
+
+#test "add_pop"
+def test_add_pop(auth_header):
+    add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
+    assert add_vendor_response.status_code == 200
+
+    copy_new_pop = dict(new_pop)
+    copy_new_pop['owner'] = add_vendor_response.json()['id']
+    add_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
+    assert add_pop_response.status_code == 200
+    assert add_pop_response.json()['name'] == new_pop['name']
+    assert add_pop_response.json()['owner'] == copy_new_pop['owner']
+    assert add_pop_response.json()['extra_info'] == copy_new_pop['extra_info']
+
+    add_same_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
+    assert add_same_pop_response.status_code == 400
+    assert add_same_pop_response.json()['detail'] == 'Pop exists'
+
+    add_pop_missing_data_response = client.post('/pop', json=blank_new_pop, headers=auth_header)
+    assert  add_pop_missing_data_response.status_code == 422
+
+    add_pop_missing_body_response = client.post('/pop', headers=auth_header)
+    assert add_pop_missing_body_response.status_code == 422
+
+    delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    assert delete_pop_response.status_code == 200
+
+    delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    assert delete_vendor_response.status_code == 200
