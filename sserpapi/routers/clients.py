@@ -665,7 +665,7 @@ def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)) -> sche
    
     vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor.id)
     if not vendor_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor not found')
     
     try:
         return db_query.modify_vendor(db=db, vendor=vendor)
