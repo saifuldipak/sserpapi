@@ -717,7 +717,7 @@ def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)) -> schemas.Pop:
     '''
     pop_owner = db_query.get_vendors(db=db, vendor_id=pop.owner)
     if not pop_owner:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor not found')
     
     pop_exists = db_query.get_pop_by_properties(db=db, pop=pop)
     if pop_exists:
