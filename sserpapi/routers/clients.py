@@ -619,13 +619,13 @@ def get_vendors(vendor_name: str | None = None,
     
     offset = page * page_size
     try:
-        vendor_list =  db_query.get_vendor_list(db=db, 
+        vendor_list =  db_query.get_vendors(db=db, 
                                                 vendor_name=vendor_name, 
                                                 vendor_type=vendor_type, 
                                                 vendor_id=vendor_id, 
                                                 offset=offset, limit=page_size)
     except Exception as e:
-        logger.error('get_vendor_list(): %s', e)
+        logger.error('get_vendors(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not vendor_list:
@@ -689,7 +689,7 @@ def delete_vendor(vendor_id: int, db: Session = Depends(get_db)) -> schemas.Entr
 
 # Pops add, update & delete #
 @router.get("/pops", response_model=list[schemas.PopDetails], summary='Search pop', tags=['Pops'])
-def search_pop(pop_name: str | None = None, pop_owner: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+def get_pop(pop_name: str | None = None, pop_owner: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     if not pop_name and not pop_owner:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
     
@@ -704,6 +704,7 @@ def search_pop(pop_name: str | None = None, pop_owner: str | None = None, page: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
     return pop_list
+
 @router.post("/pop", summary='Add a pop', tags=['Pops'])
 def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)) -> schemas.Pop:
     '''
@@ -714,7 +715,7 @@ def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)) -> schemas.Pop:
 
     **Note**: *Required items
     '''
-    pop_owner = db_query.get_vendor_by_id(db=db, vendor_id=pop.owner)
+    pop_owner = db_query.get_vendors(db=db, vendor_id=pop.owner)
     if not pop_owner:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
     

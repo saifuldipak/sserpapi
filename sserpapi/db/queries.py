@@ -453,7 +453,7 @@ def get_vendor_by_name(db: Session, vendor: schemas.VendorBase) -> models.Vendor
     except Exception as e:
         raise e
 
-def get_vendor_list(db: Session, 
+def get_vendors(db: Session, 
                     vendor_name: str | None = None, 
                     vendor_type: str | None = None,
                     vendor_id: int | None = None, 
