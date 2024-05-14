@@ -47,19 +47,6 @@ updated_new_vendor = {
 
 blank_new_vendor = {}
 
-new_pop = {
-    'name': 'Test POP',
-    'owner': 1,
-    'extra_info': 'Test POP'
-}
-
-updated_new_pop = {
-    'name': 'Updated Test POP',
-    'owner': 1,
-    'extra_info': 'Updated Test POP'
-}
-blank_new_pop = {}
-
 def get_access_token():
     response = client.post('/token', data=data)
     response_data = response.json()
@@ -413,15 +400,28 @@ def test_add_pop(auth_header):
     assert delete_vendor_response.status_code == 200
 
 #test "update_pop"
+new_pop = {
+    'name': 'Test POP',
+    'extra_info': 'Test POP'
+}
+
+updated_new_pop = {
+    'name': 'Updated Test POP',
+    'extra_info': 'Updated Test POP'
+}
+blank_new_pop = {}
 def test_update_pop(auth_header):
     add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
     assert add_vendor_response.status_code == 200
 
-    add_pop_response = client.post('/pop', json=new_pop, headers=auth_header)
+    copy_new_pop = dict(new_pop)
+    copy_new_pop['owner'] = add_vendor_response.json()['id']
+    add_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
     assert add_pop_response.status_code == 200
 
     copy_updated_new_pop = dict(updated_new_pop)
     copy_updated_new_pop['id'] = add_pop_response.json()['id']
+    copy_updated_new_pop['owner'] = add_vendor_response.json()['id']
     update_pop_response = client.put('/pop', json=copy_updated_new_pop, headers=auth_header)
     assert update_pop_response.status_code == 200
     assert update_pop_response.json()['name'] == copy_updated_new_pop['name']
@@ -445,3 +445,4 @@ def test_update_pop(auth_header):
 
     delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
     assert delete_vendor_response.status_code == 200
+
