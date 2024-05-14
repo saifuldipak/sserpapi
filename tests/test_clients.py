@@ -352,3 +352,20 @@ def test_get_vendors(auth_header):
 
     delete_vendors = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
     assert delete_vendors.status_code == 200
+
+#test "delete_vendor"
+def test_delete_vendor(auth_header):
+    create_vendor = client.post('/vendor', json=new_vendor, headers=auth_header)
+    assert create_vendor.status_code == 200
+
+    delete_vendor = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
+    assert delete_vendor.status_code == 200
+    assert delete_vendor.json()['id'] == create_vendor.json()['id']
+    assert delete_vendor.json()['message'] == 'Vendor deleted'
+
+    delete_same_vendor = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
+    assert delete_same_vendor.status_code == 400
+    assert delete_same_vendor.json()['detail'] == 'Vendor not found'
+
+    delete_vendor_missing_id = client.delete("/vendor", headers=auth_header)
+    assert delete_vendor_missing_id.status_code == 405
