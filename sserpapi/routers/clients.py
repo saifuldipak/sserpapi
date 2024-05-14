@@ -674,10 +674,10 @@ def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)) -> sche
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.delete("/vendor/{vendor_id}", summary='Delete a vendor', tags=['Vendors'])
-def remove_vendor(vendor_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
+def delete_vendor(vendor_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor_id)
     if not vendor_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vendor not found')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor not found')
     
     try:
         db_query.delete_vendor(db=db, vendor_id=vendor_id)
