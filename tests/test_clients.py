@@ -446,3 +446,20 @@ def test_update_pop(auth_header):
     delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
     assert delete_vendor_response.status_code == 200
 
+#test "delete_pop"
+def test_delete_pop(auth_header):
+    add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
+    assert add_vendor_response.status_code == 200
+
+    copy_new_pop = dict(new_pop)
+    copy_new_pop['owner'] = add_vendor_response.json()['id']
+    add_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
+    assert add_pop_response.status_code == 200
+
+    delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    assert delete_pop_response.status_code == 200
+    assert delete_pop_response.json()['message'] == 'Pop deleted'
+    assert delete_pop_response.json()['id'] == add_pop_response.json()['id']
+
+    delete_pop_not_found_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    assert delete_pop_not_found_response.status_code == 404
