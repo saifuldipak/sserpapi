@@ -355,15 +355,26 @@ def test_get_vendors(auth_header):
 
 #test "delete_vendor"
 def test_delete_vendor(auth_header):
-    create_vendor = client.post('/vendor', json=new_vendor, headers=auth_header)
-    assert create_vendor.status_code == 200
+    add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
+    assert add_vendor_response.status_code == 200
 
-    delete_vendor = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
-    assert delete_vendor.status_code == 200
-    assert delete_vendor.json()['id'] == create_vendor.json()['id']
-    assert delete_vendor.json()['message'] == 'Vendor deleted'
+    copy_new_pop = dict(new_pop)
+    copy_new_pop['owner'] = add_vendor_response.json()['id']
+    add_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
+    assert add_pop_response.status_code == 200
 
-    delete_same_vendor = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
+    delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    assert delete_vendor_response.status_code == 400
+
+    delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    assert delete_pop_response.status_code == 200
+
+    delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    assert delete_vendor_response.status_code == 200
+    assert delete_vendor_response.json()['id'] == add_vendor_response.json()['id']
+    assert delete_vendor_response.json()['message'] == 'Vendor deleted'
+
+    delete_same_vendor = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
     assert delete_same_vendor.status_code == 400
     assert delete_same_vendor.json()['detail'] == 'Vendor not found'
 
