@@ -463,3 +463,6 @@ def test_delete_pop(auth_header):
 
     delete_pop_not_found_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
     assert delete_pop_not_found_response.status_code == 404
+
+    delete_vendor = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    assert delete_vendor.status_code == 200
