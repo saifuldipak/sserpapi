@@ -40,7 +40,7 @@ class Pops(Base):
     __tablename__ = 'pops'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    owner = Column(Integer, ForeignKey('vendors.id'), nullable=False)
+    owner = Column(Integer, ForeignKey('vendors.id', ondelete='RESTRICT'), nullable=False)
     extra_info = Column(String)
     vendors = relationship('Vendors', back_populates='pops')
     services = relationship('Services', back_populates='pops')
