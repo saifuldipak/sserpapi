@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 import sserpapi.pydantic_schemas as schemas
 from sserpapi.db.dependency import get_db
 from sserpapi.db import queries as db_query
@@ -681,6 +682,9 @@ def delete_vendor(vendor_id: int, db: Session = Depends(get_db)) -> schemas.Entr
     
     try:
         db_query.delete_vendor(db=db, vendor_id=vendor_id)
+    except IntegrityError as e:
+        logger.error('remove_vendor(): %s', e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Cannot delete vendor with active pop') from e
     except Exception as e:
         logger.error('remove_vendor(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
