@@ -191,19 +191,20 @@ def get_service_type_by_id(db: Session, service_type_id: int) -> models.ServiceT
     except Exception as e:
         raise e
 
-def get_service_type_list(db: Session, service_type: str | None = None, offset: int = 0, limit: int = 10) -> list[models.ServiceTypes]:
+def get_service_type_list(db: Session, type_name: str | None = None, type_id: int | None = None, offset: int = 0, limit: int = 10) -> list[models.ServiceTypes]:
     base_query = db.query(models.ServiceTypes)
 
-    if service_type:
-        sevice_type_string = f'{service_type}%'
+    if type_name:
+        sevice_type_string = f'{type_name}%'
         base_query = base_query.filter(models.ServiceTypes.name.ilike(sevice_type_string))
-    
-    base_query.offset(offset).limit(limit)
+
+    if type_id:
+        base_query = base_query.filter(models.ServiceTypes.id==type_id)
     
     try:
-        return db.query(models.ServiceTypes).offset(offset).limit(limit).all()
+        return base_query.offset(offset).limit(limit).all()
     except Exception as e:
-        raise e
+        raise DBAPIError(str(base_query), [], e) from e
 
 def add_service(db: Session, service: schemas.ServiceBase) -> schemas.Service:
     try:

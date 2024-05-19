@@ -280,10 +280,10 @@ def get_services(service_point: str | None = None, client_name: str | None = Non
     
     return service_list
 @router.get("/service/types", response_model=list[schemas.ServiceType], summary='Search service type', tags=['Services'])
-def get_service_types(service_type: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+def get_service_types(type_name: str | None = None, type_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = page * page_size
     try:
-        service_type_list =  db_query.get_service_type_list(db=db, service_type=service_type, offset=offset, limit=page_size)
+        service_type_list =  db_query.get_service_type_list(db=db, type_name=type_name, type_id=type_id, offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_service_type_list(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
@@ -292,6 +292,7 @@ def get_service_types(service_type: str | None = None, page: int = 0, page_size:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
     return service_type_list
+
 @router.post("/service/type", response_model=schemas.ServiceType, summary='Add a service type', tags=['Services'])
 def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depends(get_db)):
     '''
