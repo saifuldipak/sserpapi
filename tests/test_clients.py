@@ -520,3 +520,35 @@ def test_delete_service_type(auth_header):
 
     delete_service_type_missing_id_response = client.delete("/service/type/", headers=auth_header)
     assert delete_service_type_missing_id_response.status_code == 422
+
+#test "get_service_types"
+def test_get_service_types(auth_header):
+    add_service_type_response = client.post('/service/type', json=new_service_type, headers=auth_header)
+    assert add_service_type_response.status_code == 200
+    
+    get_service_types_response = client.get('/service/types', headers=auth_header)
+    assert get_service_types_response.status_code == 200
+    assert get_service_types_response.json().__len__() > 1
+
+    get_service_types_by_name_response = client.get(f"/service/types?type_name={new_service_type['name']}", headers=auth_header)
+    assert get_service_types_by_name_response.status_code == 200
+    assert get_service_types_by_name_response.json()[0]['name'] == new_service_type['name']
+
+    get_service_types_by_id_response = client.get(f"/service/types?type_id={add_service_type_response.json()['id']}", headers=auth_header)
+    assert get_service_types_by_id_response.status_code == 200
+    assert get_service_types_by_id_response.json()[0]['name'] == new_service_type['name']
+    assert get_service_types_by_id_response.json()[0]['id'] == add_service_type_response.json()['id']
+
+    get_service_types_by_name_id_response = client.get(f"/service/types?type_name={new_service_type['name']}&type_id={add_service_type_response.json()['id']}", headers=auth_header)
+    assert get_service_types_by_name_id_response.status_code == 200
+    assert get_service_types_by_name_id_response.json()[0]['name'] == new_service_type['name']
+    assert get_service_types_by_name_id_response.json()[0]['id'] == add_service_type_response.json()['id']
+
+    get_service_types_by_wrong_name_response = client.get("/service/types?type_name='wrong_type_name'", headers=auth_header)
+    assert get_service_types_by_wrong_name_response.status_code == 404
+    
+    get_service_types_by_wrong_id_response = client.get("/service/types?type_id=10001", headers=auth_header)
+    assert get_service_types_by_wrong_id_response.status_code == 404
+
+    delete_service_type_response = client.delete(f"/service/type/{add_service_type_response.json()['id']}", headers=auth_header)
+    assert delete_service_type_response.status_code == 200
