@@ -376,7 +376,7 @@ def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
 def delete_service_type(service_type_id: int, db: Session = Depends(get_db)):
     service_type_exists = db_query.get_service_type_by_id(db, service_type_id=service_type_id)
     if not service_type_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service type not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Service type not found")
     
     try:
         db_query.delete_service_type(db=db, service_type_id=service_type_id)
