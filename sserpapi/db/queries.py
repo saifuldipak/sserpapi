@@ -133,9 +133,9 @@ def delete_client_type(db: Session, client_type_id: int) -> int:
         db.execute(stmt)
         db.commit()
     except IntegrityError as e:
-        raise IntegrityError from e
+        raise IntegrityError(str(stmt), [], e) from e
     except Exception as e:
-        raise e
+        raise DBAPIError(str(stmt), [], e) from e
     
     return client_type_id
 
