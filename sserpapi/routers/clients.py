@@ -273,7 +273,7 @@ def get_services(service_point: str | None = None, client_name: str | None = Non
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide service_name and/or client_name')
 
     offset = page * page_size
-    service_list =  db_query.get_service_list(db=db, service_point=service_point, client_name=client_name, offset=offset, limit=page_size)
+    service_list =  db_query.get_services(db=db, service_point=service_point, client_name=client_name, offset=offset, limit=page_size)
     if not service_list:
         logger.warning('No service named "%s"', service_point)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -388,7 +388,7 @@ def delete_service_type(service_type_id: int, db: Session = Depends(get_db)):
 
 @router.delete("/service/{service_id}", response_model=schemas.EntryDelete, summary='Modify a service', tags=['Services'])
 def delete_service(service_id: int, db: Session = Depends(get_db)):
-    service_exists = db_query.get_service_by_id(db=db, service_id=service_id)
+    service_exists = db_query.get_services(db=db, service_id=service_id)
     if not service_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
     
