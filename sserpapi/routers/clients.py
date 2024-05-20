@@ -238,9 +238,12 @@ def delete_client_type(client_type_id: int, db: Session = Depends(get_db)) -> sc
     
     try:
         db_query.delete_client_type(db=db, client_type_id=client_type_id)
+    except IntegrityError as e:
+        logger.error('delete_client_type(): %s', e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Cannot delete client type with active clients') from e
     except Exception as e:
         logger.error('delete_client_type(): %s', e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete client type due to internal server error') from e
     
     return schemas.EntryDelete(message='Client type deleted', id=client_type_id)
     
