@@ -152,26 +152,27 @@ def get_service_by_properties(db: Session, service: schemas.ServiceBase) -> mode
     except Exception as e:
         raise e
     
-def get_service_list(db: Session, service_point: str | None = None, client_name: str | None = None, offset: int = 0, limit: int = 50) -> list[models.Services]:
+def get_services(db: Session, service_point: str | None = None, client_name: str | None = None, client_id: int | None = None, service_id: int | None = None, offset: int = 0, limit: int = 50) -> list[models.Services]:
     base_query = db.query(models.Services)
+
+    if client_id:
+        base_query = base_query.filter(models.Services.client_id==client_id)
+
+    if service_id:
+        base_query = base_query.filter(models.Services.id==service_id)
+
     if service_point:
         sevice_point_string = f'{service_point}%'
+        base_query = base_query.filter(models.Services.point.ilike(sevice_point_string))
     
     if client_name:
         client_name_string = f'{client_name}%'
-        base_query = base_query.join(models.Clients)
-
-    if service_point and not client_name:
-        base_query=  base_query.filter(models.Services.point.ilike(sevice_point_string))
-    elif not service_point and client_name:
-        base_query = base_query.filter(models.Clients.name.ilike(client_name_string))
-    elif service_point and client_name:
-        base_query = base_query.filter(models.Services.point.ilike(sevice_point_string), models.Clients.name.ilike(client_name_string))
+        base_query = base_query.join(models.Clients).filter(models.Clients.name.ilike(client_name_string))
     
     try:
         return base_query.offset(offset).limit(limit).all()
     except Exception as e:
-        raise e
+        raise DBAPIError(str(base_query), [], e) from e
 
 def get_service_type_by_name(db: Session, service_type: schemas.ServiceTypeBase) -> models.ServiceTypes:
     try:
