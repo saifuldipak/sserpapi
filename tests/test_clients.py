@@ -1,14 +1,8 @@
-import pytest
-from fastapi.testclient import TestClient
-from sserpapi.main import app
 import os
-
-client = TestClient(app)
-
-data = {
-    'username': 'saiful',
-    'password': 'amisaiful'
-}
+import copy
+import pytest
+import requests
+import sserpapi.pydantic_schemas as schemas
 
 new_client = {
     'name': 'test_client',
@@ -53,9 +47,23 @@ new_service_type = {
 }
 
 another_new_service_type = {}
+new_client_type = schemas.ClientTypeBase(name='test_client_type')
+new_client_base = schemas.ClientBase(name='test_client', client_type_id=0)
+new_vendor = schemas.VendorBase(name='test_vendor', type='LSP')
+new_pop_base = schemas.PopBase(name='test_pop', owner=0)
+new_service_type = schemas.ServiceTypeBase(name='test_service_type', description='test service type')
+new_service_base = schemas.ServiceBase(client_id=0, point='test_point', service_type_id=0, bandwidth=100, pop_id=0, extra_info='test_extra_info')
+
+URL = 'http://127.0.0.1:8000'
+credential = {
+    'username': 'saiful',
+    'password': 'amisaiful'
+}
+headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+TIMEOUT = 5
 
 def get_access_token():
-    response = client.post('/token', data=data)
+    response = requests.post(f"{URL}/token", data=credential, headers=headers, timeout=TIMEOUT)
     response_data = response.json()
     with open('token.txt', 'w', encoding='utf-8') as f:
         f.write(response_data['access_token'])
@@ -552,3 +560,54 @@ def test_get_service_types(auth_header):
 
     delete_service_type_response = client.delete(f"/service/type/{add_service_type_response.json()['id']}", headers=auth_header)
     assert delete_service_type_response.status_code == 200
+
+#test "add_service"
+def test_add_service(auth_header):
+    add_new_client_type_response = requests.post(f"{URL}/client/type", json=new_client_type.model_dump(), headers=auth_header, timeout=TIMEOUT)
+    assert add_new_client_type_response.status_code == 200
+
+    new_client = copy.deepcopy(new_client_base)
+    new_client.client_type_id = add_new_client_type_response.json()['id']
+    add_new_client_response = requests.post(f"{URL}/client", json=new_client.model_dump(), headers=auth_header, timeout=TIMEOUT)
+    assert add_new_client_response.status_code == 200
+
+    add_new_vendor_response = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
+    assert add_new_vendor_response.status_code == 200
+
+    new_pop = copy.deepcopy(new_pop_base)
+    new_pop.owner = add_new_vendor_response.json()['id']
+    add_new_pop_response = requests.post(f"{URL}/pop", json=new_pop.model_dump(), headers=auth_header, timeout=TIMEOUT)
+    assert add_new_pop_response.status_code == 200
+
+    add_service_type_response = requests.post(f"{URL}/service/type", json=new_service_type.model_dump(), headers=auth_header, timeout=TIMEOUT)
+    assert add_service_type_response.status_code == 200
+
+    new_service = copy.deepcopy(new_service_base)
+    new_service.client_id = add_new_client_response.json()['id']
+    new_service.service_type_id = add_service_type_response.json()['id']
+    new_service.pop_id = add_new_pop_response.json()['id']
+    add_service_response = requests.post(f"{URL}/service", json=new_service.model_dump(), headers=auth_header, timeout=TIMEOUT)
+    assert add_service_response.status_code == 200
+    add_service_response_json = add_service_response.json()
+    del add_service_response_json['id'] 
+    assert add_service_response_json == new_service.model_dump()
+
+    delete_service_response = requests.delete(f"{URL}/service/{add_service_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
+    assert delete_service_response.status_code == 200
+
+    delete_service_type_response = requests.delete(f"{URL}/service/type/{add_service_type_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
+    assert delete_service_type_response.status_code == 200
+
+    delete_pop_response = requests.delete(f"{URL}/pop/{add_new_pop_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
+    assert delete_pop_response.status_code == 200
+
+    delete_vendor_response = requests.delete(f"{URL}/vendor/{add_new_vendor_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
+    assert delete_vendor_response.status_code == 200
+
+    delete_client_response = requests.delete(f"{URL}/client/{add_new_client_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
+    assert delete_client_response.status_code == 200
+
+    delete_client_type_response = requests.delete(f"{URL}/client/type/{add_new_client_type_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
+    assert delete_client_type_response.status_code == 200
+
+
