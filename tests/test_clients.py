@@ -426,16 +426,6 @@ def test_add_pop(auth_header):
     assert delete_vendor_response.status_code == 200
 
 #test "update_pop"
-new_pop = {
-    'name': 'Test POP',
-    'extra_info': 'Test POP'
-}
-
-updated_new_pop = {
-    'name': 'Updated Test POP',
-    'extra_info': 'Updated Test POP'
-}
-blank_new_pop = {}
 def test_update_pop(auth_header):
     add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
     assert add_vendor_response.status_code == 200
@@ -474,24 +464,26 @@ def test_update_pop(auth_header):
 
 #test "delete_pop"
 def test_delete_pop(auth_header):
-    add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
+    clear_tables()
+
+    add_vendor_response = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_vendor_response.status_code == 200
 
-    copy_new_pop = dict(new_pop)
-    copy_new_pop['owner'] = add_vendor_response.json()['id']
-    add_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
+    new_pop = copy.deepcopy(new_pop_base)
+    new_pop.owner = add_vendor_response.json()['id']
+    add_pop_response = requests.post(f"{URL}/pop", json=new_pop.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_pop_response.status_code == 200
 
-    delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    delete_pop_response = requests.delete(f"{URL}/pop/{add_pop_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert delete_pop_response.status_code == 200
     assert delete_pop_response.json()['message'] == 'Pop deleted'
     assert delete_pop_response.json()['id'] == add_pop_response.json()['id']
 
-    delete_pop_not_found_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    delete_pop_not_found_response = requests.delete(f"{URL}/pop/{add_pop_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert delete_pop_not_found_response.status_code == 404
 
-    delete_vendor = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
-    assert delete_vendor.status_code == 200
+    delete_pop_missing_id_response = requests.delete(f"{URL}/pop", headers=auth_header, timeout=TIMEOUT)
+    assert delete_pop_missing_id_response.status_code == 405
 
 #test "add_service_type"
 def test_add_service_type(auth_header):
