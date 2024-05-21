@@ -51,6 +51,7 @@ new_client_type = schemas.ClientTypeBase(name='test_client_type')
 new_client_base = schemas.ClientBase(name='test_client', client_type_id=0)
 new_vendor = schemas.VendorBase(name='test_vendor', type='LSP')
 new_pop_base = schemas.PopBase(name='test_pop', owner=0)
+updated_pop_base = schemas.Pop(id=0, name='Updated Test Pop', owner=0)
 new_service_type = schemas.ServiceTypeBase(name='test_service_type', description='test service type')
 new_service_base = schemas.ServiceBase(client_id=0, point='test_point', service_type_id=0, bandwidth=100, pop_id=0, extra_info='test_extra_info')
 
@@ -427,40 +428,34 @@ def test_add_pop(auth_header):
 
 #test "update_pop"
 def test_update_pop(auth_header):
-    add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
+    clear_tables()
+
+    add_vendor_response = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_vendor_response.status_code == 200
 
-    copy_new_pop = dict(new_pop)
-    copy_new_pop['owner'] = add_vendor_response.json()['id']
-    add_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
+    new_pop = copy.deepcopy(new_pop_base)
+    new_pop.owner = add_vendor_response.json()['id']
+    add_pop_response = requests.post(f"{URL}/pop", json=new_pop.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_pop_response.status_code == 200
 
-    copy_updated_new_pop = dict(updated_new_pop)
-    copy_updated_new_pop['id'] = add_pop_response.json()['id']
-    copy_updated_new_pop['owner'] = add_vendor_response.json()['id']
-    update_pop_response = client.put('/pop', json=copy_updated_new_pop, headers=auth_header)
+    updated_pop = copy.deepcopy(updated_pop_base)
+    updated_pop.id = add_pop_response.json()['id']
+    updated_pop.owner = add_vendor_response.json()['id']
+    update_pop_response = requests.put(f"{URL}/pop", json=updated_pop.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert update_pop_response.status_code == 200
-    assert update_pop_response.json()['name'] == copy_updated_new_pop['name']
-    assert update_pop_response.json()['owner'] == copy_updated_new_pop['owner']
-    assert update_pop_response.json()['extra_info'] == copy_updated_new_pop['extra_info']
+    assert update_pop_response.json()['name'] == updated_pop.name
+    assert update_pop_response.json()['owner'] == updated_pop.owner
+    assert update_pop_response.json()['extra_info'] == updated_pop.extra_info
 
-    copy_updated_new_pop['id'] = 10001
-    update_pop_wrong_id_response = client.put('/pop', json=copy_updated_new_pop, headers=auth_header)
+    updated_pop.id = 10001
+    update_pop_wrong_id_response = requests.put(f"{URL}/pop", json=updated_pop.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert  update_pop_wrong_id_response.status_code == 400
 
-    copy_blank_new_pop = dict(blank_new_pop)
-    copy_blank_new_pop['id'] = add_pop_response.json()['id']
-    update_pop_missing_data_response = client.put('/pop', json=copy_blank_new_pop, headers=auth_header)
+    update_pop_missing_data_response = requests.put(f"{URL}/pop", json={}, headers=auth_header, timeout=TIMEOUT)
     assert update_pop_missing_data_response.status_code == 422
 
-    update_pop_missing_body_response = client.put('/pop', headers=auth_header)
+    update_pop_missing_body_response = requests.put(f"{URL}/pop", headers=auth_header, timeout=TIMEOUT)
     assert update_pop_missing_body_response.status_code == 422
-
-    delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
-    assert delete_pop_response.status_code == 200
-
-    delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
-    assert delete_vendor_response.status_code == 200
 
 #test "delete_pop"
 def test_delete_pop(auth_header):
