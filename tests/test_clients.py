@@ -515,19 +515,21 @@ def test_add_service_type(auth_header):
 
 #test "delete_service_type"
 def test_delete_service_type(auth_header):
-    add_service_type_response = client.post('/service/type', json=new_service_type, headers=auth_header)
+    clear_tables()
+
+    add_service_type_response = requests.post(f"{URL}/service/type", json=new_service_type.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_service_type_response.status_code == 200
     
-    delete_service_type_response = client.delete(f"/service/type/{add_service_type_response.json()['id']}", headers=auth_header)
+    delete_service_type_response = requests.delete(f"{URL}/service/type/{add_service_type_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert delete_service_type_response.status_code == 200
 
-    get_service_types_response = client.get(f"/service/types?type_name={new_service_type['name']}", headers=auth_header)
+    get_service_types_response = requests.get(f"{URL}/service/types?type_name={new_service_type.name}", headers=auth_header, timeout=TIMEOUT)
     assert get_service_types_response.status_code == 404
 
-    delete_service_type_wrong_id_response = client.delete("/service/type/10001", headers=auth_header)
+    delete_service_type_wrong_id_response = requests.delete(f"{URL}/service/type/10001", headers=auth_header, timeout=TIMEOUT)
     assert delete_service_type_wrong_id_response.status_code == 400
 
-    delete_service_type_missing_id_response = client.delete("/service/type/", headers=auth_header)
+    delete_service_type_missing_id_response = requests.delete(f"{URL}/service/type", headers=auth_header, timeout=TIMEOUT)
     assert delete_service_type_missing_id_response.status_code == 422
 
 #test "get_service_types"
