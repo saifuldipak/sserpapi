@@ -47,7 +47,6 @@ new_service_type = {
     'description': 'test service type'
 }
 
-another_new_service_type = {}
 new_client_type = schemas.ClientTypeBase(name='test_client_type')
 new_client_base = schemas.ClientBase(name='test_client', client_type_id=0)
 new_vendor = schemas.VendorBase(name='test_vendor', type='LSP')
@@ -496,22 +495,21 @@ def test_delete_pop(auth_header):
 
 #test "add_service_type"
 def test_add_service_type(auth_header):
-    add_service_type_response = client.post('/service/type', json=new_service_type, headers=auth_header)
-    assert add_service_type_response.status_code == 200
-    assert add_service_type_response.json()['name'] == new_service_type['name']
-    
-    get_service_types_response = client.get(f"/service/types?type_name={new_service_type['name']}", headers=auth_header)
-    assert get_service_types_response.status_code == 200
-    assert get_service_types_response.json()[0]['name'] == new_service_type['name']
+    clear_tables()
 
-    add_same_service_type_response = client.post('/service/type', json=new_service_type, headers=auth_header)
+    add_service_type_response = requests.post(f"{URL}/service/type", json=new_service_type.model_dump(), headers=auth_header, timeout=TIMEOUT)
+    assert add_service_type_response.status_code == 200
+    assert add_service_type_response.json()['name'] == new_service_type.name
+    
+    get_service_types_response = requests.get(f"{URL}/service/types?type_name={new_service_type.name}", headers=auth_header, timeout=TIMEOUT)
+    assert get_service_types_response.status_code == 200
+    assert get_service_types_response.json()[0]['name'] == new_service_type.name
+
+    add_same_service_type_response = requests.post(f"{URL}/service/type", json=new_service_type.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_same_service_type_response.status_code == 400
 
-    add_service_type_missing_data = client.post('/service/type', json=another_new_service_type, headers=auth_header)
+    add_service_type_missing_data = requests.post(f"{URL}/service/type", json={}, headers=auth_header, timeout=TIMEOUT)
     assert add_service_type_missing_data.status_code == 422
-
-    delete_service_type_response = client.delete(f"/service/type/{add_service_type_response.json()['id']}", headers=auth_header)
-    assert delete_service_type_response.status_code == 200
 
 #test "delete_service_type"
 def test_delete_service_type(auth_header):
