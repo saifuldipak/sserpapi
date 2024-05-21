@@ -3,6 +3,7 @@ import copy
 import pytest
 import requests
 import sserpapi.pydantic_schemas as schemas
+from clear_tables import clear_tables 
 
 new_client = {
     'name': 'test_client',
@@ -563,6 +564,8 @@ def test_get_service_types(auth_header):
 
 #test "add_service"
 def test_add_service(auth_header):
+    clear_tables()
+
     add_new_client_type_response = requests.post(f"{URL}/client/type", json=new_client_type.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_new_client_type_response.status_code == 200
 
@@ -591,23 +594,6 @@ def test_add_service(auth_header):
     add_service_response_json = add_service_response.json()
     del add_service_response_json['id'] 
     assert add_service_response_json == new_service.model_dump()
-
-    delete_service_response = requests.delete(f"{URL}/service/{add_service_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
-    assert delete_service_response.status_code == 200
-
-    delete_service_type_response = requests.delete(f"{URL}/service/type/{add_service_type_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
-    assert delete_service_type_response.status_code == 200
-
-    delete_pop_response = requests.delete(f"{URL}/pop/{add_new_pop_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
-    assert delete_pop_response.status_code == 200
-
-    delete_vendor_response = requests.delete(f"{URL}/vendor/{add_new_vendor_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
-    assert delete_vendor_response.status_code == 200
-
-    delete_client_response = requests.delete(f"{URL}/client/{add_new_client_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
-    assert delete_client_response.status_code == 200
-
-    delete_client_type_response = requests.delete(f"{URL}/client/type/{add_new_client_type_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
-    assert delete_client_type_response.status_code == 200
+    
 
 
