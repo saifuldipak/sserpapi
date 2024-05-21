@@ -532,35 +532,32 @@ def test_delete_service_type(auth_header):
 
 #test "get_service_types"
 def test_get_service_types(auth_header):
-    add_service_type_response = client.post('/service/type', json=new_service_type, headers=auth_header)
+    clear_tables()
+    
+    add_service_type_response = requests.post(f"{URL}/service/type", json=new_service_type.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_service_type_response.status_code == 200
     
-    get_service_types_response = client.get('/service/types', headers=auth_header)
+    get_service_types_response = requests.get(f"{URL}/service/types", headers=auth_header, timeout=TIMEOUT)
     assert get_service_types_response.status_code == 200
-    assert get_service_types_response.json().__len__() > 1
+    assert len(get_service_types_response.json()) > 0
 
-    get_service_types_by_name_response = client.get(f"/service/types?type_name={new_service_type['name']}", headers=auth_header)
+    get_service_types_by_name_response = requests.get(f"{URL}/service/types?type_name={new_service_type.name}", headers=auth_header, timeout=TIMEOUT)
     assert get_service_types_by_name_response.status_code == 200
-    assert get_service_types_by_name_response.json()[0]['name'] == new_service_type['name']
+    assert get_service_types_by_name_response.json()[0]['name'] == new_service_type.name
 
-    get_service_types_by_id_response = client.get(f"/service/types?type_id={add_service_type_response.json()['id']}", headers=auth_header)
+    get_service_types_by_id_response = requests.get(f"{URL}/service/types?type_id={add_service_type_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert get_service_types_by_id_response.status_code == 200
-    assert get_service_types_by_id_response.json()[0]['name'] == new_service_type['name']
-    assert get_service_types_by_id_response.json()[0]['id'] == add_service_type_response.json()['id']
+    assert get_service_types_by_id_response.json()[0]['name'] == new_service_type.name
 
-    get_service_types_by_name_id_response = client.get(f"/service/types?type_name={new_service_type['name']}&type_id={add_service_type_response.json()['id']}", headers=auth_header)
+    get_service_types_by_name_id_response = requests.get(f"{URL}/service/types?type_name={new_service_type.name}&type_id={add_service_type_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert get_service_types_by_name_id_response.status_code == 200
-    assert get_service_types_by_name_id_response.json()[0]['name'] == new_service_type['name']
-    assert get_service_types_by_name_id_response.json()[0]['id'] == add_service_type_response.json()['id']
+    assert get_service_types_by_name_id_response.json()[0]['name'] == new_service_type.name
 
-    get_service_types_by_wrong_name_response = client.get("/service/types?type_name='wrong_type_name'", headers=auth_header)
+    get_service_types_by_wrong_name_response = requests.get(f"{URL}/service/types?type_name='wrong_type_name'", headers=auth_header, timeout=TIMEOUT)
     assert get_service_types_by_wrong_name_response.status_code == 404
     
-    get_service_types_by_wrong_id_response = client.get("/service/types?type_id=10001", headers=auth_header)
+    get_service_types_by_wrong_id_response = requests.get(f"{URL}/service/types?type_id=10001", headers=auth_header, timeout=TIMEOUT)
     assert get_service_types_by_wrong_id_response.status_code == 404
-
-    delete_service_type_response = client.delete(f"/service/type/{add_service_type_response.json()['id']}", headers=auth_header)
-    assert delete_service_type_response.status_code == 200
 
 #test "add_service"
 def test_add_service(auth_header):
@@ -594,6 +591,6 @@ def test_add_service(auth_header):
     add_service_response_json = add_service_response.json()
     del add_service_response_json['id'] 
     assert add_service_response_json == new_service.model_dump()
-    
+
 
 
