@@ -371,30 +371,33 @@ def test_get_vendors(auth_header):
 
 #test "delete_vendor"
 def test_delete_vendor(auth_header):
-    add_vendor_response = client.post('/vendor', json=new_vendor, headers=auth_header)
+    clear_tables()
+
+    add_vendor_response = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_vendor_response.status_code == 200
 
-    copy_new_pop = dict(new_pop)
-    copy_new_pop['owner'] = add_vendor_response.json()['id']
-    add_pop_response = client.post('/pop', json=copy_new_pop, headers=auth_header)
+    new_pop = copy.deepcopy(new_pop_base)
+    new_pop.owner = add_vendor_response.json()['id']
+    add_pop_response = requests.post(f"{URL}/pop", json=new_pop.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert add_pop_response.status_code == 200
 
-    delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    delete_vendor_response = requests.delete(f"{URL}/vendor/{add_vendor_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert delete_vendor_response.status_code == 400
+    assert delete_vendor_response.json()['detail'] == 'Cannot delete vendor with active pop'
 
-    delete_pop_response = client.delete(f"/pop/{add_pop_response.json()['id']}", headers=auth_header)
+    delete_pop_response = requests.delete(f"{URL}/pop/{add_pop_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert delete_pop_response.status_code == 200
 
-    delete_vendor_response = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    delete_vendor_response = requests.delete(f"{URL}/vendor/{add_vendor_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert delete_vendor_response.status_code == 200
     assert delete_vendor_response.json()['id'] == add_vendor_response.json()['id']
     assert delete_vendor_response.json()['message'] == 'Vendor deleted'
 
-    delete_same_vendor = client.delete(f"/vendor/{add_vendor_response.json()['id']}", headers=auth_header)
+    delete_same_vendor = requests.delete(f"{URL}/vendor/{add_vendor_response.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert delete_same_vendor.status_code == 400
     assert delete_same_vendor.json()['detail'] == 'Vendor not found'
 
-    delete_vendor_missing_id = client.delete("/vendor", headers=auth_header)
+    delete_vendor_missing_id = requests.delete(f"{URL}/vendor", headers=auth_header, timeout=TIMEOUT)
     assert delete_vendor_missing_id.status_code == 405
 
 #test "add_pop"
