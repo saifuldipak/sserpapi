@@ -330,44 +330,43 @@ def test_update_vendor(auth_header):
 
 #test "get_vendors"
 def test_get_vendors(auth_header):
-    create_vendor = client.post('/vendor', json=new_vendor, headers=auth_header)
+    clear_tables()
+
+    create_vendor = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert create_vendor.status_code == 200
 
-    get_vendors_by_name = client.get(f"/vendors?vendor_name={new_vendor['name']}", headers=auth_header)
+    get_vendors_by_name = requests.get(f"{URL}/vendors?vendor_name={new_vendor.name}", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors_by_name.status_code == 200
-    assert get_vendors_by_name.json()[0]['name'] == new_vendor['name']
-    assert get_vendors_by_name.json()[0]['type'] == new_vendor['type']
+    assert get_vendors_by_name.json()[0]['name'] == new_vendor.name
+    assert get_vendors_by_name.json()[0]['type'] == new_vendor.type
 
-    get_vendors_by_type = client.get(f"/vendors?vendor_type={new_vendor['type']}", headers=auth_header)
+    get_vendors_by_type = requests.get(f"{URL}/vendors?vendor_type={new_vendor.type}", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors_by_type.status_code == 200
-    assert get_vendors_by_type.json()[0]['name'] == new_vendor['name']
-    assert get_vendors_by_type.json()[0]['type'] == new_vendor['type']
+    assert get_vendors_by_type.json()[0]['name'] == new_vendor.name
+    assert get_vendors_by_type.json()[0]['type'] == new_vendor.type
 
-    get_vendors_by_id = client.get(f"/vendors?vendor_id={create_vendor.json()['id']}", headers=auth_header)
+    get_vendors_by_id = requests.get(f"{URL}/vendors?vendor_id={create_vendor.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors_by_id.status_code == 200
-    assert get_vendors_by_id.json()[0]['name'] == new_vendor['name']
-    assert get_vendors_by_id.json()[0]['type'] == new_vendor['type']
+    assert get_vendors_by_id.json()[0]['name'] == new_vendor.name
+    assert get_vendors_by_id.json()[0]['type'] == new_vendor.type
 
-    get_vendors_by_name_type_id = client.get(f"/vendors?vendor_name={new_vendor['name']}&vendor_type={new_vendor['type']}&vendor_id={create_vendor.json()['id']}", headers=auth_header)
+    get_vendors_by_name_type_id = requests.get(f"{URL}/vendors?vendor_name={new_vendor.name}&vendor_type={new_vendor.type}&vendor_id={create_vendor.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors_by_name_type_id.status_code == 200
-    assert get_vendors_by_name_type_id.json()[0]['name'] == new_vendor['name']
-    assert get_vendors_by_name_type_id.json()[0]['type'] == new_vendor['type']
+    assert get_vendors_by_name_type_id.json()[0]['name'] == new_vendor.name
+    assert get_vendors_by_name_type_id.json()[0]['type'] == new_vendor.type
     assert get_vendors_by_name_type_id.json()[0]['id'] == create_vendor.json()['id']
 
-    get_vendors_by_wrong_name = client.get("/vendors?vendor_name='wrong_name'", headers=auth_header)
+    get_vendors_by_wrong_name = requests.get(f"{URL}/vendors?vendor_name='wrong_name'", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors_by_wrong_name.status_code == 404
 
-    get_vendors_by_wrong_type = client.get("/vendors?vendor_type='wrong_type", headers=auth_header)
+    get_vendors_by_wrong_type = requests.get(f"{URL}/vendors?vendor_type='wrong_type", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors_by_wrong_type.status_code == 404
 
-    get_vendors_by_wrong_id = client.get("/vendors?vendor_id=10001", headers=auth_header)
+    get_vendors_by_wrong_id = requests.get(f"{URL}/vendors?vendor_id=10001", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors_by_wrong_id.status_code == 404
 
-    get_vendors_missing_query_parameters = client.get("/vendors", headers=auth_header)
-    assert get_vendors_missing_query_parameters.status_code == 422
-
-    delete_vendors = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
-    assert delete_vendors.status_code == 200
+    get_vendors_missing_query_parameters = requests.get(f"{URL}/vendors", headers=auth_header, timeout=TIMEOUT)
+    assert get_vendors_missing_query_parameters.status_code == 400
 
 #test "delete_vendor"
 def test_delete_vendor(auth_header):
