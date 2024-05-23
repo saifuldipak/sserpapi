@@ -281,25 +281,24 @@ def test_get_client_types(auth_header):
 
 #test "add_vendor"
 def test_add_vendor(auth_header):
-    create_vendor = client.post('/vendor', json=new_vendor, headers=auth_header)
+    clear_tables()
+
+    create_vendor = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert create_vendor.status_code == 200
-    assert create_vendor.json()['name'] == new_vendor['name']
-    assert create_vendor.json()['type'] == new_vendor['type']
+    assert create_vendor.json()['name'] == new_vendor.name
+    assert create_vendor.json()['type'] == new_vendor.type
 
-    get_vendors = client.get(f"/vendors?vendor_name={new_vendor['name']}", headers=auth_header)
+    get_vendors = requests.get(f"{URL}/vendors?vendor_name={new_vendor.name}", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors.status_code == 200
-    assert get_vendors.json()[0]['name'] == new_vendor['name']
-    assert get_vendors.json()[0]['type'] == new_vendor['type']
+    assert get_vendors.json()[0]['name'] == new_vendor.name
+    assert get_vendors.json()[0]['type'] == new_vendor.type
 
-    create_same_vendor = client.post('/vendor', json=new_vendor, headers=auth_header)
+    create_same_vendor = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert create_same_vendor.status_code == 400
     assert create_same_vendor.json()['detail'] == 'Vendor exists'
 
-    create_vendor_no_data = client.post('/vendor', json=blank_new_vendor, headers=auth_header)
+    create_vendor_no_data = requests.post(f"{URL}/vendor", json={}, headers=auth_header, timeout=TIMEOUT)
     assert create_vendor_no_data.status_code == 422
-
-    delete_vendors = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
-    assert delete_vendors.status_code == 200
 
 #test "update_vendor"
 def test_update_vendor(auth_header):
