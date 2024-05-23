@@ -50,6 +50,7 @@ new_service_type = {
 new_client_type = schemas.ClientTypeBase(name='test_client_type')
 new_client_base = schemas.ClientBase(name='test_client', client_type_id=0)
 new_vendor = schemas.VendorBase(name='test_vendor', type='LSP')
+updated_new_vendor = schemas.Vendor(id=0, name='Updated Test Vendor', type='ISP')
 new_pop_base = schemas.PopBase(name='test_pop', owner=0)
 updated_pop_base = schemas.Pop(id=0, name='Updated Test Pop', owner=0)
 new_service_type = schemas.ServiceTypeBase(name='test_service_type', description='test service type')
@@ -302,31 +303,29 @@ def test_add_vendor(auth_header):
 
 #test "update_vendor"
 def test_update_vendor(auth_header):
-    create_vendor = client.post('/vendor', json=new_vendor, headers=auth_header)
+    clear_tables()
+
+    create_vendor = requests.post(f"{URL}/vendor", json=new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert create_vendor.status_code == 200
 
-    updated_new_vendor['id'] = create_vendor.json()['id']
-    update_vendor = client.put("/vendor", json=updated_new_vendor, headers=auth_header)
+    updated_new_vendor.id = create_vendor.json()['id']
+    update_vendor = requests.put(f"{URL}/vendor", json=updated_new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert update_vendor.status_code == 200
 
-    get_vendors = client.get(f"/vendors?vendor_id={create_vendor.json()['id']}", headers=auth_header)
+    get_vendors = requests.get(f"{URL}/vendors?vendor_id={create_vendor.json()['id']}", headers=auth_header, timeout=TIMEOUT)
     assert get_vendors.status_code == 200
-    assert get_vendors.json()[0]['name'] == updated_new_vendor['name']
-    assert get_vendors.json()[0]['type'] == updated_new_vendor['type']
+    assert get_vendors.json()[0]['name'] == updated_new_vendor.name
+    assert get_vendors.json()[0]['type'] == updated_new_vendor.type
 
-    updated_new_vendor['id'] = 1001
-    update_vendor_wrong_id = client.put("/vendor", json=updated_new_vendor, headers=auth_header)
+    updated_new_vendor.id = 1001
+    update_vendor_wrong_id = requests.put(f"{URL}/vendor", json=updated_new_vendor.model_dump(), headers=auth_header, timeout=TIMEOUT)
     assert update_vendor_wrong_id.status_code == 400
 
-    blank_new_vendor['id'] = create_vendor.json()['id']
-    update_vendor_missing_data = client.put("/vendor", json=blank_new_vendor, headers=auth_header)
+    update_vendor_missing_data = requests.put(f"{URL}/vendor", json={}, headers=auth_header, timeout=TIMEOUT)
     assert update_vendor_missing_data.status_code == 422
 
-    update_vendor_missing_body = client.put("/vendor", headers=auth_header)
+    update_vendor_missing_body = requests.put(f"{URL}/vendor", headers=auth_header, timeout=TIMEOUT)
     assert update_vendor_missing_body.status_code == 422
-
-    delete_vendors = client.delete(f"/vendor/{create_vendor.json()['id']}", headers=auth_header)
-    assert delete_vendors.status_code == 200
 
 #test "get_vendors"
 def test_get_vendors(auth_header):
