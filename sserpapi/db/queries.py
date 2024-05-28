@@ -544,28 +544,20 @@ def get_pop_by_id(db: Session, pop_id: int) -> models.Pops:
         raise e
 
 def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: str | None = None, offset: int = 0, limit: int = 10) -> list[models.Pops]:
-    base_query = (
-        db.query(models.Pops)
-        .outerjoin(models.Vendors)
-        .outerjoin(models.Services)
-        .options(joinedload(models.Pops.vendors))    
-        .options(joinedload(models.Pops.services))
-    )
+    base_query = db.query(models.Pops)
 
-    pop_name_string = f'{pop_name}%'
-    pop_owner_string = f'{pop_owner}%'
-
-    if pop_name and not pop_owner:
-        base_query=  base_query.filter(models.Pops.name.ilike(pop_name_string))
-    elif not pop_name and pop_owner:
+    if pop_name:
+        pop_name_string = f'{pop_name}%'
+        base_query = base_query.filter(models.Pops.name.ilike(pop_name_string))
+    
+    if pop_owner:
+        pop_owner_string = f'{pop_owner}%'
         base_query = base_query.join(models.Vendors).filter(models.Vendors.name.ilike(pop_owner_string))
-    elif pop_name and pop_owner:
-        base_query = base_query.join(models.Vendors).filter(models.Pops.name.ilike(pop_name_string), models.Vendors.name.ilike(pop_owner_string))
 
     try:
         return base_query.offset(offset).limit(limit).all()
     except Exception as e:
-        raise e
+        raise DBAPIError(str(base_query), [], e) from e
 
 def add_pop(db: Session, pop: schemas.PopBase) -> models.Pops:
     try:
