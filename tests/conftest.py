@@ -90,3 +90,29 @@ def add_vendor(auth_header, client):
         add_vendor_response = client.post('/vendor', json=vendor, headers=auth_header)
         return add_vendor_response
     return _add_vendor
+
+@pytest.fixture
+def new_pop():
+    return {'name': 'test_pop', 'owner': 1, 'extra_info': 'test_extra_info'}
+
+@pytest.fixture
+def updated_pop():
+    return {'id': 0, 'name': 'updated_test_pop', 'owner': 1, 'extra_info': 'updated_test_extra_info'}
+
+@pytest.fixture
+def add_pop(auth_header, client):
+    def _add_pop(pop: dict):
+        add_pop_response = client.post('/pop', json=pop, headers=auth_header)
+        return add_pop_response
+    return _add_pop
+
+@pytest.fixture
+def add_vendor_and_pop(add_vendor, new_vendor, add_pop, new_pop):
+    add_vendor_response = add_vendor(new_vendor)
+    assert add_vendor_response.status_code == 200
+
+    new_pop['owner'] = add_vendor_response.json()['id']
+    add_pop_response = add_pop(new_pop)
+    assert add_pop_response.status_code == 200
+    
+    return add_pop_response
