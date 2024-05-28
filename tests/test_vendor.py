@@ -1,16 +1,3 @@
-import pytest
-
-@pytest.fixture
-def new_vendor():
-    return {'name': 'test_vendor', 'type': 'LSP'}
-
-@pytest.fixture
-def add_vendor(auth_header, client):
-    def _add_vendor(vendor: dict):
-        add_vendor_response = client.post('/vendor', json=vendor, headers=auth_header)
-        return add_vendor_response
-    return _add_vendor
-
 def test_add_vendor(add_vendor, new_vendor):
     add_vendor_response = add_vendor(new_vendor)
     assert add_vendor_response.status_code == 200

@@ -79,3 +79,14 @@ def clear_tables():
             raise IntegrityError(str(stmt), [], e) from e
         except Exception as e:
             raise DBAPIError(str(stmt), [], e) from e
+
+@pytest.fixture
+def new_vendor():
+    return {'name': 'test_vendor', 'type': 'LSP'}
+
+@pytest.fixture
+def add_vendor(auth_header, client):
+    def _add_vendor(vendor: dict):
+        add_vendor_response = client.post('/vendor', json=vendor, headers=auth_header)
+        return add_vendor_response
+    return _add_vendor
