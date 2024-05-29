@@ -78,6 +78,14 @@ def test_delete_vendor(auth_header, client, add_vendor, new_vendor):
     assert delete_vendor_response.json()['message'] == 'Vendor deleted'
     assert delete_vendor_response.json()['id'] == add_vendor_response.json()['id']
 
+def test_delete_vendor_with_pop(auth_header, client, add_vendor_and_pop):
+    add_vendor_and_pop_response = add_vendor_and_pop
+    assert add_vendor_and_pop_response.status_code == 200
+    
+    delete_vendor_response = client.delete(f"/vendor/{add_vendor_and_pop_response.json()['id']}", headers=auth_header)
+    assert delete_vendor_response.status_code == 400
+    assert delete_vendor_response.json()['detail'] == 'Cannot delete vendor with active pop'
+
 def test_delete_vendor_wrong_id(auth_header, client):
     delete_vendor_wrong_id = client.delete('/vendor/10001', headers=auth_header)
     assert delete_vendor_wrong_id.status_code == 400
