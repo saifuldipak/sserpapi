@@ -97,7 +97,7 @@ def add_client_type(db: Session, client_type: schemas.ClientTypeBase) -> models.
         db.commit()
         db.refresh(new_client_type)
     except Exception as e:
-        raise e
+        raise DBAPIError(str(new_client_type), [], e) from e
 
     return new_client_type
 
