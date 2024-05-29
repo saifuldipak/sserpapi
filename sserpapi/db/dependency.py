@@ -9,11 +9,8 @@ def get_db():
     try:
         db = SessionLocal()
         yield db
-    except OperationalError as e:
-        logger.error('Database connection error: %s', e)
-        raise DBAPIError(str(e), [], e) from e
     except Exception as e:
-        logger.error('Database connection error: %s', e)
-        raise DBAPIError(str(e), [], e) from e
+        logger.error("get_db(): Database connection error: %s", e)
+        raise e
     finally:
         db.close()
