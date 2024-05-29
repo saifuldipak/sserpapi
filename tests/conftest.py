@@ -9,11 +9,6 @@ from sserpapi.db import models
 from sserpapi.main import app
 from sserpapi.db.dependency import get_db
 
-# Setup database for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test_db.sqlite"
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 #username and password for access token
 credential = {
         'username': 'saiful',
@@ -21,22 +16,13 @@ credential = {
     }
 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-# Dependency override
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
 #-- Create client object for each test module --#
 @pytest.fixture(scope='module')
 def client():
     with TestClient(app) as c:
         yield c
-   
+
+#-- Create authentication header for each test module --#
 def get_access_token():
     app_obj = TestClient(app)
     response = app_obj.post("/token", data=credential, headers=headers)
@@ -49,7 +35,6 @@ def read_token():
         token = f.read()
     return token
 
-#-- Create authentication header for each test module --#
 @pytest.fixture(scope='module')
 def auth_header():
     if os.path.exists('token.txt'):
@@ -66,7 +51,7 @@ def auth_header():
 #-- Clear all tables before each test --#
 @pytest.fixture(autouse=True)
 def clear_tables():
-    db = TestingSessionLocal()
+    db = next(get_db())
 
     table_list = ['Services', 'ServiceTypes', 'Pops', 'Vendors', 'Clients', 'ClientTypes']
 
