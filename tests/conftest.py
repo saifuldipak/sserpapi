@@ -101,3 +101,18 @@ def add_vendor_and_pop(add_vendor, new_vendor, add_pop, new_pop):
     assert add_pop_response.status_code == 200
     
     return add_pop_response
+
+@pytest.fixture
+def new_client_type():
+    return {'name': 'test_client_type'}
+
+@pytest.fixture
+def another_new_client_type():
+    return {'name': 'another_test_client_type'}
+
+@pytest.fixture
+def add_client_type(auth_header, client):
+    def _add_client_type(client_type: dict):
+        add_client_type_response = client.post('/client/type', json=client_type, headers=auth_header)
+        return add_client_type_response
+    return _add_client_type
