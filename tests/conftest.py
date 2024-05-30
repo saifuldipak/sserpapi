@@ -116,3 +116,14 @@ def add_client_type(auth_header, client):
         add_client_type_response = client.post('/client/type', json=client_type, headers=auth_header)
         return add_client_type_response
     return _add_client_type
+
+@pytest.fixture
+def new_client():
+    return {'name': 'test_client', 'client_type_id': 0}
+
+@pytest.fixture
+def add_client(auth_header, client):
+    def _add_client(client_data: dict):
+        add_client_response = client.post('/client', json=client_data, headers=auth_header)
+        return add_client_response
+    return _add_client
