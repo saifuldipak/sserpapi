@@ -127,3 +127,14 @@ def add_client(auth_header, client):
         add_client_response = client.post('/client', json=client_data, headers=auth_header)
         return add_client_response
     return _add_client
+
+@pytest.fixture
+def add_client_type_and_client(add_client_type, new_client_type, add_client, new_client):
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+
+    new_client['client_type_id'] = add_client_type_response.json()['id']
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+
+    return add_client_response, new_client
