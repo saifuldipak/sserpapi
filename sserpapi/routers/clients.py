@@ -132,7 +132,7 @@ def check_phone_number_length(phone_numbers: tuple) -> Check:
 @router.get("/clients", response_model=list[schemas.ClientDetails], summary='Get client list', tags=['Clients'])
 def get_clients(client_name: str | None = None, client_type: str | None = None, client_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     if not client_name and not client_type and not client_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter, please see API documentation')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter(client_name, client_type, client_id)')
     
     offset = page * page_size
     try:
