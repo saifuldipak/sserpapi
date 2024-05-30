@@ -82,3 +82,15 @@ def test_delete_client_type_wrong_id(auth_header, client):
 def test_delete_client_type_missing_id(auth_header, client):
     delete_client_type_missing_id = client.delete('/client/type/', headers=auth_header)
     assert delete_client_type_missing_id.status_code == 422
+
+def test_delete_client_type_with_client(new_client_type, auth_header, client, add_client_type, new_client, add_client):
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+
+    new_client['client_type_id'] = add_client_type_response.json()['id']
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+
+    delete_client_type = client.delete(f'/client/type/{add_client_type_response.json()["id"]}', headers=auth_header)
+    assert delete_client_type.status_code == 400
+    assert delete_client_type.json()['detail'] == 'Cannot delete client type with active clients'
