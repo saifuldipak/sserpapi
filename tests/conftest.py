@@ -122,6 +122,10 @@ def new_client():
     return {'name': 'test_client', 'client_type_id': 0}
 
 @pytest.fixture
+def updated_client():
+    return {'id': 0, 'name': 'updated_test_client', 'client_type_id': 0}
+
+@pytest.fixture
 def add_client(auth_header, client):
     def _add_client(client_data: dict):
         add_client_response = client.post('/client', json=client_data, headers=auth_header)
@@ -138,3 +142,10 @@ def add_client_type_and_client(add_client_type, new_client_type, add_client, new
     assert add_client_response.status_code == 200
 
     return add_client_response, new_client
+
+@pytest.fixture
+def update_client(auth_header, client):
+    def _update_client(client_data: dict):
+        add_client_response = client.put('/client', json=client_data, headers=auth_header)
+        return add_client_response
+    return _update_client
