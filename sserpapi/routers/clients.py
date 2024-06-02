@@ -283,13 +283,13 @@ def get_services(service_point: str | None = None, client_name: str | None = Non
 def get_service_types(type_name: str | None = None, type_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     offset = page * page_size
     try:
-        service_type_list =  db_query.get_service_type_list(db=db, type_name=type_name, type_id=type_id, offset=offset, limit=page_size)
+        service_type_list =  db_query.get_service_types(db=db, type_name=type_name, type_id=type_id, offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_service_type_list(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not service_type_list:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No service types found')
     
     return service_type_list
 
@@ -303,9 +303,9 @@ def add_service_type(service_type: schemas.ServiceTypeBase, db: Session = Depend
     *Required
     '''
     try:
-        service_type_exists = db_query.get_service_type_by_name(db, service_type=service_type)
+        service_type_exists = db_query.get_service_types(db, type_name=service_type.name)
     except Exception as e:
-        logger.error('get_service_type_by_name(): %s', e)
+        logger.error('add_service_type() - failed to get service types using get_service_types(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if service_type_exists:

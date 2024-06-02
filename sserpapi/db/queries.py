@@ -192,7 +192,7 @@ def get_service_type_by_id(db: Session, service_type_id: int) -> models.ServiceT
     except Exception as e:
         raise e
 
-def get_service_type_list(db: Session, type_name: str | None = None, type_id: int | None = None, offset: int = 0, limit: int = 10) -> list[models.ServiceTypes]:
+def get_service_types(db: Session, type_name: str | None = None, type_id: int | None = None, offset: int = 0, limit: int = 10) -> list[models.ServiceTypes]:
     base_query = db.query(models.ServiceTypes)
 
     if type_name:
