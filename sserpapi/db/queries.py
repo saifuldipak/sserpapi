@@ -543,9 +543,12 @@ def get_pop_by_id(db: Session, pop_id: int) -> models.Pops:
     except Exception as e:
         raise e
 
-def get_pop_list(db: Session, pop_name: str | None = None, pop_owner: str | None = None, offset: int = 0, limit: int = 10) -> list[models.Pops]:
+def get_pops(db: Session, pop_id: int | None = None, pop_name: str | None = None, pop_owner: str | None = None, offset: int = 0, limit: int = 10) -> list[models.Pops]:
     base_query = db.query(models.Pops)
 
+    if pop_id:
+        base_query = base_query.filter(models.Pops.id==pop_id)
+        
     if pop_name:
         pop_name_string = f'{pop_name}%'
         base_query = base_query.filter(models.Pops.name.ilike(pop_name_string))
