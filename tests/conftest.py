@@ -160,3 +160,36 @@ def add_service_type(auth_header, client):
         add_service_type_response = client.post('/service/type', json=service_type, headers=auth_header)
         return add_service_type_response
     return _add_service_type
+
+@pytest.fixture
+def new_service():
+    return {'client_id': 0, 'point': 'test_service', 'service_type_id': 0, 'bandwidth': 100, 'pop_id': 0, 'extra_info': 'test_extra_info'}
+
+@pytest.fixture
+def add_service(add_service_type, new_service_type, add_client_type_and_client, add_vendor_and_pop, client, auth_header):
+    def _add_service(service: dict):
+        add_service_type_response = add_service_type(new_service_type)
+        assert add_service_type_response.status_code == 200
+
+        add_client_type_and_client_response, new_client = add_client_type_and_client
+        assert add_client_type_and_client_response.status_code == 200
+
+        add_vendor_and_pop_response = add_vendor_and_pop
+        assert add_vendor_and_pop_response.status_code == 200
+
+        service['client_id'] = add_client_type_and_client_response.json()['id']
+        service['service_type_id'] = add_service_type_response.json()['id']
+        service['pop_id'] = add_vendor_and_pop_response.json()['id']
+    
+        add_service_response = client.post('/service', json=service, headers=auth_header)
+        return add_service_response
+    
+    return _add_service
+
+@pytest.fixture
+def add_service_only(auth_header, client):
+    def _add_service_only(service: dict):
+        add_service_only_response = client.post('/service', json=service, headers=auth_header)
+        return add_service_only_response
+    return _add_service_only
+    
