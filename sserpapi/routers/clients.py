@@ -203,7 +203,7 @@ def update_client(client: schemas.Client, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not client_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client id not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client id not found")
     
     try:
         client_type = db_query.get_client_type_by_id(db, client_type_id=client.client_type_id)
@@ -212,7 +212,7 @@ def update_client(client: schemas.Client, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not client_type:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Client type not found')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client type not found')
     
     try:
         client_name_and_type = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
@@ -221,7 +221,7 @@ def update_client(client: schemas.Client, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if client_name_and_type:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client with this name and type exists')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Existing client data and submitted client data same')
     
     return db_query.modify_client(db=db, client=client)
 
@@ -256,7 +256,7 @@ def delete_client(client_id: int, db: Session = Depends(get_db)) -> schemas.Entr
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not client_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client not found")
     
     try:
         db_query.delete_client(db=db, client_id=client_id)
