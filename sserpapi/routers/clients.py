@@ -332,6 +332,33 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
     '''
    
     try:
+        client_exists = db_query.get_clients(db, client_id=service.client_id)
+    except Exception as e:
+        logger.error('get_clients(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not client_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client not found')
+    
+    try:
+        service_type_exists = db_query.get_service_types(db, type_id=service.service_type_id)
+    except Exception as e:
+        logger.error('get_service_types(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not service_type_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service type not found')
+    
+    try:
+        pop_exists = db_query.get_pops(db, pop_id=service.pop_id)
+    except Exception as e:
+        logger.error('get_pop(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not pop_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop not found')
+
+    try:
         service_exists = db_query.get_service_by_properties(db=db, service=service)
     except Exception as e:
         logger.error('get_service_by_properties(): %s', e)
