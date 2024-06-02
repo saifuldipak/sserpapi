@@ -149,3 +149,14 @@ def update_client(auth_header, client):
         add_client_response = client.put('/client', json=client_data, headers=auth_header)
         return add_client_response
     return _update_client
+
+@pytest.fixture
+def new_service_type():
+    return {'name': 'test_service_type', 'description': 'test_description'}
+
+@pytest.fixture
+def add_service_type(auth_header, client):
+    def _add_service_type(service_type: dict):
+        add_service_type_response = client.post('/service/type', json=service_type, headers=auth_header)
+        return add_service_type_response
+    return _add_service_type
