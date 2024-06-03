@@ -126,6 +126,35 @@ def check_phone_number_length(phone_numbers: tuple) -> Check:
 
     return check
 
+def check_service_data(db: Session, service: dict) -> None:
+    try:
+        client_exists = db_query.get_clients(db, client_id=service['client_id'])
+    except Exception as e:
+        logger.error('get_clients(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not client_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client not found')
+    
+    try:
+        service_type_exists = db_query.get_service_types(db, type_id=service['service_type_id'])
+    except Exception as e:
+        logger.error('get_service_types(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not service_type_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service type not found')
+    
+    try:
+        pop_exists = db_query.get_pops(db, pop_id=service['pop_id'])
+    except Exception as e:
+        logger.error('get_pop(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not pop_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop not found')
+   
+
 #-- API routes --#
 
 # client and client types query, add, update & delete #
@@ -330,7 +359,8 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
 
     **Note**: *Required items
     '''
-   
+    check_service_data(db, service.model_dump())
+
     try:
         client_exists = db_query.get_clients(db, client_id=service.client_id)
     except Exception as e:
@@ -370,7 +400,7 @@ def add_service(service: schemas.ServiceBase, db: Session = Depends(get_db)):
     return db_query.add_service(db=db, service=service)
 
 @router.put("/service", response_model=schemas.Service, summary='Modify a service', tags=['Services'])
-def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
+def update_service(service: schemas.Service, db: Session = Depends(get_db)):
     '''
     ## Modify service
     - **id**: Service id* 
@@ -385,13 +415,15 @@ def modify_service(service: schemas.Service, db: Session = Depends(get_db)):
     '''
 
     try:
-        service_exists = db_query.get_service_by_id(db=db, service_id=service.id)
+        service_exists = db_query.get_services(db=db, service_id=service.id)
     except Exception as e:
-        logger.error('get_service_by_id(): %s', e)
+        logger.error('get_services(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not service_exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
+    
+    check_service_data(db, service.model_dump())
     
     try:
         return db_query.modify_service(db=db, service=service)
