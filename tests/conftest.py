@@ -187,4 +187,8 @@ def add_service_only(auth_header, client):
         add_service_only_response = client.post('/service', json=service, headers=auth_header)
         return add_service_only_response
     return _add_service_only
+
+@pytest.fixture
+def new_service_updated():
+    return {'id': 0, 'client_id': 0, 'point': 'updated_test_service', 'service_type_id': 0, 'bandwidth': 200, 'pop_id': 0, 'extra_info': 'updated_test_extra_info'}
     
