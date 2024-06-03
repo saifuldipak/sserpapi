@@ -268,9 +268,9 @@ def delete_client(client_id: int, db: Session = Depends(get_db)) -> schemas.Entr
     
 # Service and service types add, update and delete #
 @router.get("/services", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Services'])
-def get_services(service_point: str | None = None, client_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
-    if not service_point and not client_name:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide service_name and/or client_name')
+def get_services(service_point: str | None = None, client_name: str | None = None, pop_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
+    if not service_point and not client_name and not pop_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide at least one (service_name,client_name,pop_name')
 
     offset = page * page_size
     service_list =  db_query.get_services(db=db, service_point=service_point, client_name=client_name, offset=offset, limit=page_size)
