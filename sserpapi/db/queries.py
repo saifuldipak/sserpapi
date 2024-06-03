@@ -519,12 +519,6 @@ def get_pop_by_properties(db: Session, pop: schemas.PopBase) -> models.Pops:
         return db.query(models.Pops).filter(models.Pops.name==pop.name, models.Pops.owner==pop.owner).first()
     except Exception as e:
         raise e
-    
-def get_pop_by_id(db: Session, pop_id: int) -> models.Pops:
-    try:
-        return db.query(models.Pops).filter(models.Pops.id==pop_id).first()
-    except Exception as e:
-        raise e
 
 def get_pops(db: Session, pop_id: int | None = None, pop_name: str | None = None, pop_owner: str | None = None, offset: int = 0, limit: int = 10) -> list[models.Pops]:
     base_query = db.query(models.Pops)
