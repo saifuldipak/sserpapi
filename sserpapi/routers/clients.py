@@ -721,15 +721,15 @@ def delete_vendor(vendor_id: int, db: Session = Depends(get_db)) -> schemas.Entr
 
 # Pops add, update & delete #
 @router.get("/pops", response_model=list[schemas.PopDetails], summary='Search pop', tags=['Pops'])
-def get_pop(pop_name: str | None = None, pop_owner: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
-    if not pop_name and not pop_owner:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter')
+def get_pops(pop_name: str | None = None, pop_owner: str | None = None, pop_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    if not pop_name and not pop_owner and not pop_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You must give at least one query parameter(pop_name,pop_owner,pop_id)')
     
     offset = page * page_size
     try:
-        pop_list =  db_query.get_pop_list(db=db, pop_name=pop_name, pop_owner=pop_owner, offset=offset, limit=page_size)
+        pop_list =  db_query.get_pops(db=db, pop_name=pop_name, pop_owner=pop_owner, pop_id=pop_id, offset=offset, limit=page_size)
     except Exception as e:
-        logger.error('get_pop_list(): %s', e)
+        logger.error('get_pops(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not pop_list:
