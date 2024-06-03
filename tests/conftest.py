@@ -85,22 +85,22 @@ def updated_pop():
     return {'id': 0, 'name': 'updated_test_pop', 'owner': 1, 'extra_info': 'updated_test_extra_info'}
 
 @pytest.fixture
-def add_pop(auth_header, client):
-    def _add_pop(pop: dict):
+def add_pop_only(auth_header, client):
+    def _add_pop_only(pop: dict):
         add_pop_response = client.post('/pop', json=pop, headers=auth_header)
         return add_pop_response
-    return _add_pop
+    return _add_pop_only
 
 @pytest.fixture
-def add_vendor_and_pop(add_vendor, new_vendor, add_pop, new_pop):
-    add_vendor_response = add_vendor(new_vendor)
-    assert add_vendor_response.status_code == 200
-
-    new_pop['owner'] = add_vendor_response.json()['id']
-    add_pop_response = add_pop(new_pop)
-    assert add_pop_response.status_code == 200
-    
-    return add_pop_response
+def add_pop(add_vendor, new_vendor, add_pop_only):
+    def _add_pop(pop: dict):
+        add_vendor_response = add_vendor(new_vendor)
+        assert add_vendor_response.status_code == 200
+        pop['owner'] = add_vendor_response.json()['id']
+        add_pop_response = add_pop_only(pop)
+        assert add_pop_response.status_code == 200
+        return add_pop_response
+    return _add_pop
 
 @pytest.fixture
 def new_client_type():
@@ -126,22 +126,22 @@ def updated_client():
     return {'id': 0, 'name': 'updated_test_client', 'client_type_id': 0}
 
 @pytest.fixture
-def add_client(auth_header, client):
-    def _add_client(client_data: dict):
+def add_client_only(auth_header, client):
+    def _add_client_only(client_data: dict):
         add_client_response = client.post('/client', json=client_data, headers=auth_header)
         return add_client_response
-    return _add_client
+    return _add_client_only
 
 @pytest.fixture
-def add_client_type_and_client(add_client_type, new_client_type, add_client, new_client):
-    add_client_type_response = add_client_type(new_client_type)
-    assert add_client_type_response.status_code == 200
-
-    new_client['client_type_id'] = add_client_type_response.json()['id']
-    add_client_response = add_client(new_client)
-    assert add_client_response.status_code == 200
-
-    return add_client_response, new_client
+def add_client(add_client_type, new_client_type, add_client_only):
+    def _add_client(client: dict):
+        add_client_type_response = add_client_type(new_client_type)
+        assert add_client_type_response.status_code == 200
+        client['client_type_id'] = add_client_type_response.json()['id']
+        add_client_response = add_client_only(client)
+        assert add_client_response.status_code == 200
+        return add_client_response
+    return _add_client
 
 @pytest.fixture
 def update_client(auth_header, client):
@@ -166,24 +166,19 @@ def new_service():
     return {'client_id': 0, 'point': 'test_service', 'service_type_id': 0, 'bandwidth': 100, 'pop_id': 0, 'extra_info': 'test_extra_info'}
 
 @pytest.fixture
-def add_service(add_service_type, new_service_type, add_client_type_and_client, add_vendor_and_pop, client, auth_header):
+def add_service(add_service_type, new_service_type, add_client, new_client, add_pop, new_pop, client, auth_header):
     def _add_service(service: dict):
         add_service_type_response = add_service_type(new_service_type)
         assert add_service_type_response.status_code == 200
-
-        add_client_type_and_client_response, new_client = add_client_type_and_client
-        assert add_client_type_and_client_response.status_code == 200
-
-        add_vendor_and_pop_response = add_vendor_and_pop
-        assert add_vendor_and_pop_response.status_code == 200
-
-        service['client_id'] = add_client_type_and_client_response.json()['id']
+        add_client_response = add_client(new_client)
+        assert add_client_response.status_code == 200
+        add_pop_response = add_pop(new_pop)
+        assert add_pop_response.status_code == 200
+        service['client_id'] = add_client_response.json()['id']
         service['service_type_id'] = add_service_type_response.json()['id']
-        service['pop_id'] = add_vendor_and_pop_response.json()['id']
-    
+        service['pop_id'] = add_pop_response.json()['id']
         add_service_response = client.post('/service', json=service, headers=auth_header)
         return add_service_response
-    
     return _add_service
 
 @pytest.fixture
