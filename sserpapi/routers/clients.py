@@ -273,10 +273,10 @@ def get_services(service_point: str | None = None, client_name: str | None = Non
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide at least one (service_name,client_name,pop_name')
 
     offset = page * page_size
-    service_list =  db_query.get_services(db=db, service_point=service_point, client_name=client_name, offset=offset, limit=page_size)
+    service_list =  db_query.get_services(db=db, service_point=service_point, client_name=client_name, pop_name=pop_name, offset=offset, limit=page_size)
     if not service_list:
         logger.warning('No service named "%s"', service_point)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No service found')
     
     return service_list
 @router.get("/service/types", response_model=list[schemas.ServiceType], summary='Search service type', tags=['Services'])
