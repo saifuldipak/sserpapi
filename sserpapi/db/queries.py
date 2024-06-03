@@ -140,51 +140,34 @@ def delete_client_type(db: Session, client_type_id: int) -> int:
     return client_type_id
 
 #-- Table 'services' queries --#
-def get_services(db: Session, skip: int = 0, limit: int = 100) -> list[models.Services]:
-    try:
-        return db.query(models.Services).offset(skip).limit(limit).all()
-    except Exception as e:
-        raise e
-
 def get_service_by_properties(db: Session, service: schemas.ServiceBase) -> models.Services:
     try:
         return db.query(models.Services).filter(models.Services.client_id==service.client_id, models.Services.point==service.point, models.Services.service_type_id==service.service_type_id, models.Services.bandwidth==service.bandwidth, models.Services.extra_info==service.extra_info).first()
     except Exception as e:
         raise e
     
-def get_services(db: Session, service_point: str | None = None, client_name: str | None = None, client_id: int | None = None, service_id: int | None = None, offset: int = 0, limit: int = 50) -> list[models.Services]:
+def get_services(db: Session, service_point: str | None = None, client_name: str | None = None, pop_name: str | None = None, service_id: int | None = None, offset: int = 0, limit: int = 50) -> list[models.Services]:
     base_query = db.query(models.Services)
 
-    if client_id:
-        base_query = base_query.filter(models.Services.client_id==client_id)
-
-    if service_id:
-        base_query = base_query.filter(models.Services.id==service_id)
-
-    if service_point:
-        sevice_point_string = f'{service_point}%'
-        base_query = base_query.filter(models.Services.point.ilike(sevice_point_string))
-    
     if client_name:
         client_name_string = f'{client_name}%'
         base_query = base_query.join(models.Clients).filter(models.Clients.name.ilike(client_name_string))
+
+    if service_point:
+        service_point_string = f'{service_point}%'
+        base_query = base_query.filter(models.Services.point.ilike(service_point_string))
+
+    if pop_name:
+        pop_name_string = f'{pop_name}%'
+        base_query = base_query.join(models.Pops).filter(models.Pops.name.ilike(pop_name_string))
+
+    if service_id:
+        base_query = base_query.filter(models.Services.id==service_id)
     
     try:
         return base_query.offset(offset).limit(limit).all()
     except Exception as e:
         raise DBAPIError(str(base_query), [], e) from e
-
-def get_service_type_by_name(db: Session, service_type: schemas.ServiceTypeBase) -> models.ServiceTypes:
-    try:
-        return db.query(models.ServiceTypes).filter(models.ServiceTypes.name==service_type.name).first()
-    except Exception as e:
-        raise e
-
-def get_service_by_id(db: Session, service_id: int) -> models.Services:
-    try:
-        return db.query(models.Services).filter(models.Services.id==service_id).first()
-    except Exception as e:
-        raise e
 
 def get_service_type_by_id(db: Session, service_type_id: int) -> models.ServiceTypes:
     try:
