@@ -26,7 +26,8 @@ dependencies = [
     "PyYAML>=6.0.1",
     "requests>=2.31.0",
     "pytest>=8.2.0",
-    "alembic>=1.13.1"
+    "alembic>=1.13.1",
+    "pydantic[email]"
     ]
 
 [tool.setuptools_scm]
