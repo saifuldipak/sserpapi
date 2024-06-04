@@ -125,3 +125,68 @@ def test_update_service(add_service, new_service, new_service_updated, client, a
     new_service_updated['pop_id'] = add_service_response.json()['pop_id']
     update_service_response = client.put('/service', json=new_service_updated, headers=auth_header)
     assert_get_services_response_json(update_service_response.json(), new_service_updated)
+
+def test_update_service_by_wrong_id(new_service_updated, client, auth_header):
+    update_service_response = client.put('/service', json=new_service_updated, headers=auth_header)
+    assert update_service_response.status_code == 400
+    assert update_service_response.json()['detail'] == 'Service not found'
+
+def test_update_service_by_wrong_client_id(add_service, new_service, new_service_updated, client, auth_header):
+    add_service_response = add_service(new_service)
+    assert add_service_response.status_code == 200
+
+    new_service_updated['id'] = add_service_response.json()['id']
+    new_service_updated['client_id'] = 10001
+    update_service_response = client.put('/service', json=new_service_updated, headers=auth_header)
+    assert update_service_response.status_code == 400
+    assert update_service_response.json()['detail'] == 'Client not found'
+
+def test_update_service_by_wrong_service_type_id(add_service, new_service, new_service_updated, client, auth_header):
+    add_service_response = add_service(new_service)
+    assert add_service_response.status_code == 200
+
+    new_service_updated['id'] = add_service_response.json()['id']
+    new_service_updated['client_id'] = add_service_response.json()['client_id']
+    new_service_updated['service_type_id'] = 10001
+    update_service_response = client.put('/service', json=new_service_updated, headers=auth_header)
+    assert update_service_response.status_code == 400
+    assert update_service_response.json()['detail'] == 'Service type not found'
+
+def test_update_service_by_wrong_pop_id(add_service, new_service, new_service_updated, client, auth_header):
+    add_service_response = add_service(new_service)
+    assert add_service_response.status_code == 200
+
+    new_service_updated['id'] = add_service_response.json()['id']
+    new_service_updated['client_id'] = add_service_response.json()['client_id']
+    new_service_updated['service_type_id'] = add_service_response.json()['service_type_id']
+    new_service_updated['pop_id'] = 10001
+    update_service_response = client.put('/service', json=new_service_updated, headers=auth_header)
+    assert update_service_response.status_code == 400
+    assert update_service_response.json()['detail'] == 'Pop not found'
+
+def test_update_service_blank_body(client, auth_header):
+    update_service_response = client.put('/service', json={}, headers=auth_header)
+    assert update_service_response.status_code == 422
+
+def test_update_service_missing_body(client, auth_header):
+    update_service_response = client.put('/service', headers=auth_header)
+    assert update_service_response.status_code == 422
+
+#test "delete_service"
+def test_delete_service(add_service, new_service, client, auth_header):
+    add_service_response = add_service(new_service)
+    assert add_service_response.status_code == 200
+
+    delete_service_response = client.delete(f"/service/{add_service_response.json()['id']}", headers=auth_header)
+    assert delete_service_response.status_code == 200
+    assert delete_service_response.json()['id'] == add_service_response.json()['id']
+    assert delete_service_response.json()['message'] == 'Service deleted'
+
+def test_delete_service_by_wrong_id(client, auth_header):
+    delete_service_response = client.delete('/service/10001', headers=auth_header)
+    assert delete_service_response.status_code == 400
+    assert delete_service_response.json()['detail'] == 'Service not found'
+
+def test_delete_service_missing_id(client, auth_header):
+    delete_service_response = client.delete('/service', headers=auth_header)
+    assert delete_service_response.status_code == 405
