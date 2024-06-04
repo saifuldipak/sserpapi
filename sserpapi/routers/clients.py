@@ -73,23 +73,38 @@ def check_id_presence(db: Session, ids: dict) -> Check:
         return check
 
     if ids['client_id']:
-        client_exists = db_query.get_clients(db, client_id=ids['client_id'])
+        try:
+            client_exists = db_query.get_clients(db, client_id=ids['client_id'])
+        except Exception as e:
+            logger.error("get_clients(): %s", e)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        
         if not client_exists:
             check.failed = True
-            check.message = 'Client id does not exist'
+            check.message = 'Client not found'
     elif ids['service_id']:
-        service_exists = db_query.get_services(db, service_id=ids['service_id'])
+        try:
+            service_exists = db_query.get_services(db, service_id=ids['service_id'])
+        except Exception as e:
+            logger.error("get_services(): %s", e)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        
         if not service_exists:
             check.failed = True
-            check.message = 'Service id does not exist'
+            check.message = 'Service not found'
     elif ids['vendor_id']:
-        vendor_exists = db_query.get_vendor_by_id(db, vendor_id=ids['vendor_id'])
+        try:
+            vendor_exists = db_query.get_vendor_by_id(db, vendor_id=ids['vendor_id'])
+        except Exception as e:
+            logger.error("get_vendor_by_id(): %s", e)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        
         if not vendor_exists:
             check.failed = True
             check.message = 'Vendor id does not exist'
     else:
         check.failed = True
-        check.message = 'Key names should be "client_id", "service_id", and "vendor_id"'
+        check.message = 'You must provide any of client_id, service_id, or vendor_id but not more than one'
 
     return check
 
