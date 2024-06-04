@@ -53,7 +53,7 @@ def auth_header():
 def clear_tables():
     db = next(get_db())
 
-    table_list = ['Services', 'ServiceTypes', 'Pops', 'Vendors', 'Clients', 'ClientTypes']
+    table_list = ['Services', 'ServiceTypes', 'Pops', 'Vendors', 'Clients', 'ClientTypes', 'Contacts', 'Addresses']
 
     for table in table_list:
         stmt = delete(models.__dict__[table])
@@ -191,4 +191,14 @@ def add_service_only(auth_header, client):
 @pytest.fixture
 def new_service_updated():
     return {'id': 0, 'client_id': 0, 'point': 'updated_test_service', 'service_type_id': 0, 'bandwidth': 200, 'pop_id': 0, 'extra_info': 'updated_test_extra_info'}
-    
+
+@pytest.fixture
+def new_contact():
+    return {'name': 'First_Name Last_Name', 'designation': 'Manager', 'type': 'Technical', 'phone1': '01713433900', 'email': 'email@somedomain.com', 'service_id': None, 'client_id': None, 'vendor_id': None}
+
+@pytest.fixture
+def add_contact(auth_header, client):
+    def _add_contact(contact: dict):
+        add_contact_response = client.post('/contact', json=contact, headers=auth_header)
+        return add_contact_response
+    return _add_contact
