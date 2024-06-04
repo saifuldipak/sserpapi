@@ -73,12 +73,12 @@ def check_id_presence(db: Session, ids: dict) -> Check:
         return check
 
     if ids['client_id']:
-        client_exists = db_query.get_client_by_id(db, client_id=ids['client_id'])
+        client_exists = db_query.get_clients(db, client_id=ids['client_id'])
         if not client_exists:
             check.failed = True
             check.message = 'Client id does not exist'
     elif ids['service_id']:
-        service_exists = db_query.get_service_by_id(db, service_id=ids['service_id'])
+        service_exists = db_query.get_services(db, service_id=ids['service_id'])
         if not service_exists:
             check.failed = True
             check.message = 'Service id does not exist'
@@ -500,6 +500,7 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     - **phone1**: Phone number*
     - **phone2**: Phone number
     - **phone3**: Phone number
+    - **email**: Email address
     - **service_id**: Service id (integer)**
     - **client_id**: Client id (integer)**
     - **vendor_id**: Vendor id (integer)**
