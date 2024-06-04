@@ -531,6 +531,15 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     check = check_phone_number_length(phone_numbers=phone_numbers)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
+    
+    try:
+        contact_exists = db_query.get_contacts_by_properties(db=db, contact=contact)
+    except Exception as e:
+        logger.error('get_contacts_by_properties(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if contact_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Contact exists')
 
     try:
         return db_query.add_contact(db=db, contact=contact)
