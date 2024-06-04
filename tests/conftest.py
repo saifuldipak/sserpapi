@@ -194,7 +194,7 @@ def new_service_updated():
 
 @pytest.fixture
 def new_contact():
-    return {'name': 'First_Name Last_Name', 'designation': 'Manager', 'type': 'Technical', 'phone1': '01713433900', 'email': 'email@somedomain.com', 'service_id': None, 'client_id': None, 'vendor_id': None}
+    return {'name': 'First_Name Last_Name', 'designation': 'Manager', 'type': 'Technical', 'phone1': '01713433900', 'email': 'email@somedomain.com'}
 
 @pytest.fixture
 def add_contact(auth_header, client):
