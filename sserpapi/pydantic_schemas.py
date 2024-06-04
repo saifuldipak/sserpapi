@@ -1,5 +1,5 @@
 # pylint: disable=E0401
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 import typing_extensions
 
 #-- table 'clients' and 'client_types' --#
@@ -43,6 +43,7 @@ class ContactBase(BaseModel):
     phone1: str
     phone2: str | None = None
     phone3: str | None = None
+    email: EmailStr | None = None
     client_id: int | None = None
     vendor_id: int | None = None
     service_id: int | None = None
