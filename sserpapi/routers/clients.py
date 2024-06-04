@@ -421,7 +421,7 @@ def update_service(service: schemas.Service, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not service_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service not found')
     
     check_service_data(db, service.model_dump())
     
@@ -449,7 +449,7 @@ def delete_service_type(service_type_id: int, db: Session = Depends(get_db)):
 def delete_service(service_id: int, db: Session = Depends(get_db)):
     service_exists = db_query.get_services(db=db, service_id=service_id)
     if not service_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Service not found')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service not found')
     
     try:
         db_query.delete_service(db=db, service_id=service_id)
