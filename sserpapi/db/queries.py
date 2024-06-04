@@ -264,6 +264,23 @@ def add_contact(db: Session, contact: schemas.ContactBase) -> schemas.Contact:
     
     return new_contact
 
+def get_contacts_by_properties(db: Session, contact: schemas.ContactBase):
+    base_query = db.query(models.Contacts).filter(models.Contacts.name==contact.name, models.Contacts.designation==contact.designation, models.Contacts.type==contact.type)
+
+    if contact.client_id:
+        base_query = base_query.filter(models.Contacts.client_id==contact.client_id)
+
+    if contact.service_id:
+        base_query = base_query.filter(models.Contacts.service_id==contact.service_id)
+
+    if contact.vendor_id:
+        base_query = base_query.filter(models.Contacts.vendor_id==contact.vendor_id)
+
+    try:
+        return base_query.first()
+    except Exception as e:
+        raise e
+
 def get_contact_list(
         db: Session, 
         client_name: str | None = None,
