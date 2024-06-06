@@ -51,6 +51,22 @@ class ContactBase(BaseModel):
 class Contact(ContactBase):
     id: int
 
+class ContactSearch(BaseModel):
+    id: int | None = None
+    name: str | None = None
+    designation: str | None = None
+    type: typing_extensions.Literal['Admin', 'Technical', 'Billing'] | None = None
+    phone1: str | None = None
+    phone2: str | None = None
+    phone3: str | None = None
+    email: EmailStr | None = None
+    client_id: int | None = None
+    vendor_id: int | None = None
+    service_id: int | None = None
+    client_name: str | None = None
+    service_point: str | None = None
+    vendor_name: str | None = None
+
 #-- table 'vendors' --#
 class VendorBase(BaseModel):
     name: str
