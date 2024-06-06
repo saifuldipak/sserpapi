@@ -8,6 +8,7 @@ import sserpapi.pydantic_schemas as schemas
 from sserpapi.db.dependency import get_db
 from sserpapi.db import queries as db_query
 from sserpapi.auth import get_current_active_user
+import typing_extensions
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,68 @@ def check_service_data(db: Session, service: dict) -> None:
     
     if not pop_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop not found')
+
+def check_query_parameters(contact: schemas.ContactSearch) -> None:
+    if contact.client_id and contact.service_id and contact.vendor_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='client_id, service_id, and vendor_id cannot be provided at the same time')
+    
+    if contact.client_name and contact.vendor_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='client_name and vendor_name cannot be provided at the same time')
+    
+    if contact.service_id and contact.service_point:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='service_id and service_point both cannot be provided at the same time')
+    
+    if contact.client_id and contact.client_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='client_id and client_name both cannot be provided at the same time')
+    
+    if contact.vendor_id and contact.vendor_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='vendor_id and vendor_name both cannot be provided at the same time')
    
+    if contact.designation or contact.type:
+        if not any(param for param in [contact.client_id, contact.service_id, contact.vendor_id, contact.client_name, contact.service_point, contact.vendor_name]):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must give at least one query parameter(client_id, service_id, vendor_id, client_name, service_point, vendor_name) when designation or contact_type is provided')
+    
+    if contact.service_point and not contact.client_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must give query parameter client_name when service_name is provided')
+
+def convert_names_to_ids(db: Session, client_name: str | None, service_point: str | None, vendor_name: str | None) -> int:
+    if client_name and service_point:
+        try:
+            services = db_query.get_services(db, service_point=service_point)
+        except Exception as e:
+            logger.error('get_services(): %s', e)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        
+        if not services:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Service point not found')
+        
+        return services[0].id
+        
+    
+    if client_name:
+        try:
+            clients = db_query.get_clients(db, client_name=client_name)
+        except Exception as e:
+            logger.error('get_clients(): %s', e)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        
+        if not clients:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Client not found')
+
+        return clients[0].id
+    
+    if vendor_name:
+        try:
+            vendors = db_query.get_vendors(db, vendor_name=vendor_name)
+        except Exception as e:
+            logger.error('get_vendors(): %s', e)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+        
+        if not vendors:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor not found')
+
+        return vendors[0].id
+        
 
 #-- API routes --#
 
@@ -476,27 +538,22 @@ def delete_service(service_id: int, db: Session = Depends(get_db)):
 
 # Contacts add, update & delete #
 @router.get("/contacts", response_model=list[schemas.ContactDetails], summary='Get contact list', tags=['Contacts'])
-def search_contact(
-    client_name: str | None = None,
-    service_point: str | None = None,
-    vendor_name: str | None = None,
-    page: int = 0, 
-    page_size: int = 10, 
-    db: Session = Depends(get_db)
-    ):
-    
-    if service_point and not client_name:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide client name with service point')
+def get_contacts(contact_id: int | None = None, contact_name: str | None = None, designation: str | None = None, contact_type: typing_extensions.Literal['Admin', 'Technical', 'Billing'] | None = None, phone1: str | None = None, email: str | None = None, client_id: int | None = None, service_id: int | None = None, vendor_id: int | None = None, client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
      
     offset = page * page_size
+
+    contact = schemas.ContactSearch(id=contact_id, name=contact_name, designation=designation, type=contact_type, phone1=phone1, email=email, client_id=client_id, service_id=service_id, vendor_id=vendor_id, client_name=client_name, service_point=service_point, vendor_name=vendor_name)
+    
+    if all (value is None for porperty, value in vars(contact).items()): 
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='No query parameters')
+
+    check_query_parameters(contact)
+    
+    convert_names_to_ids(db, client_name=client_name, service_point=service_point, vendor_name=vendor_name)
+    
+    contact = schemas.ContactSearch(id=contact_id, name=contact_name, type=contact_type, designation=designation, phone1=phone1, email=email, client_id=client_id, service_id=service_id, vendor_id=vendor_id)
     try:
-        contact_list = db_query.get_contact_list(
-            db, 
-            client_name=client_name,
-            service_point=service_point,
-            vendor_name=vendor_name, 
-            offset=offset, 
-            limit=page_size)
+        contact_list = db_query.get_contacts(db, contact=contact, offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_contact_list(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
@@ -505,6 +562,7 @@ def search_contact(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Contact not found')
     
     return contact_list
+
 @router.post("/contact", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
 def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     """
