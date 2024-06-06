@@ -281,45 +281,36 @@ def get_contacts_by_properties(db: Session, contact: schemas.ContactBase):
     except Exception as e:
         raise e
 
-def get_contact_list(
-        db: Session, 
-        client_name: str | None = None,
-        service_point: str | None = None,
-        vendor_name: str | None = None,
-        offset: int = 0, 
-        limit: int = 100
-        ) -> list[models.Contacts]:    
+def get_contacts(db: Session, contact: schemas.ContactSearch, offset: int = 0, limit: int = 100) -> list[models.Contacts]:    
     
     base_query = db.query(models.Contacts)
+
+    if contact.id:
+        base_query = base_query.filter(models.Contacts.id==contact.id)
+
+    if contact.name:
+        base_query = base_query.filter(models.Contacts.name.ilike(f"{contact.name}%"))
+
+    if contact.designation:
+        base_query = base_query.filter(models.Contacts.designation.ilike(f"{contact.designation}%"))
     
-    if client_name and service_point:
-        client_name_string = f'{client_name}%'
-        service_point_string = f'{service_point}%'
-        base_query = (
-            base_query
-            .join(models.Clients)
-            .join(models.Services)
-            .options(joinedload(models.Contacts.clients))
-            .options(joinedload(models.Contacts.services))
-            .filter(models.Clients.name.ilike(client_name_string))
-            .filter(models.Services.point.ilike(service_point_string))
-        )
-    elif client_name:
-        client_name_string = f'{client_name}%'
-        base_query = (
-            base_query
-            .join(models.Clients)
-            .options(joinedload(models.Contacts.clients))
-            .filter(models.Clients.name.ilike(client_name_string))
-        )
-    elif vendor_name:
-        vendor_name_string = f'{vendor_name}%'
-        base_query = (
-            base_query
-            .join(models.Vendors)
-            .options(joinedload(models.Contacts.vendors))
-            .filter(models.Vendors.name.ilike(vendor_name_string))
-        )
+    if contact.type:
+        base_query = base_query.filter(models.Contacts.type.ilike(f"{contact.type}%"))
+
+    if contact.phone1:
+        base_query = base_query.filter(models.Contacts.phone1.ilike(f"{contact.phone1}%"))
+
+    if contact.email:
+        base_query = base_query.filter(models.Contacts.email.ilike(f"{contact.email}%"))
+    
+    if contact.client_id:
+        base_query = base_query.filter(models.Contacts.client_id==contact.client_id)
+
+    if contact.service_id:    
+        base_query = base_query.filter(models.Contacts.service_id==contact.service_id)
+    
+    if contact.vendor_id:
+        base_query = base_query.filter(models.Contacts.vendor_id==contact.vendor_id)
     
     try:
         return base_query.offset(offset).limit(limit).all()
