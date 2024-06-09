@@ -318,3 +318,12 @@ def test_delete_contact(add_client, new_client, add_contact, new_contact, client
 
     delete_contact_response = client.delete(f"/contact/{add_contact_response.json()['id']}", headers=auth_header)
     assert delete_contact_response.status_code == 200
+
+def test_delete_contact_wrong_id(client, auth_header):
+    delete_contact_response = client.delete("/contact/10010", headers=auth_header)
+    assert delete_contact_response.status_code == 400
+    assert delete_contact_response.json()['detail'] == 'Contact not found'
+
+def test_delete_contact_missing_id(client, auth_header):
+    delete_contact_response = client.delete("/contact/", headers=auth_header)
+    assert delete_contact_response.status_code == 405
