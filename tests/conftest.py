@@ -197,6 +197,10 @@ def new_contact():
     return {'name': 'First_Name Last_Name', 'designation': 'Manager', 'type': 'Technical', 'phone1': '01713433900', 'email': 'email@somedomain.com'}
 
 @pytest.fixture
+def new_contact_updated():
+    return {'id': 0, 'name': 'Updated_First_Name Updated_Last_Name', 'designation': 'Sr. Manager', 'type': 'Admin', 'phone1': '01713422900', 'email': 'myemail@somedomain.com'}
+
+@pytest.fixture
 def add_contact(auth_header, client):
     def _add_contact(contact: dict):
         add_contact_response = client.post('/contact', json=contact, headers=auth_header)
