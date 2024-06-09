@@ -323,7 +323,7 @@ def get_contact_by_id(db: Session, contact_id: int) -> models.Contacts:
     except Exception as e:
         raise e
 
-def modify_contact(db: Session, contact: schemas.Contact) -> models.Contacts:
+def update_contact(db: Session, contact: schemas.Contact) -> models.Contacts:
     try:
         contact_in_db = db.query(models.Contacts).filter(models.Contacts.id==contact.id).first()
         
@@ -333,6 +333,7 @@ def modify_contact(db: Session, contact: schemas.Contact) -> models.Contacts:
         contact_in_db.phone1 = contact.phone1 # type: ignore
         contact_in_db.phone2 = contact.phone2 # type: ignore
         contact_in_db.phone3 = contact.phone3 # type: ignore
+        contact_in_db.email = contact.email # type: ignore
         contact_in_db.client_id = contact.client_id # type: ignore
         contact_in_db.vendor_id = contact.vendor_id # type: ignore
         contact_in_db.service_id = contact.service_id # type: ignore
