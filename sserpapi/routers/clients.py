@@ -606,7 +606,7 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.put("/contact", response_model=schemas.Contact, summary='Modify a contact', tags=['Contacts'])
-def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
+def update_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
     """
     ## Modify a contact
     - **id**: Contact id*
@@ -622,6 +622,10 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
 
     **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
     """
+    contact_exists = db_query.get_contact_by_id(db, contact_id=contact.id)
+    if not contact_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Contact not found')
+    
     ids = {'client_id': contact.client_id, 'service_id': contact.service_id, 'vendor_id': contact.vendor_id}
     check = check_id_presence(db=db, ids=ids)
     if check.failed:
@@ -633,7 +637,7 @@ def modify_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
     try:
-        return db_query.modify_contact(db=db, contact=contact)
+        return db_query.update_contact(db=db, contact=contact)
     except Exception as e:
         logger.error('modify_contact(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
