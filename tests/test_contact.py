@@ -247,3 +247,74 @@ def test_get_contacts_by_service_point_missing_client_name(client, auth_header):
     get_contacts_response = client.get("/contacts?service_point=service_point", headers=auth_header)
     assert get_contacts_response.status_code == 400
     assert get_contacts_response.json()['detail'] == 'Must give query parameter client_name when service_name is provided'
+
+#test "update_contact"
+def test_update_contact(add_client, new_client, add_contact, new_contact, new_contact_updated, client, auth_header):
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+    
+    new_contact['client_id'] = add_client_response.json()['id']
+    add_contact_response = add_contact(new_contact)
+    assert add_contact_response.status_code == 200
+
+    new_contact_updated['id'] = add_contact_response.json()['id']
+    new_contact_updated['client_id'] = add_contact_response.json()['client_id']
+    update_contact_response = client.put("/contact", json=new_contact_updated, headers=auth_header)
+    assert update_contact_response.status_code == 200
+    assert_contact_response_json(update_contact_response.json(), new_contact_updated)
+
+def test_update_contact_missing_id(new_contact_updated, client, auth_header):
+    new_contact_updated['id'] = 10010
+    new_contact_updated['client_id'] = 1290
+    update_contact_response = client.put("/contact", json=new_contact_updated, headers=auth_header)
+    assert update_contact_response.status_code == 400
+    assert update_contact_response.json()['detail'] == 'Contact not found'
+
+def test_update_contact_wrong_client_id(add_client, new_client, add_contact, new_contact, new_contact_updated, client, auth_header):
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+
+    new_contact['client_id'] = add_client_response.json()['id']
+    add_contact_response = add_contact(new_contact)
+    assert add_contact_response.status_code == 200
+
+    new_contact_updated['id'] = add_contact_response.json()['id']
+    new_contact_updated['client_id'] = 1290
+    update_contact_response = client.put("/contact", json=new_contact_updated, headers=auth_header)
+    assert update_contact_response.status_code == 400
+    assert update_contact_response.json()['detail'] == 'Client not found'
+
+def test_update_contact_wrong_phone_number(add_client, new_client, add_contact, new_contact, new_contact_updated, client, auth_header):
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+
+    new_contact['client_id'] = add_client_response.json()['id']
+    add_contact_response = add_contact(new_contact)
+    assert add_contact_response.status_code == 200
+
+    new_contact_updated['id'] = add_contact_response.json()['id']
+    new_contact_updated['client_id'] = add_contact_response.json()['client_id']
+    new_contact_updated['phone1'] = '0171342290123'
+    update_contact_response = client.put("/contact", json=new_contact_updated, headers=auth_header)
+    assert update_contact_response.status_code == 400
+    assert update_contact_response.json()['detail'] == f"{new_contact_updated['phone1']} - Phone number must be 11 digits"
+ 
+def test_update_contact_missing_body(client, auth_header):
+    update_contact_response = client.put("/contact", headers=auth_header)
+    assert update_contact_response.status_code == 422
+
+def test_update_contact_blank_body(client, auth_header):
+    update_contact_response = client.put("/contact", json={}, headers=auth_header)
+    assert update_contact_response.status_code == 422
+
+#test "delete_contact"
+def test_delete_contact(add_client, new_client, add_contact, new_contact, client, auth_header):
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+    
+    new_contact['client_id'] = add_client_response.json()['id']
+    add_contact_response = add_contact(new_contact)
+    assert add_contact_response.status_code == 200
+
+    delete_contact_response = client.delete(f"/contact/{add_contact_response.json()['id']}", headers=auth_header)
+    assert delete_contact_response.status_code == 200
