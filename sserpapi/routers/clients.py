@@ -643,7 +643,7 @@ def update_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.delete("/contact/{contact_id}", summary='Delete a contact', tags=['Contacts'])
-def remove_contact(contact_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
+def delete_contact(contact_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     try:
         contact_exists = db_query.get_contact_by_id(db, contact_id=contact_id)
     except Exception as e:
@@ -651,7 +651,7 @@ def remove_contact(contact_id: int, db: Session = Depends(get_db)) -> schemas.En
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not contact_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contact not found")
     
     try:
         db_query.delete_contact(db=db, contact_id=contact_id)
