@@ -92,6 +92,23 @@ class AddressBase(BaseModel):
 class Address(AddressBase):
     id: int
 
+class AddressSearch(BaseModel):
+    id: int | None = None
+    flat: str | None = None
+    floor: str | None = None
+    holding: str | None = None
+    street: str | None = None
+    area: str | None = None
+    thana: str | None = None
+    district: str | None = None
+    client_id: int | None = None
+    service_id: int | None = None
+    vendor_id: int | None = None
+    extra_info: str | None = None
+    client_name: str | None = None
+    service_point: str | None = None
+    vendor_name: str | None = None
+
 #-- table 'pops' --#
 class PopBase(BaseModel):
     name: str
