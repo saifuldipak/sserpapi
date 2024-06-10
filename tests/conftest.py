@@ -206,3 +206,14 @@ def add_contact(auth_header, client):
         add_contact_response = client.post('/contact', json=contact, headers=auth_header)
         return add_contact_response
     return _add_contact
+
+@pytest.fixture
+def new_address():
+    return {'flat': 'A1', 'floor': '1st', 'holding': '999/9 Holding', 'street': 'Ghost street', 'area': 'Vampire housing society', 'thana': 'Horror thana', 'district': 'Dracula district', 'extra_info': 'test_extra_info'}
+
+@pytest.fixture
+def add_address(auth_header, client):
+    def _add_address(address: dict):
+        add_address_response = client.post('/address', json=address, headers=auth_header)
+        return add_address_response
+    return _add_address
