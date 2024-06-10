@@ -70,7 +70,7 @@ def check_id_presence(db: Session, ids: dict) -> Check:
 
     if no_of_ids != 1:
         check.failed = True
-        check.message = 'You must provide any of client_id, service_id, or vendor_id but not more than one'
+        check.message = 'Must provide any of client_id, service_id, or vendor_id but not more than one'
         return check
 
     if ids['client_id']:
@@ -696,6 +696,12 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)) -> 
 
     **Note**: *Required items, **Need to give at least any one of these items but not more than one
     '''
+    address_search_object = schemas.AddressSearch(flat=address.flat, floor=address.floor, holding=address.holding, area=address.area, street=address.street, thana=address.thana, district=address.district, client_id=address.client_id, service_id=address.service_id, vendor_id=address.vendor_id, extra_info=address.extra_info)
+
+    address_exists = db_query.get_addresses(db=db, address=address_search_object)
+    if address_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Address exists")
+
     ids = {'client_id': address.client_id, 'service_id': address.service_id, 'vendor_id': address.vendor_id}
     check = check_id_presence(db=db, ids=ids)
     if check.failed:
