@@ -82,7 +82,7 @@ def check_id_presence(db: Session, ids: dict) -> Check:
         
         if not client_exists:
             check.failed = True
-            check.message = 'Client not found'
+            check.message = 'Client id not found'
     elif ids['service_id']:
         try:
             service_exists = db_query.get_services(db, service_id=ids['service_id'])
@@ -92,7 +92,7 @@ def check_id_presence(db: Session, ids: dict) -> Check:
         
         if not service_exists:
             check.failed = True
-            check.message = 'Service not found'
+            check.message = 'Service id not found'
     elif ids['vendor_id']:
         try:
             vendor_exists = db_query.get_vendor_by_id(db, vendor_id=ids['vendor_id'])
@@ -102,7 +102,7 @@ def check_id_presence(db: Session, ids: dict) -> Check:
         
         if not vendor_exists:
             check.failed = True
-            check.message = 'Vendor id does not exist'
+            check.message = 'Vendor id not found'
     else:
         check.failed = True
         check.message = 'You must provide any of client_id, service_id, or vendor_id but not more than one'
@@ -681,7 +681,7 @@ def get_addresses(flat: str | None = None, floor: str | None = None, holding: st
     - **vendor_name**: Vendor name
     - **extra_info**: Extra info (remark, description, landmark etc)
     '''
-    
+
     address_properties = schemas.AddressSearch(flat=flat, floor=floor, holding=holding, street=street, area=area, thana=thana, district=district, client_id=client_id, service_id=service_id, vendor_id=vendor_id, client_name=client_name, service_point=service_point, vendor_name=vendor_name, extra_info=extra_info)
 
     if address_properties.all_none_values():
@@ -735,7 +735,7 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)) -> 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.put("/address", summary='Modify an address', tags=['Addresses'])
-def modify_address(address: schemas.Address, db: Session = Depends(get_db)) -> schemas.Address:
+def update_address(address: schemas.Address, db: Session = Depends(get_db)) -> schemas.Address:
     '''
     ## Modify address
     - **id**: Address id*
@@ -753,17 +753,19 @@ def modify_address(address: schemas.Address, db: Session = Depends(get_db)) -> s
 
     **Note**: *Required items, **Need to give at least any one of these items but not more than one
     '''
-    ids = {'client_id': address.client_id, 'service_id': address.service_id, 'vendor_id': address.vendor_id}
-    check = check_id_presence(db=db, ids=ids)
-    if not check.failed:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
-    
     address_exists = db_query.get_address_by_id(db, address_id=address.id)
     if not address_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Address not found")
+    
+    ids = {'client_id': address.client_id, 'service_id': address.service_id, 'vendor_id': address.vendor_id}
+    check = check_id_presence(db=db, ids=ids)
+    if check.failed:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
+    
+    
     
     try:
-        return db_query.modify_address(db=db, address=address)
+        return db_query.update_address(db=db, address=address)
     except Exception as e:
         logger.error('modify_address(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
