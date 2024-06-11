@@ -771,10 +771,10 @@ def update_address(address: schemas.Address, db: Session = Depends(get_db)) -> s
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.delete("/address/{address_id}", summary='Delete an address', tags=['Addresses'])
-def remove_address(address_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
+def delete_address(address_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     address_exists = db_query.get_address_by_id(db, address_id=address_id)
     if not address_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Address not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Address not found")
     
     try:
         db_query.delete_address(db=db, address_id=address_id)
