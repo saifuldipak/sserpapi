@@ -1,6 +1,4 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError, DBAPIError
 from fastapi.testclient import TestClient
