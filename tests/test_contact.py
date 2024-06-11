@@ -49,7 +49,7 @@ def test_add_contact_by_wrong_data(add_contact, new_contact):
     new_contact['service_id'] = 10001
     add_contact_response = add_contact(new_contact)
     assert add_contact_response.status_code == 400
-    assert add_contact_response.json()['detail'] == 'Service not found'
+    assert add_contact_response.json()['detail'] == 'Service id not found'
 
 def test_add_contact_missing_body(add_contact):
     add_contact_response = add_contact({})
@@ -282,7 +282,7 @@ def test_update_contact_wrong_client_id(add_client, new_client, add_contact, new
     new_contact_updated['client_id'] = 1290
     update_contact_response = client.put("/contact", json=new_contact_updated, headers=auth_header)
     assert update_contact_response.status_code == 400
-    assert update_contact_response.json()['detail'] == 'Client not found'
+    assert update_contact_response.json()['detail'] == 'Client id not found'
 
 def test_update_contact_wrong_phone_number(add_client, new_client, add_contact, new_contact, new_contact_updated, client, auth_header):
     add_client_response = add_client(new_client)
