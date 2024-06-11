@@ -1,6 +1,6 @@
 # pylint: disable=E0401
 import logging
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, DBAPIError
 from sqlalchemy import delete
 from sserpapi.db import models
@@ -363,41 +363,39 @@ def get_address_by_id(db: Session, address_id: int) -> models.Addresses:
         return db.query(models.Addresses).filter(models.Addresses.id==address_id).first()
     except Exception as e:
         raise e
-def get_addresses(db: Session, address: schemas.AddressSearch, offset: int = 0, limit: int = 20) -> list[models.Addresses]:
+
+def get_addresses(db: Session, address_properties: schemas.AddressSearch, offset: int = 0, limit: int = 20) -> list[models.Addresses]:
     base_query = db.query(models.Addresses)
-
-    if address.id:
-        base_query = base_query.filter(models.Addresses.id==address.id)
     
-    if address.flat:
-        base_query = base_query.filter(models.Addresses.flat==address.flat)
+    if address_properties.flat:
+        base_query = base_query.filter(models.Addresses.flat==address_properties.flat)
     
-    if address.floor:
-        base_query = base_query.filter(models.Addresses.floor==address.floor)
+    if address_properties.floor:
+        base_query = base_query.filter(models.Addresses.floor==address_properties.floor)
 
-    if address.holding:
-        base_query = base_query.filter(models.Addresses.holding==address.holding)
+    if address_properties.holding:
+        base_query = base_query.filter(models.Addresses.holding==address_properties.holding)
 
-    if address.street:
-        base_query = base_query.filter(models.Addresses.street==address.street)
+    if address_properties.street:
+        base_query = base_query.filter(models.Addresses.street==address_properties.street)
 
-    if address.area:
-        base_query = base_query.filter(models.Addresses.area==address.area)
+    if address_properties.area:
+        base_query = base_query.filter(models.Addresses.area==address_properties.area)
 
-    if address.thana:
-        base_query = base_query.filter(models.Addresses.thana==address.thana)
+    if address_properties.thana:
+        base_query = base_query.filter(models.Addresses.thana==address_properties.thana)
 
-    if address.district:
-        base_query = base_query.filter(models.Addresses.district==address.district)
+    if address_properties.district:
+        base_query = base_query.filter(models.Addresses.district==address_properties.district)
 
-    if address.client_id:
-        base_query = base_query.filter(models.Addresses.client_id==address.client_id)
+    if address_properties.client_id:
+        base_query = base_query.filter(models.Addresses.client_id==address_properties.client_id)
 
-    if address.service_id:
-        base_query = base_query.filter(models.Addresses.service_id==address.service_id)
+    if address_properties.service_id:
+        base_query = base_query.filter(models.Addresses.service_id==address_properties.service_id)
 
-    if address.vendor_id:
-        base_query = base_query.filter(models.Addresses.vendor_id==address.vendor_id)
+    if address_properties.vendor_id:
+        base_query = base_query.filter(models.Addresses.vendor_id==address_properties.vendor_id)
 
     try:
         return base_query.offset(offset).limit(limit).all()
