@@ -153,3 +153,26 @@ def test_update_address(new_service, add_service, new_address, add_address, new_
     update_address_response = update_address(new_address_updated)
     assert update_address_response.status_code == 200
     assert_address_response(update_address_response.json(), new_address_updated)
+
+#test "delete_address"
+def test_delete_address_wrong_id(delete_address):
+    delete_address_response = delete_address(1000001)
+    assert delete_address_response.status_code == 400
+    assert delete_address_response.json()['detail'] == 'Address not found'
+
+def test_delete_address_no_id(auth_header, client):
+    delete_address_response = client.delete("/address", headers=auth_header)
+    assert delete_address_response.status_code == 405
+
+def test_delete_address(new_client, add_client, new_address, add_address, delete_address):
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+
+    new_address['client_id'] = add_client_response.json()['id']
+    add_address_response = add_address(new_address)
+    assert add_address_response.status_code == 200
+
+    delete_address_response = delete_address(add_address_response.json()['id'])
+    assert delete_address_response.status_code == 200
+    assert delete_address_response.json()['message'] == "Address deleted"
+    assert delete_address_response.json()['id'] == add_address_response.json()['id']
