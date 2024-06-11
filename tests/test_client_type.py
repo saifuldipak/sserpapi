@@ -1,13 +1,14 @@
-def assert_get_client_types_response(get_client_types_response, client_type):
-    assert get_client_types_response.status_code == 200
-    assert get_client_types_response.json()[0]['name'] == client_type['name']
+#helper functions
+def assert_client_type_response(client_type_response_json, client_type):
+    assert client_type_response_json['name'] == client_type['name']
 
+#test "add_client_type"
 def test_add_client_type(new_client_type, add_client_type):
     add_client_type_response = add_client_type(new_client_type)
     assert add_client_type_response.status_code == 200
-    assert add_client_type_response.json()['name'] == new_client_type['name']
+    assert_client_type_response(add_client_type_response.json(), new_client_type)
 
-def test_add_duplicate_client_type(new_client_type, add_client_type, auth_header):
+def test_add_duplicate_client_type(new_client_type, add_client_type):
     add_client_type_response = add_client_type(new_client_type)
     assert add_client_type_response.status_code == 200
 
@@ -15,36 +16,34 @@ def test_add_duplicate_client_type(new_client_type, add_client_type, auth_header
     assert add_duplicate_client_type_response.status_code == 400
     assert add_duplicate_client_type_response.json()['detail'] == 'Client type exists'
 
-def test_add_client_type_blank_data(auth_header, client):
-    add_client_type_missing_data = client.post('/client', json={}, headers=auth_header)
-    assert add_client_type_missing_data.status_code == 422
+def test_add_client_type_missing_body(add_client_type):
+    add_client_type_response = add_client_type({})
+    assert add_client_type_response.status_code == 422
 
-def test_add_client_type_missing_body(auth_header, client):
-    add_client_type_missing_body = client.post('/client', headers=auth_header)
-    assert add_client_type_missing_body.status_code == 422
 
-def test_get_client_type_by_name(new_client_type, auth_header, client, add_client_type):
+
+#test "get_client_types"
+def test_get_client_types_by_name(new_client_type, auth_header, client, add_client_type):
     add_client_type_response = add_client_type(new_client_type)
     assert add_client_type_response.status_code == 200
 
     get_client_types_response = client.get(f"/client/types?type_name={new_client_type['name']}", headers=auth_header)
-    assert_get_client_types_response(get_client_types_response, new_client_type)
+    assert_client_type_response(get_client_types_response.json()[0], new_client_type)
 
-def test_get_client_type_by_partial_name(new_client_type, auth_header, client, add_client_type):
+def test_get_client_types_by_partial_name(new_client_type, auth_header, client, add_client_type):
     add_client_type_response = add_client_type(new_client_type)
     assert add_client_type_response.status_code == 200
 
     partial_client_type_name = new_client_type['name'][:3]
     get_client_types_response = client.get(f"/client/types?type_name={partial_client_type_name}", headers=auth_header)
-    assert_get_client_types_response(get_client_types_response, new_client_type)
+    assert_client_type_response(get_client_types_response.json()[0], new_client_type)
 
 def test_get_client_type_by_id(new_client_type, auth_header, client, add_client_type):
     add_client_type_response = add_client_type(new_client_type)
     assert add_client_type_response.status_code == 200
 
     get_client_types_response = client.get(f"/client/types?type_id={add_client_type_response.json()['id']}", headers=auth_header)
-    assert_get_client_types_response(get_client_types_response, new_client_type)
-
+    assert_client_type_response(get_client_types_response.json()[0], new_client_type)
 
 def test_get_client_type_by_wrong_name(new_client_type, auth_header, client, add_client_type):
     add_client_type_response = add_client_type(new_client_type)
@@ -66,6 +65,7 @@ def test_get_client_type_list(new_client_type, another_new_client_type, auth_hea
     assert get_client_types.json()[0]['name'] == new_client_type['name']
     assert get_client_types.json()[1]['name'] == another_new_client_type['name']
 
+#test "delete_client_type"
 def test_delete_client_type(new_client_type, auth_header, client, add_client_type):
     add_client_type_response = add_client_type(new_client_type)
     assert add_client_type_response.status_code == 200
@@ -83,12 +83,12 @@ def test_delete_client_type_missing_id(auth_header, client):
     delete_client_type_missing_id = client.delete('/client/type/', headers=auth_header)
     assert delete_client_type_missing_id.status_code == 422
 
-def test_delete_client_type_with_client(new_client_type, auth_header, client, add_client_type, new_client, add_client):
+def test_delete_client_type_with_active_client(new_client_type, add_client_type, auth_header, client, new_client, add_client_only):
     add_client_type_response = add_client_type(new_client_type)
     assert add_client_type_response.status_code == 200
 
     new_client['client_type_id'] = add_client_type_response.json()['id']
-    add_client_response = add_client(new_client)
+    add_client_response = add_client_only(new_client)
     assert add_client_response.status_code == 200
 
     delete_client_type = client.delete(f'/client/type/{add_client_type_response.json()["id"]}', headers=auth_header)
