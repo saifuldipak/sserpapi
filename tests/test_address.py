@@ -44,6 +44,12 @@ def test_add_address_missing_client_service_vendor_ids(add_address, new_address)
     assert add_address_response.status_code == 400
     assert add_address_response.json()['detail'] == 'Must provide any of client_id, service_id, or vendor_id but not more than one'
 
+def test_add_address_wrong_client_id(new_address, add_address):
+    new_address['client_id'] = 1000001
+    add_address_response = add_address(new_address)
+    assert add_address_response.status_code == 400
+    assert add_address_response.json()['detail'] == 'Client id not found'
+
 def test_add_address_using_client_and_vendor_id(add_vendor, new_vendor, add_client, new_client, add_address, new_address):
     add_vendor_response = add_vendor(new_vendor)
     assert add_vendor_response.status_code == 200
@@ -97,3 +103,53 @@ def test_get_addresses_missing_parameters(auth_header, client):
     get_address_response = client.get("/addresses", headers=auth_header)
     assert get_address_response.status_code == 400
     assert get_address_response.json()['detail'] == 'Must provide at least one search parameter'
+
+#test "update_address"
+def test_update_address_wrong_id(new_address_updated, update_address):
+    new_address_updated['id'] = 1000001
+    update_address_response = update_address(new_address_updated)
+    assert update_address_response.status_code == 400
+    assert update_address_response.json()['detail'] == 'Address not found'
+
+def test_update_address_missing_items(new_address_updated, update_address):
+    del(new_address_updated['holding'])
+    update_address_response = update_address(new_address_updated)
+    assert update_address_response.status_code == 422
+
+def test_update_address_wrong_data_type(new_address_updated, update_address):
+    new_address_updated['holding'] = 123
+    update_address_response = update_address(new_address_updated)
+    assert update_address_response.status_code == 422
+    assert update_address_response.json()['detail'][0]['msg'] == 'Input should be a valid string'
+
+def test_update_address_wrong_client_id(new_client, add_client, new_address, add_address, new_address_updated, update_address):
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+
+    new_address['client_id'] = add_client_response.json()['id']
+    add_address_response = add_address(new_address)
+    assert add_address_response.status_code == 200
+
+    new_address_updated['id'] = add_address_response.json()['id']
+    new_address_updated['client_id'] = 1000001
+    update_address_response = update_address(new_address_updated)
+    assert update_address_response.status_code == 400
+    assert update_address_response.json()['detail'] == 'Client id not found'
+
+def test_update_address_missing_body(update_address):
+    update_address_response = update_address({})
+    assert update_address_response.status_code == 422
+
+def test_update_address(new_service, add_service, new_address, add_address, new_address_updated, update_address):
+    add_service_response = add_service(new_service)
+    assert add_service_response.status_code == 200
+
+    new_address['service_id'] = add_service_response.json()['id']
+    add_address_response = add_address(new_address)
+    assert add_address_response.status_code == 200
+
+    new_address_updated['id'] = add_address_response.json()['id']
+    new_address_updated['service_id'] = add_service_response.json()['id']
+    update_address_response = update_address(new_address_updated)
+    assert update_address_response.status_code == 200
+    assert_address_response(update_address_response.json(), new_address_updated)
