@@ -226,3 +226,10 @@ def update_address(auth_header, client):
         update_address_response = client.put('/address', json=address, headers=auth_header)
         return update_address_response
     return _update_address
+
+@pytest.fixture
+def delete_address(auth_header, client):
+    def _delete_address(address_id: int):
+        delete_address_response = client.delete(f'/address/{address_id}', headers=auth_header)
+        return delete_address_response
+    return _delete_address
