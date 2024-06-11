@@ -109,6 +109,9 @@ class AddressSearch(BaseModel):
     service_point: str | None = None
     vendor_name: str | None = None
 
+    def all_none_values(self):
+        return all(value is None for value in self.__dict__.values())
+
 #-- table 'pops' --#
 class PopBase(BaseModel):
     name: str
