@@ -663,15 +663,36 @@ def delete_contact(contact_id: int, db: Session = Depends(get_db)) -> schemas.En
 
 # Address add, update & modify #
 @router.get("/addresses", response_model=list[schemas.AddressDetails], summary='Search address', tags=['Addresses'])
-def search_address(client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, page: int = 0, page_size: int = 20, db: Session = Depends(get_db)):
-    if (not client_name and not service_point and not vendor_name):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide any of client_name, service_point or vendor_name')
+def get_addresses(flat: str | None = None, floor: str | None = None, holding: str | None = None, street: str | None = None, area: str | None = None, thana: str | None = None, district: str | None = None, client_id: int | None = None, service_id: int | None = None, vendor_id: int | None = None, client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, extra_info: str | None = None, page: int = 0, page_size: int = 20, db: Session = Depends(get_db)):
+    '''
+    ## Search addresses
+    - **flat**: Flat name 
+    - **floor**: Floor number
+    - **holding**: Holding number
+    - **area**: Area name (Para/Moholla/Block/Sector/Housing society name etc.)
+    - **street**: Street name or number
+    - **thana**: Thana name
+    - **district**: District name
+    - **client_id**: Client id
+    - **service_id**: Service id
+    - **vendor_id**: Vendor id
+    - **client_name**: Client name
+    - **service_point**: Service point
+    - **vendor_name**: Vendor name
+    - **extra_info**: Extra info (remark, description, landmark etc)
+    '''
+    
+    address_properties = schemas.AddressSearch(flat=flat, floor=floor, holding=holding, street=street, area=area, thana=thana, district=district, client_id=client_id, service_id=service_id, vendor_id=vendor_id, client_name=client_name, service_point=service_point, vendor_name=vendor_name, extra_info=extra_info)
+
+    if address_properties.all_none_values():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide at least one search parameter')
     
     offset = page * page_size
+    
     try:
-        address_list =  db_query.get_address_list(db=db, client_name=client_name, service_point=service_point, vendor_name=vendor_name, offset=offset, limit=page_size)
+        address_list =  db_query.get_addresses(db=db, address_properties=address_properties, offset=offset, limit=page_size)
     except Exception as e:
-        logger.error('get_address_list(): %s', e)
+        logger.error('get_addresses(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if not address_list:
@@ -696,9 +717,9 @@ def add_address(address: schemas.AddressBase, db: Session = Depends(get_db)) -> 
 
     **Note**: *Required items, **Need to give at least any one of these items but not more than one
     '''
-    address_search_object = schemas.AddressSearch(flat=address.flat, floor=address.floor, holding=address.holding, area=address.area, street=address.street, thana=address.thana, district=address.district, client_id=address.client_id, service_id=address.service_id, vendor_id=address.vendor_id, extra_info=address.extra_info)
+    address_properties = schemas.AddressSearch(flat=address.flat, floor=address.floor, holding=address.holding, area=address.area, street=address.street, thana=address.thana, district=address.district, client_id=address.client_id, service_id=address.service_id, vendor_id=address.vendor_id, extra_info=address.extra_info)
 
-    address_exists = db_query.get_addresses(db=db, address=address_search_object)
+    address_exists = db_query.get_addresses(db=db, address_properties=address_properties)
     if address_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Address exists")
 
