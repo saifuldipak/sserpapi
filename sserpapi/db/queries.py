@@ -413,7 +413,7 @@ def add_address(db: Session, address: schemas.AddressBase) -> models.Addresses:
     
     return new_address
 
-def modify_address(db: Session, address: schemas.Address) -> models.Addresses:
+def update_address(db: Session, address: schemas.Address) -> models.Addresses:
     try:
         address_in_db = db.query(models.Addresses).filter(models.Addresses.id==address.id).first()
         address_in_db.flat = address.flat # type: ignore
@@ -426,6 +426,7 @@ def modify_address(db: Session, address: schemas.Address) -> models.Addresses:
         address_in_db.client_id = address.client_id # type: ignore
         address_in_db.service_id = address.service_id # type: ignore
         address_in_db.vendor_id = address.vendor_id # type: ignore
+        address_in_db.extra_info = address.extra_info # type: ignore
         db.commit()
         db.refresh(address_in_db)
     except Exception as e:
