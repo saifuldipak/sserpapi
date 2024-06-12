@@ -859,17 +859,21 @@ def update_vendor(vendor: schemas.Vendor, db: Session = Depends(get_db)) -> sche
 
 @router.delete("/vendor/{vendor_id}", summary='Delete a vendor', tags=['Vendors'])
 def delete_vendor(vendor_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
-    vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor_id)
+    try:
+        vendor_exists = db_query.get_vendor_by_id(db=db, vendor_id=vendor_id)
+    except Exception as e:
+        logger.error('get_vendor_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if not vendor_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor not found')
     
     try:
         db_query.delete_vendor(db=db, vendor_id=vendor_id)
     except IntegrityError as e:
-        logger.error('remove_vendor(): %s', e)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Cannot delete vendor with active pop') from e
     except Exception as e:
-        logger.error('remove_vendor(): %s', e)
+        logger.error('delete_vendor(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
     return schemas.EntryDelete(message='Vendor deleted', id=vendor_id)
