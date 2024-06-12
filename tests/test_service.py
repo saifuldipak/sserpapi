@@ -1,5 +1,5 @@
 #helper functions
-def assert_get_services_response_json(get_services_response_json, service):
+def assert_service_response(get_services_response_json, service):
     assert get_services_response_json['point'] == service['point']
     assert get_services_response_json['client_id'] == service['client_id']
     assert get_services_response_json['service_type_id'] == service['service_type_id']
@@ -11,9 +11,7 @@ def assert_get_services_response_json(get_services_response_json, service):
 def test_add_service(add_service, new_service):
     add_service_response = add_service(new_service)
     assert add_service_response.status_code == 200
-    add_service_response_json = add_service_response.json()
-    del(add_service_response_json['id'])
-    assert add_service_response_json == new_service
+    assert_service_response(add_service_response.json(), new_service)
 
 def test_add_duplicate_service(add_service, new_service, add_service_only):
     add_service_response = add_service(new_service)
@@ -64,7 +62,7 @@ def test_get_services_by_point(add_service, new_service, client, auth_header):
 
     get_services_response = client.get(f"/services?service_point={add_service_response.json()['point']}", headers=auth_header)
     assert get_services_response.status_code == 200
-    assert_get_services_response_json(get_services_response.json()[0], new_service)
+    assert_service_response(get_services_response.json()[0], new_service)
 
 def test_get_services_by_client_name(add_service, new_service, client, auth_header):
     add_service_response = add_service(new_service)
@@ -75,7 +73,7 @@ def test_get_services_by_client_name(add_service, new_service, client, auth_head
 
     get_services_response = client.get(f"/services?client_name={get_clients_response.json()[0]['name']}", headers=auth_header)
     assert get_services_response.status_code == 200
-    assert_get_services_response_json(get_services_response.json()[0], new_service)
+    assert_service_response(get_services_response.json()[0], new_service)
 
 def test_get_services_by_pop_name(add_service, new_service, client, auth_header):
     add_service_response = add_service(new_service)
@@ -85,7 +83,7 @@ def test_get_services_by_pop_name(add_service, new_service, client, auth_header)
     assert get_pops_response.status_code == 200
 
     get_services_response = client.get(f"/services?pop_name={get_pops_response.json()[0]['name']}", headers=auth_header)
-    assert_get_services_response_json(get_services_response.json()[0], new_service)
+    assert_service_response(get_services_response.json()[0], new_service)
 
 def test_get_services_by_point_client_pop(add_service, new_service, client, auth_header):
     add_service_response = add_service(new_service)
@@ -98,7 +96,7 @@ def test_get_services_by_point_client_pop(add_service, new_service, client, auth
     assert get_pops_response.status_code == 200
 
     get_services_response = client.get(f"/services?service_point={new_service['point']}&client_name={get_clients_response.json()[0]['name']}&pop_name={get_pops_response.json()[0]['name']}", headers=auth_header)
-    assert_get_services_response_json(get_services_response.json()[0], new_service)
+    assert_service_response(get_services_response.json()[0], new_service)
 
 def test_get_services_by_wrong_parameters(client, auth_header):
     get_services_response = client.get("/services?service_point=wrong_point", headers=auth_header)
@@ -124,7 +122,7 @@ def test_update_service(add_service, new_service, new_service_updated, client, a
     new_service_updated['service_type_id'] = add_service_response.json()['service_type_id']
     new_service_updated['pop_id'] = add_service_response.json()['pop_id']
     update_service_response = client.put('/service', json=new_service_updated, headers=auth_header)
-    assert_get_services_response_json(update_service_response.json(), new_service_updated)
+    assert_service_response(update_service_response.json(), new_service_updated)
 
 def test_update_service_by_wrong_id(new_service_updated, client, auth_header):
     update_service_response = client.put('/service', json=new_service_updated, headers=auth_header)
