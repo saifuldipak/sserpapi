@@ -1,5 +1,4 @@
 import logging
-from sqlalchemy.exc import OperationalError, DBAPIError
 from sserpapi.db.connection import SessionLocal
 
 logger = logging.getLogger(__name__)
