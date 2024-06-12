@@ -79,7 +79,7 @@ def new_pop():
     return {'name': 'test_pop', 'extra_info': 'test_extra_info'}
 
 @pytest.fixture
-def updated_pop():
+def new_pop_updated():
     return {'id': 0, 'name': 'updated_test_pop', 'extra_info': 'updated_test_extra_info'}
 
 @pytest.fixture
@@ -99,6 +99,13 @@ def add_pop(add_vendor, add_pop_only):
         assert add_pop_response.status_code == 200
         return add_pop_response
     return _add_pop
+
+@pytest.fixture
+def update_pop(auth_header, client):
+    def _update_pop(pop: dict):
+        update_pop_response = client.put('/pop', json=pop, headers=auth_header)
+        return update_pop_response
+    return _update_pop
 
 @pytest.fixture
 def new_client_type():
