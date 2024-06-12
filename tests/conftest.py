@@ -171,13 +171,13 @@ def new_service():
     return {'client_id': 0, 'point': 'test_service', 'service_type_id': 0, 'bandwidth': 100, 'pop_id': 0, 'extra_info': 'test_extra_info'}
 
 @pytest.fixture
-def add_service(add_service_type, new_service_type, add_client, new_client, add_pop, new_pop, client, auth_header):
+def add_service(add_service_type, new_service_type, add_client, new_client, add_pop, new_pop, new_vendor, client, auth_header):
     def _add_service(service: dict):
         add_service_type_response = add_service_type(new_service_type)
         assert add_service_type_response.status_code == 200
         add_client_response = add_client(new_client)
         assert add_client_response.status_code == 200
-        add_pop_response = add_pop(new_pop)
+        add_pop_response = add_pop(new_pop, new_vendor)
         assert add_pop_response.status_code == 200
         service['client_id'] = add_client_response.json()['id']
         service['service_type_id'] = add_service_type_response.json()['id']
