@@ -945,14 +945,22 @@ def update_pop(pop: schemas.Pop, db: Session = Depends(get_db)) -> schemas.Pop:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
 
 @router.delete("/pop/{pop_id}", summary='Delete a pop', tags=['Pops'])
-def remove_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
-    pop_exists = db_query.get_pop_by_id(db=db, pop_id=pop_id)
-    if not pop_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Pop not found')
+def delete_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
+    try:
+        pop_exists = db_query.get_pops(db=db, pop_id=pop_id)
+    except Exception as e:
+        logger.error('get_pop(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
-    vendor_deleted = db_query.delete_pop(db=db, pop_id=pop_id)
-    if vendor_deleted != pop_id:
-        logger.warning('%s', vendor_deleted)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Cannot delete pop, may be this pop is assigned to any service')
+    if not pop_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop not found')
+    
+    try:
+        pop_id = db_query.delete_pop(db=db, pop_id=pop_id)
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Cannot delete pop with active services') from e
+    except Exception as e:
+        logger.error('delete_pop(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     return schemas.EntryDelete(message='Pop deleted', id=pop_id)
