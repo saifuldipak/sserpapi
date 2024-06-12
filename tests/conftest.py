@@ -63,6 +63,18 @@ def clear_tables():
         except Exception as e:
             raise DBAPIError(str(stmt), [], e) from e
 
+@pytest.fixture(autouse=True)
+def clear_users():
+    db = next(get_db())
+    stmt = delete(models.Users).filter(models.Users.user_name != credential['username'])
+    try:
+        db.execute(stmt)
+        db.commit()
+    except IntegrityError as e:
+        raise IntegrityError(str(stmt), [], e) from e
+    except Exception as e:
+        raise DBAPIError(str(stmt), [], e) from e
+
 @pytest.fixture
 def new_vendor():
     return {'name': 'test_vendor', 'type': 'LSP'}
@@ -240,3 +252,14 @@ def delete_address(auth_header, client):
         delete_address_response = client.delete(f'/address/{address_id}', headers=auth_header)
         return delete_address_response
     return _delete_address
+
+@pytest.fixture
+def new_user():
+    return {'user_name': 'new_user', 'password': 'new_password', 'first_name': 'first_name', 'middle_name': 'middle_name', 'last_name': 'last_name', 'email': 'new_user@somedomain.com', 'scope': 'admin'}
+
+@pytest.fixture
+def add_user(auth_header, client):
+    def _add_user(user: dict):
+        add_user_response = client.post('/user', json=user, headers=auth_header)
+        return add_user_response
+    return _add_user
