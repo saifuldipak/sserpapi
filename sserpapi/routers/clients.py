@@ -930,13 +930,13 @@ def update_pop(pop: schemas.Pop, db: Session = Depends(get_db)) -> schemas.Pop:
 
     **Note**: *Required items
     '''
+    pop_exists = db_query.get_pops(db=db, pop_id=pop.id)
+    if not pop_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop not found')
+    
     pop_owner = db_query.get_vendor_by_id(db=db, vendor_id=pop.owner)
     if not pop_owner:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor not found')
-    
-    pop_exists = db_query.get_pop_by_id(db=db, pop_id=pop.id)
-    if not pop_exists:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop not found')
     
     try:
         return db_query.modify_pop(db=db, pop=pop)
