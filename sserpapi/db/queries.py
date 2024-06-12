@@ -518,10 +518,8 @@ def delete_vendor(db: Session, vendor_id: int) -> int:
     try:
         db.execute(stmt)
         db.commit()
-    except IntegrityError as e:
-        raise IntegrityError(str(stmt), [], e) from e
     except Exception as e:
-        raise DBAPIError(str(stmt), [], e) from e
+        raise e
     
     return vendor_id
 
