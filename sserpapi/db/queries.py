@@ -245,8 +245,6 @@ def delete_service_type(db: Session, service_type_id: int) -> int:
     try:
         db.execute(stmt)
         db.commit()
-    except IntegrityError as e:
-        raise IntegrityError from e
     except Exception as e:
         raise e
     
