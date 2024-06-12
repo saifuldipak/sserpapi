@@ -76,11 +76,11 @@ def add_vendor(auth_header, client):
 
 @pytest.fixture
 def new_pop():
-    return {'name': 'test_pop', 'owner': 1, 'extra_info': 'test_extra_info'}
+    return {'name': 'test_pop', 'extra_info': 'test_extra_info'}
 
 @pytest.fixture
 def updated_pop():
-    return {'id': 0, 'name': 'updated_test_pop', 'owner': 1, 'extra_info': 'updated_test_extra_info'}
+    return {'id': 0, 'name': 'updated_test_pop', 'extra_info': 'updated_test_extra_info'}
 
 @pytest.fixture
 def add_pop_only(auth_header, client):
@@ -90,9 +90,9 @@ def add_pop_only(auth_header, client):
     return _add_pop_only
 
 @pytest.fixture
-def add_pop(add_vendor, new_vendor, add_pop_only):
-    def _add_pop(pop: dict):
-        add_vendor_response = add_vendor(new_vendor)
+def add_pop(add_vendor, add_pop_only):
+    def _add_pop(pop: dict, vendor: dict):
+        add_vendor_response = add_vendor(vendor)
         assert add_vendor_response.status_code == 200
         pop['owner'] = add_vendor_response.json()['id']
         add_pop_response = add_pop_only(pop)
