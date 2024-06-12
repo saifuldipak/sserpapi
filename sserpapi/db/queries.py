@@ -582,8 +582,6 @@ def delete_pop(db: Session, pop_id: int) -> int:
     try:
         db.execute(stmt)
         db.commit()
-    except IntegrityError as e:
-        raise IntegrityError from e
     except Exception as e:
         raise e
     
