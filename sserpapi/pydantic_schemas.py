@@ -121,11 +121,13 @@ class PopBase(BaseModel):
 class Pop(PopBase):
     id: int
 
-#-- table 'users' --#
+#-- table 'users' --#    
 class UserBase(BaseModel):
     user_name: str
-    email: str
-    full_name: str | None = None
+    first_name: str
+    middle_name: str | None = None
+    last_name: str
+    email: EmailStr
     disabled: bool | None = False
     scope: str
 
