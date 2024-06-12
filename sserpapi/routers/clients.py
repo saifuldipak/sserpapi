@@ -895,11 +895,21 @@ def add_pop(pop: schemas.PopBase, db: Session = Depends(get_db)) -> schemas.Pop:
 
     **Note**: *Required items
     '''
-    pop_owner = db_query.get_vendors(db=db, vendor_id=pop.owner)
-    if not pop_owner:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor not found')
+    try:
+        vendor_exists = db_query.get_vendors(db=db, vendor_id=pop.owner)
+    except Exception as e:
+        logger.error('get_vendors(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
-    pop_exists = db_query.get_pop_by_properties(db=db, pop=pop)
+    if not vendor_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Vendor id not found')
+    
+    try:
+        pop_exists = db_query.get_pop_by_properties(db=db, pop=pop)
+    except Exception as e:
+        logger.error('get_pop_by_properties(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
     if pop_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Pop exists')
     
