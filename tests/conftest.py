@@ -263,3 +263,14 @@ def add_user(auth_header, client):
         add_user_response = client.post('/user', json=user, headers=auth_header)
         return add_user_response
     return _add_user
+
+@pytest.fixture
+def new_user_updated():
+    return {'user_name': 'new_user_updated', 'first_name': 'first_name', 'middle_name': 'middle_name', 'last_name': 'last_name', 'email': 'new_user@somedomain.com', 'scope': 'write', 'disabled': True}
+
+@pytest.fixture
+def update_user(auth_header, client):
+    def _update_user(user: dict):
+        update_user_response = client.put('/user', json=user, headers=auth_header)
+        return update_user_response
+    return _update_user
