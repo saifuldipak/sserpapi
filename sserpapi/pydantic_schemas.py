@@ -129,7 +129,7 @@ class UserBase(BaseModel):
     last_name: str
     email: EmailStr
     disabled: bool | None = False
-    scope: str
+    scope: typing_extensions.Literal['admin', 'write', 'read']
 
 class UserWithPassword(UserBase):
     password: str
