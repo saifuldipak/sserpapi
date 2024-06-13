@@ -255,7 +255,7 @@ def delete_address(auth_header, client):
 
 @pytest.fixture
 def new_user():
-    return {'user_name': 'new_user', 'password': 'new_password', 'first_name': 'first_name', 'middle_name': 'middle_name', 'last_name': 'last_name', 'email': 'new_user@somedomain.com', 'scope': 'admin'}
+    return {'user_name': 'new_user', 'password': 'new_password', 'first_name': 'first_name', 'middle_name': 'middle_name', 'last_name': 'last_name', 'email': 'new_user@somedomain.com', 'scope': 'admin', 'disabled': False}
 
 @pytest.fixture
 def add_user(auth_header, client):
