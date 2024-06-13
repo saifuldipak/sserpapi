@@ -590,9 +590,20 @@ def get_user_by_name(db: Session, user_name: str) -> models.Users:
     except Exception as e:
         raise e
     
-def get_users(db: Session, offset: int = 0, limit: int = 100) -> list[models.Users]:
+def get_users(db: Session, user_name: str | None = None, disabled: bool | None = None, scope: str | None = None, offset: int = 0, limit: int = 100) -> list[models.Users]:
+    base_query = db.query(models.Users)
+
+    if user_name:
+        base_query = base_query.filter(models.Users.user_name.ilike(f"{user_name}%"))
+    
+    if disabled is not None:
+        base_query = base_query.filter(models.Users.disabled==disabled)
+    
+    if scope:
+        base_query = base_query.filter(models.Users.scope.ilike(f"{scope}%"))
+
     try:
-        return db.query(models.Users).offset(offset).limit(limit).all()
+        return base_query.offset(offset).limit(limit).all()
     except Exception as e:
         raise e
     
