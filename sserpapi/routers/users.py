@@ -30,9 +30,12 @@ def get_users(user_name: str | None = None, disabled: bool | None = None, scope:
     offset = page * page_size
 
     try:
-        db_clients = db_query.get_users(db, user_name=user_name, disabled=disabled, scope=scope, offset=offset, limit=page_size)
+        users = db_query.get_users(db, user_name=user_name, disabled=disabled, scope=scope, offset=offset, limit=page_size)
     except Exception as e:
         logger.error('get_users(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
-    return db_clients
+    if not users:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    return users
