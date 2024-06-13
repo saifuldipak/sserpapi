@@ -40,3 +40,15 @@ def get_users(user_name: str | None = None, disabled: bool | None = None, scope:
     
     return users
 
+@router.put("/user", response_model=schemas.User, summary='Modify an user', tags=['Users'])
+def update_user(user: schemas.User, db: Session = Depends(get_db)):
+    try:
+        user_exists = db_query.get_users(db, user_id=user.id)
+    except Exception as e:
+        logger.error('get_users(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not user_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+    
+    return db_query.update_user(db=db, user=user)
