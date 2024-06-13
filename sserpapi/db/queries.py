@@ -607,7 +607,7 @@ def get_users(db: Session, user_name: str | None = None, disabled: bool | None =
     except Exception as e:
         raise e
     
-def add_user(db: Session, user: schemas.User) -> models.Users:
+def add_user(db: Session, user: schemas.UserWithPassword) -> models.Users:
     try:
         new_user = models.Users(**user.model_dump())
         db.add(new_user)

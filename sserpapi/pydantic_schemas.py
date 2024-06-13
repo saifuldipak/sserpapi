@@ -131,8 +131,11 @@ class UserBase(BaseModel):
     disabled: bool | None = False
     scope: str
 
-class User(UserBase):
+class UserWithPassword(UserBase):
     password: str
+
+class User(UserBase):
+    id: int
 
 #-- JWT token generation --#
 class Token(BaseModel):

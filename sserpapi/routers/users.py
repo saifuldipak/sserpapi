@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[Security(get_current_active_user, scopes=["admin"])])
 
-@router.post("/user", response_model=schemas.UserBase, summary='Add an user', tags=['Users'])
-def add_user(user: schemas.User, db: Session = Depends(get_db)):
+@router.post("/user", response_model=schemas.User, summary='Add an user', tags=['Users'])
+def add_user(user: schemas.UserWithPassword, db: Session = Depends(get_db)):
     try:
         user_exists = db_query.get_user_by_name(db, user_name=user.user_name)
     except Exception as e:
@@ -39,3 +39,4 @@ def get_users(user_name: str | None = None, disabled: bool | None = None, scope:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     return users
+
