@@ -590,8 +590,11 @@ def get_user_by_name(db: Session, user_name: str) -> models.Users:
     except Exception as e:
         raise e
     
-def get_users(db: Session, user_name: str | None = None, disabled: bool | None = None, scope: str | None = None, offset: int = 0, limit: int = 100) -> list[models.Users]:
+def get_users(db: Session, user_id: int | None = None, user_name: str | None = None, disabled: bool | None = None, scope: str | None = None, offset: int = 0, limit: int = 100) -> list[models.Users]:
     base_query = db.query(models.Users)
+
+    if user_id:
+        base_query = base_query.filter(models.Users.id==user_id)
 
     if user_name:
         base_query = base_query.filter(models.Users.user_name.ilike(f"{user_name}%"))
@@ -617,3 +620,20 @@ def add_user(db: Session, user: schemas.UserWithPassword) -> models.Users:
         raise e
     
     return new_user
+
+def update_user(db: Session, user: schemas.User) -> models.Users:
+    try:
+        user_in_db = db.query(models.Users).filter(models.Users.id==user.id).first()
+        user_in_db.user_name = user.user_name # type: ignore
+        user_in_db.email = user.email # type: ignore
+        user_in_db.first_name = user.first_name # type: ignore
+        user_in_db.middle_name = user.middle_name # type: ignore
+        user_in_db.last_name = user.last_name # type: ignore
+        user_in_db.disabled = user.disabled # type: ignore
+        user_in_db.scope = user.scope # type: ignore
+        db.commit()
+        db.refresh(user_in_db)
+    except Exception as e:
+        raise e
+    
+    return user_in_db
