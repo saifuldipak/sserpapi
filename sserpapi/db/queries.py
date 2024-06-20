@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError, DBAPIError
 from sqlalchemy import delete
 from sserpapi.db import models
 import sserpapi.pydantic_schemas as schemas
+from sserpapi.auth import get_password_hash
 
 logger = logging.getLogger(__name__)
 
@@ -610,9 +611,10 @@ def get_users(db: Session, user_id: int | None = None, user_name: str | None = N
     except Exception as e:
         raise e
     
-def add_user(db: Session, user: schemas.UserWithPassword) -> models.Users:
+def add_user(db: Session, user: schemas.NewUser) -> models.Users:
     try:
         new_user = models.Users(**user.model_dump())
+        new_user.password = get_password_hash(user.password)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
