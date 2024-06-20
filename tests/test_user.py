@@ -7,26 +7,60 @@ def assert_user_response(user_response_json, new_user):
     assert user_response_json['email'] == new_user['email']
     assert user_response_json['scope'] == new_user['scope']
 
+def assert_user_response_short_names(user_response_json):
+    locations = ['first_name', 'middle_name', 'last_name', 'user_name']
+    for index, location in enumerate(locations):
+        assert user_response_json['detail'][index]['type'] == "string_too_short"
+        assert user_response_json['detail'][index]['loc'] == ['body', location]
+        assert user_response_json['detail'][index]['msg'] == "String should have at least 4 characters"
+
+def assert_user_response_long_names(user_response_json):
+    locations = ['first_name', 'middle_name', 'last_name', 'user_name']
+    for index, location in enumerate(locations):
+        assert user_response_json['detail'][index]['type'] == "string_too_long"
+        assert user_response_json['detail'][index]['loc'] == ['body', location]
+        assert user_response_json['detail'][index]['msg'] == "String should have at most 16 characters"
+
+def assert_user_response_wrong_data_type(user_response_json):
+    locations = ['first_name', 'middle_name', 'last_name', 'email', 'disabled', 'scope', 'user_name']
+    for index, location in enumerate(locations):
+        if location == 'email':
+            assert user_response_json['detail'][index]['type'] == 'value_error'
+            assert user_response_json['detail'][index]['msg'] == 'value is not a valid email address: The email address is not valid. It must have exactly one @-sign.'
+        elif location == 'disabled':
+            assert user_response_json['detail'][index]['type'] == 'bool_parsing'
+            assert user_response_json['detail'][index]['msg'] == 'Input should be a valid boolean, unable to interpret input'
+        elif location == 'scope':
+            assert user_response_json['detail'][index]['type'] == 'literal_error'
+            assert user_response_json['detail'][index]['msg'] == "Input should be 'admin', 'write' or 'read'"
+        else:
+            assert user_response_json['detail'][index]['type'] == 'string_type'
+            assert user_response_json['detail'][index]['msg'] == 'Input should be a valid string'
+
+        assert user_response_json['detail'][index]['loc'] == ['body', location]
+
 #test "add_user"
 def test_add_user(new_user, add_user):
     add_user_response = add_user(new_user)
     assert add_user_response.status_code == 200
     assert_user_response(add_user_response.json(), new_user)
 
+def test_add_user_short_names(user_short_names, add_user):
+    add_user_response = add_user(user_short_names)
+    assert add_user_response.status_code == 422
+    assert_user_response_short_names(add_user_response.json())
+
+def test_add_user_long_names(user_long_names, add_user):
+    add_user_response = add_user(user_long_names)
+    assert add_user_response.status_code == 422
+    assert_user_response_long_names(add_user_response.json())
+    
 def test_add_duplicate_user(new_user, add_user):
     add_user_response = add_user(new_user)
     assert add_user_response.status_code == 200
     add_user_response = add_user(new_user)
     assert add_user_response.status_code == 400
     assert add_user_response.json()['detail'] == 'User exists'
-
-def test_add_user_wrong_scope(new_user, add_user):
-    new_user['scope'] = 'wrong_scope'
-    add_user_response = add_user(new_user)
-    assert add_user_response.status_code == 422
-    assert add_user_response.json()['detail'][0]['type'] == "literal_error"
-    assert add_user_response.json()['detail'][0]['loc'] == ['body', 'scope']
-    assert add_user_response.json()['detail'][0]['msg'] == "Input should be 'admin', 'write' or 'read'"
 
 def test_add_user_missing_parameters(new_user, add_user):
     new_user.pop('user_name')
@@ -36,14 +70,11 @@ def test_add_user_missing_parameters(new_user, add_user):
     assert add_user_response.json()['detail'][0]['loc'] == ['body', 'user_name']
     assert add_user_response.json()['detail'][0]['msg'] == "Field required"
 
-def test_add_user_wrong_data_type(new_user, add_user):
-    new_user['user_name'] = 123
-    add_user_response = add_user(new_user)
+def test_add_user_wrong_data_type(user_wrong_data_type, add_user):
+    add_user_response = add_user(user_wrong_data_type)
     assert add_user_response.status_code == 422
-    assert add_user_response.json()['detail'][0]['type'] == 'string_type'
-    assert add_user_response.json()['detail'][0]['loc'] == ['body', 'user_name']
-    assert add_user_response.json()['detail'][0]['msg'] == 'Input should be a valid string'
-
+    assert_user_response_wrong_data_type(add_user_response.json())
+    
 def test_add_user_missing_body(add_user):
     add_user_response = add_user({})
     assert add_user_response.status_code == 422
