@@ -1,9 +1,10 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import sserpapi.db.queries as db_query
 from sserpapi.db.dependency import get_db
-from sserpapi.auth import get_current_active_user
+from sserpapi.auth import get_current_active_user, verify_password
 import sserpapi.pydantic_schemas as schemas
 
 logger = logging.getLogger(__name__)
@@ -51,3 +52,26 @@ def update_user(user: schemas.User, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
     
     return db_query.update_user(db=db, user=user)
+
+@router.patch("/user/password", summary='Modify an user', tags=['Users'])
+def update_password(user: schemas.UserNameAndPassword, db: Session = Depends(get_db)):
+    try:
+        user_exists = db_query.get_users(db, user_name=user.user_name)
+    except Exception as e:
+        logger.error('get_users(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not user_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+    
+    try:
+        same_password = verify_password(user.password, user_exists[0].password)
+    except Exception as e:
+        logger.error('verify_password(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if same_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password cannot be the same as the old password")
+    
+    return_value = db_query.update_user_password(db=db, user=user)
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"detail": return_value})
