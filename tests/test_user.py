@@ -147,4 +147,52 @@ def test_update_user_wrong_data_type(new_user_updated, update_user):
 def test_update_user_missing_body(update_user):
     update_user_response = update_user({})
     assert update_user_response.status_code == 422
+
+def test_update_password(new_user, add_user, user_password, update_password):
+    add_user_response = add_user(new_user)
+    assert add_user_response.status_code == 200
+
+    update_password_response = update_password(user_password)
+    assert update_password_response.status_code == 200
+    assert update_password_response.json()['detail'] == 'Password updated'
+    
+def test_update_password_wrong_user_name(user_password, update_password):
+    user_password['user_name'] = 'wrong_user_name'
+    user_password['password'] = 'new_password_updated'
+    update_password_response = update_password(user_password)
+    assert update_password_response.status_code == 400
+    assert update_password_response.json()['detail'] == 'User not found'
+
+def test_update_password_same_password(new_user, add_user, user_password, update_password):
+    add_user_response = add_user(new_user)
+    assert add_user_response.status_code == 200
+
+    user_password['user_name'] = new_user['user_name']
+    user_password['password'] = new_user['password']
+    update_password_response = update_password(user_password)
+    assert update_password_response.status_code == 400
+    assert update_password_response.json()['detail'] == 'New password cannot be the same as the old password'
+
+def test_update_password_missing_password(new_user, add_user, user_password, update_password):
+    add_user_response = add_user(new_user)
+    assert add_user_response.status_code == 200
+
+    user_password['user_name'] = new_user['user_name']
+    del(user_password['password'])
+    update_password_response = update_password(user_password)
+    assert update_password_response.status_code == 422
+    assert update_password_response.json()['detail'][0]['msg'] == 'Field required'
+
+def test_update_password_short_password(new_user, add_user, user_password, update_password):
+    add_user_response = add_user(new_user)
+    assert add_user_response.status_code == 200
+
+    user_password['user_name'] = new_user['user_name']
+    user_password['password'] = '12345'
+    update_password_response = update_password(user_password)
+    assert update_password_response.status_code == 422
+    assert update_password_response.json()['detail'][0]['type'] == 'string_too_short'
+    assert update_password_response.json()['detail'][0]['loc'] == ['body', 'password']
+    assert update_password_response.json()['detail'][0]['msg'] == 'String should have at least 8 characters'
+    
     
