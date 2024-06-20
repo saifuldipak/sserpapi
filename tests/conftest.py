@@ -274,3 +274,14 @@ def update_user(auth_header, client):
         update_user_response = client.put('/user', json=user, headers=auth_header)
         return update_user_response
     return _update_user
+
+@pytest.fixture
+def user_password():
+    return {'user_name': 'new_user', 'password': 'new_password_updated'}
+
+@pytest.fixture
+def update_password(auth_header, client):
+    def _update_password(user: dict):
+        update_password_response = client.patch("/user/password", json=user, headers=auth_header)
+        return update_password_response
+    return _update_password
