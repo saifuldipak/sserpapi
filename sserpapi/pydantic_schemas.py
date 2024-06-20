@@ -1,5 +1,6 @@
 # pylint: disable=E0401
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 import typing_extensions
 
 #-- table 'clients' and 'client_types' --#
@@ -121,22 +122,27 @@ class PopBase(BaseModel):
 class Pop(PopBase):
     id: int
 
-#-- table 'users' --#    
+#-- table 'users' --# 
+class UserName(BaseModel):
+    user_name: str = Field(min_length=4, max_length=16)
+
+class UserNameAndPassword(UserName):
+    password: str = Field(min_length=8)
+
 class UserBase(BaseModel):
-    user_name: str
-    first_name: str
-    middle_name: str | None = None
-    last_name: str
+    first_name: str = Field(min_length=4, max_length=16)
+    middle_name: Optional[str] = Field(min_length=4, max_length=16, default=None)
+    last_name: str = Field(min_length=4, max_length=16)
     email: EmailStr
     disabled: bool | None = False
     scope: typing_extensions.Literal['admin', 'write', 'read']
 
-class UserWithPassword(UserBase):
-    password: str
-
-class User(UserBase):
+class User(UserName, UserBase):
     id: int
 
+class NewUser(UserNameAndPassword, UserBase):
+    pass
+    
 #-- JWT token generation --#
 class Token(BaseModel):
     access_token: str
