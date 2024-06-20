@@ -639,3 +639,14 @@ def update_user(db: Session, user: schemas.User) -> models.Users:
         raise e
     
     return user_in_db
+
+def update_password(db: Session, user: schemas.UserNameAndPassword) -> str:
+    try:
+        user_in_db = db.query(models.Users).filter(models.Users.user_name==user.user_name).first()
+        user_in_db.password = get_password_hash(user.password)
+        db.commit()
+        db.refresh(user_in_db)
+    except Exception as e:
+        raise e
+    
+    return 'Password updated'
