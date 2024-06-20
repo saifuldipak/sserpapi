@@ -285,3 +285,23 @@ def update_password(auth_header, client):
         update_password_response = client.patch("/user/password", json=user, headers=auth_header)
         return update_password_response
     return _update_password
+
+@pytest.fixture
+def user_wrong_data_type():
+    return {'user_name': 123, 'password': 'new_password', 'first_name': 123, 'middle_name': 123, 'last_name': 123, 'email': '123', 'scope': 123, 'disabled': 123}
+
+@pytest.fixture
+def user_short_names(new_user):
+    new_user['user_name'] = 'n'
+    new_user['first_name'] = 'f'
+    new_user['middle_name'] = 'm'
+    new_user['last_name'] = 'l'
+    return new_user
+
+@pytest.fixture
+def user_long_names(new_user):
+    new_user['user_name'] = 'abcdefghijklmnopqrstuvwxyz'
+    new_user['first_name'] = 'abcdefghijklmnopqrstuvwxyz'
+    new_user['middle_name'] = 'abcdefghijklmnopqrstuvwxyz'
+    new_user['last_name'] = 'abcdefghijklmnopqrstuvwxyz'
+    return new_user
