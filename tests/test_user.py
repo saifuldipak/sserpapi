@@ -167,13 +167,11 @@ def test_update_user_missing_parameters(new_user_updated, update_user):
     assert update_user_response.json()['detail'][0]['loc'] == ['body', 'user_name']
     assert update_user_response.json()['detail'][0]['msg'] == "Field required"
 
-def test_update_user_wrong_data_type(new_user_updated, update_user):
-    new_user_updated['user_name'] = 123
-    update_user_response = update_user(new_user_updated)
+def test_update_user_wrong_data_type(user_wrong_data_type, update_user):
+    user_wrong_data_type['id'] = 123
+    update_user_response = update_user(user_wrong_data_type)
     assert update_user_response.status_code == 422
-    assert update_user_response.json()['detail'][0]['type'] == 'string_type'
-    assert update_user_response.json()['detail'][0]['loc'] == ['body', 'user_name']
-    assert update_user_response.json()['detail'][0]['msg'] == 'Input should be a valid string'
+    assert_user_response_wrong_data_type(update_user_response.json())
 
 def test_update_user_missing_body(update_user):
     update_user_response = update_user({})
@@ -226,4 +224,19 @@ def test_update_password_short_password(new_user, add_user, user_password, updat
     assert update_password_response.json()['detail'][0]['loc'] == ['body', 'password']
     assert update_password_response.json()['detail'][0]['msg'] == 'String should have at least 8 characters'
     
-    
+#test "delete_user"
+def test_delete_user(new_user, add_user, delete_user):
+    add_user_response = add_user(new_user)
+    assert add_user_response.status_code == 200
+
+    delete_user_response = delete_user(add_user_response.json()['id'])
+    assert delete_user_response.status_code == 200
+    assert delete_user_response.json()['detail'] == 'User deleted'
+
+def test_delete_user_wrong_user_id(new_user, add_user, delete_user):
+    add_user_response = add_user(new_user)
+    assert add_user_response.status_code == 200
+
+    delete_user_response = delete_user(123)
+    assert delete_user_response.status_code == 400
+    assert delete_user_response.json()['detail'] == 'User not found'
