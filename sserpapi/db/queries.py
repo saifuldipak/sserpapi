@@ -650,3 +650,13 @@ def update_password(db: Session, user: schemas.UserNameAndPassword) -> str:
         raise e
     
     return 'Password updated'
+
+def delete_user(db: Session, user_id: int) -> int:
+    stmt = delete(models.Users).where(models.Users.id==user_id)
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise e
+    
+    return user_id

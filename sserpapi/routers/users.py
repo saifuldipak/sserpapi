@@ -73,5 +73,24 @@ def update_password(user: schemas.UserNameAndPassword, db: Session = Depends(get
     if same_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password cannot be the same as the old password")
     
-    return_value = db_query.update_user_password(db=db, user=user)
+    return_value = db_query.update_password(db=db, user=user)
     return JSONResponse(status_code=status.HTTP_200_OK, content={"detail": return_value})
+
+@router.delete("/user/{user_id}", summary='Delete an user', tags=['Users'])
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        user_exists = db_query.get_users(db, user_id=user_id)
+    except Exception as e:
+        logger.error('get_users(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not user_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+    
+    try:
+        db_query.delete_user(db=db, user_id=user_id)
+    except Exception as e:
+        logger.error('delete_user(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    return JSONResponse(content={'detail': 'User deleted', 'id': user_id})
