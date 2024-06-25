@@ -253,38 +253,14 @@ def delete_address(auth_header, client):
         return delete_address_response
     return _delete_address
 
+# User
 @pytest.fixture
 def new_user():
     return {'user_name': 'new_user', 'password': 'new_password', 'first_name': 'first_name', 'middle_name': 'middle_name', 'last_name': 'last_name', 'email': 'new_user@somedomain.com', 'scope': 'admin', 'disabled': False}
 
 @pytest.fixture
-def add_user(auth_header, client):
-    def _add_user(user: dict):
-        add_user_response = client.post('/user', json=user, headers=auth_header)
-        return add_user_response
-    return _add_user
-
-@pytest.fixture
 def new_user_updated():
     return {'user_name': 'new_user_updated', 'first_name': 'first_name', 'middle_name': 'middle_name', 'last_name': 'last_name', 'email': 'new_user@somedomain.com', 'scope': 'write', 'disabled': True}
-
-@pytest.fixture
-def update_user(auth_header, client):
-    def _update_user(user: dict):
-        update_user_response = client.put('/user', json=user, headers=auth_header)
-        return update_user_response
-    return _update_user
-
-@pytest.fixture
-def user_password():
-    return {'user_name': 'new_user', 'password': 'new_password_updated'}
-
-@pytest.fixture
-def update_password(auth_header, client):
-    def _update_password(user: dict):
-        update_password_response = client.patch("/user/password", json=user, headers=auth_header)
-        return update_password_response
-    return _update_password
 
 @pytest.fixture
 def user_wrong_data_type():
@@ -305,3 +281,35 @@ def user_long_names(new_user):
     new_user['middle_name'] = 'abcdefghijklmnopqrstuvwxyz'
     new_user['last_name'] = 'abcdefghijklmnopqrstuvwxyz'
     return new_user
+
+@pytest.fixture
+def user_password():
+    return {'user_name': 'new_user', 'password': 'new_password_updated'}
+
+@pytest.fixture
+def add_user(auth_header, client):
+    def _add_user(user: dict):
+        add_user_response = client.post('/user', json=user, headers=auth_header)
+        return add_user_response
+    return _add_user
+
+@pytest.fixture
+def update_user(auth_header, client):
+    def _update_user(user: dict):
+        update_user_response = client.put('/user', json=user, headers=auth_header)
+        return update_user_response
+    return _update_user
+
+@pytest.fixture
+def update_password(auth_header, client):
+    def _update_password(user: dict):
+        update_password_response = client.patch("/user/password", json=user, headers=auth_header)
+        return update_password_response
+    return _update_password
+
+@pytest.fixture
+def delete_user(auth_header, client):
+    def _delete_user(user_id: int):
+        delete_user_response = client.delete(f'/user/{user_id}', headers=auth_header)
+        return delete_user_response
+    return _delete_user
