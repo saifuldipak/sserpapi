@@ -13,7 +13,7 @@ handlers:
     stream: ext://sys.stdout
   file:
     class: logging.FileHandler
-    filename: app.log
+    filename: log/app.log
     level: DEBUG
     formatter: verbose
     mode: a
