@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-build-scripts"]
+build-backend = "hatchling.build"
 
 [project]
 name = "sserpapi"
-version = "0.1.0"
+version = "0.1.0-b.1"
 description = "A small and simple erp backend with fastapi and postgresql"
 authors = [{name="Saiful Islam", email="saiful.kbtel@gmail.com"}]
 readme = "README.md"
@@ -30,9 +30,23 @@ dependencies = [
     "pydantic[email]"
     ]
 
-[tool.setuptools_scm]
-version_file = "sserpapi/_version.py"
-
 [project.urls]
 Homepage = "https://github.com/saifuldipak/sserpapi"
 Issues = "https://github.com/saifuldipak/sserpapi/issues"
+
+[tool.hatch.build.targets.wheel]
+artifacts = ["sserpapi/.env"]
+exclude = ["sserpapi/alembic", "sserpapi/alembic.ini"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"README.md" = "sserpapi/docs/README.md"
+"LICENSE.txt" = "sserpapi/docs/LICENSE.txt"
+
+[[tool.hatch.build.hooks.build-scripts.scripts]]
+out_dir = "sserpapi/log"
+clean_out_dir = true
+commands = [
+    "echo 'Logs will be written here' > app.log",
+]
+artifacts = ["sserpapi/log/app.log"]
+
