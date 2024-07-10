@@ -3,11 +3,11 @@ Description=A small and simple erp backend (sserpapi)
 After=network.target
 
 [Service]
-WorkingDirectory=/path/to/your/project  # Replace with your project directory
-User=your_user  # Replace with the user to run the service
-Group=your_group  # Replace with the group (optional)
-Environment="PYTHONPATH=/path/to/your/project/.venv/bin"  # Replace /path/to/your/project with your project path
-ExecStart=/path/to/your/project/.venv/bin/uvicorn sserpapi.main:app --host 0.0.0.0 --port 8000  # Replace host and port
-
+#replace user_name with your actual user name
+WorkingDirectory=/home/user_name/sserpapi/sserpapi
+Environment="PATH=/home/user_name/sserpapi/.venv/bin"
+ExecStart=/home/user_name/sserpapi/.venv/bin/uvicorn --workers 4 --host 0.0.0.0 --port 8000 sserpapi.main:app
+Restart=always
+               
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
