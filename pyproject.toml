@@ -15,19 +15,20 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "fastapi==0.110.1",
-    "sqlalchemy==2.0.29",
-    "uvicorn==0.29.0",
-    "psycopg2-binary==2.9.9",
-    "passlib==1.7.4",
-    "python-jose==3.3.0",
-    "python-multipart==0.0.9",
-    "python-dotenv>=1.0.1",
-    "PyYAML>=6.0.1",
-    "requests>=2.31.0",
-    "pytest>=8.2.0",
-    "alembic>=1.13.1",
-    "pydantic[email]"
+    "fastapi",
+    "sqlalchemy",
+    "uvicorn",
+    "psycopg2-binary",
+    "passlib",
+    "python-jose",
+    "python-multipart",
+    "python-dotenv",
+    "PyYAML",
+    "requests",
+    "pytest",
+    "alembic",
+    "pydantic[email]",
+    "gunicorn"
     ]
 
 [project.urls]
