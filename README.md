@@ -6,16 +6,29 @@ on your configuration, please check details below
 
 
 ## Installation
-1. copy the installer into you prefered directory  
-    `cp sserpapi-x.x.x-py3-none-any.whl /path/to/your/project`  
-2. create a virtual environment in the /path/to/your/project directory and activate  
-    `cd /path/to/your/project`  
-    `python3 -m venv .venv`    
+There are two ways this application can be installed, one is stable release using binary wheel file  
+another development version cloning source tree from Github(recommended for developers).If you use development source from Github,   
+you can pull lattest commits from github to check new features.  
+
+### Install using stable release wheel file
+1. login to your linux machine and copy the installer into you home directory  
+    `cp sserpapi-x.x.x-py3-none-any.whl /home/user_name/`  
+2. create a virtual environment and activate  
+    `cd /home/user_name`  
+    `python3 -m venv .venv --prompt=sserpapi`    
     `source .venv/bin/activate`  
 3. install   
     `pip install sserpapi-x.x.x-py3-none-any.whl`
 4. create symlink  
     `ln -s .venv/lib/python3.10/site-packages/sserpapi sserpapi`
+
+### Install using development version cloning source from Github  
+1. clone the source tree  
+`git clone https://github.com/saifuldipak/sserpapi.git`  
+
+2. install in editable mode  
+`cd sserpapi`  
+`pip install -e .`
 
 ## Configuration and test run
 1. edit .env file  
@@ -23,24 +36,43 @@ on your configuration, please check details below
     `nano .env`  
 
     set FASTAPI_PATH to appropriate value  
-    `FASTAPI_PATH=/path/to/your/project/sserpapi`
-2. test run  
-    `uvicorn sserpapi.main:app`
+    `FASTAPI_PATH=/home/user_name/sserpapi`
+2. test run.
+    `uvicorn sserpapi.main:app --host x.x.x.x:xxxx`
+
+    x.x.x.x is the ip address of your server, if it has multiple ip addresses and you
+    want to run on all interfaces it will be 0.0.0.0.
+    xxxx is the port number, please make sure the port number is not used by any other application.
+    for example-
+    `uvicorn sserpai.main.app --host 192.168.1.20 --port 8001`
+                        or
+    `uvicorn sserpai.main.app --host 0.0.0.0 --port 8001`
 
     it should output like this, process id will be different  
     `INFO:     Started server process [244524]`  
     `INFO:     Waiting for application startup.`  
     `INFO:     Application startup complete.`  
-    `INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)`  
+    `INFO:     Uvicorn running on http://192.168.1.20:8001 (Press CTRL+C to quit)`  
 
     press CTRL+C to quit
 3. API documentation  
-    `http:://127.0.0.1:8000/docs`
+    `http:://192.168.1.20:8001/docs`
+
+## Create database and role/user in postgres
+1. Login to your linux which is running postgresql server and then run following commands. replace 'postgres' with any other  
+    super user account you have in your postgresl server.  
+    `psql -U postgres`  
+    `CREATE ROLE sserpapi LOGIN PASSWORD 'some_strong_password'`  
+    `CREATE DATABASE sserp OWNER sserpapi`  
 
 ## Deployement
-1. configure and run this application using systemd
-    `cp sserpapi/scripts/sserpapi.service /etc/systemd/system`
-    `sudo systemctl enable --now sserpapi.service`
-    `systemctl status sserpapi.service`
+You can deploy this app in many ways. here we have shown using 'systemd' and 'docker'  
+
+### 1. configure and run this application using systemd   
+    
+`mkdir -p /home/user_name/.config/systemd/user`  
+`cp sserpapi/scripts/sserpapi.service /home/user_name/.config/systemd/user`  
+`systemctl --user enable --now sserpapi.service`  
+`systemctl status sserpapi.service`  
 
 
