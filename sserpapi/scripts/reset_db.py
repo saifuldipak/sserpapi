@@ -3,17 +3,15 @@ from sserpapi.db.connection import SessionLocal, engine
 from sserpapi.db.models import Base
 from sserpapi.db.queries import get_user_by_name, add_user
 from sserpapi.pydantic_schemas import NewUser
-from sserpapi.auth import get_password_hash
 
 def user_add(db: Session, credential: dict) -> any:
     user_exists = get_user_by_name(db, user_name=credential['username'])
     if user_exists:
         print(f'User exists: {credential["username"]}')
     
-    hashed_password = get_password_hash(credential['password'])
     new_user = NewUser(
                 user_name=credential['username'], 
-                password=hashed_password,
+                password=credential['password'],
                 first_name=credential['first_name'],
                 last_name=credential['last_name'],
                 email=credential['email'], 
