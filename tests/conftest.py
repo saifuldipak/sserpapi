@@ -284,7 +284,7 @@ def user_long_names(new_user):
 
 @pytest.fixture
 def user_password():
-    return {'user_name': 'new_user', 'password': 'new_password_updated'}
+    return {'username': 'new_user', 'password': 'new_password_updated'}
 
 @pytest.fixture
 def add_user(auth_header, client):
@@ -313,3 +313,7 @@ def delete_user(auth_header, client):
         delete_user_response = client.delete(f'/user/{user_id}', headers=auth_header)
         return delete_user_response
     return _delete_user
+
+@pytest.fixture
+def new_token():
+    return {'user_name': 'new_user', 'password': 'new_password', 'scope': 'admin'}
