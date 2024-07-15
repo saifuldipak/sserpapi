@@ -68,10 +68,10 @@ you can pull lattest commits from github to check new features.
 ## Create/update .env file
 If sserpapi is installed from python wheel, '.env' file is present in the 'sserpapi' directory.Update sserpapi path, postgresql user and password in the file.
 
-If not present, create the file with the following content- 
+If not present, create the file with the following content, change the values as required- 
 
 #Fastapi parameters  
-FASTAPI_PATH='/home/saiful/Projects/sserpapi/sserpapi  
+FASTAPI_PATH='/home/user_name/sserpapi/sserpapi  
 
 #Postgresql parameters  
 POSTGRES_USER=sserpapi  
@@ -92,3 +92,8 @@ You can deploy this app in many ways. here we have shown using 'systemd' and 'do
 `systemctl status sserpapi.service`  
 
 
+## Create first admin user
+`cd /home/user_name/sserpapi/sserpapi/scripts`
+
+edit the username and password as per your need
+`python3 reset_db.py`
