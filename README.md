@@ -62,8 +62,24 @@ you can pull lattest commits from github to check new features.
 1. Login to your linux which is running postgresql server and then run following commands. replace 'postgres' with any other  
     super user account you have in your postgresl server.  
     `psql -U postgres`  
-    `CREATE ROLE sserpapi LOGIN PASSWORD 'some_strong_password'`  
-    `CREATE DATABASE sserp OWNER sserpapi`  
+    `CREATE ROLE sserpapi LOGIN PASSWORD 'some_strong_password';`  
+    `CREATE DATABASE sserp OWNER sserpapi;`  
+
+## Create/update .env file
+If sserpapi is installed from python wheel, '.env' file is present in the 'sserpapi' directory.Update sserpapi path, postgresql user and password in the file.
+
+If not present, create the file with the following content- 
+
+#Fastapi parameters  
+FASTAPI_PATH='/home/saiful/Projects/sserpapi/sserpapi  
+
+#Postgresql parameters  
+POSTGRES_USER=sserpapi  
+POSTGRES_PASSWORD=sserpapi009  
+POSTGRES_HOST=127.0.0.1  
+POSTGRES_PORT=5432  
+POSTGRES_DB=sserp
+
 
 ## Deployement
 You can deploy this app in many ways. here we have shown using 'systemd' and 'docker'  
