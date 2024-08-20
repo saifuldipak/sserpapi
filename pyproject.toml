@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sserpapi"
-version = "0.1.0-b.1"
+version = "0.1.0"
 description = "A small and simple erp backend with fastapi and postgresql"
 authors = [{name="Saiful Islam", email="saiful.kbtel@gmail.com"}]
 readme = "README.md"
