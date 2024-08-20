@@ -4,7 +4,7 @@ from sserpapi.db.models import Base
 from sserpapi.db.queries import get_user_by_name, add_user
 from sserpapi.pydantic_schemas import NewUser
 
-def user_add(db: Session, credential: dict) -> any:
+def user_add(db: Session, credential: dict) -> str:
     user_exists = get_user_by_name(db, user_name=credential['username'])
     if user_exists:
         print(f'User exists: {credential["username"]}')
@@ -19,7 +19,7 @@ def user_add(db: Session, credential: dict) -> any:
                 scope=credential['scope']
                 )
     new_user = add_user(db, user=new_user)
-    print(f'User created: {new_user.user_name}')
+    return f'User created: {new_user.user_name}'
 
 if __name__ == '__main__':
     Base.metadata.drop_all(bind=engine)
@@ -37,4 +37,4 @@ if __name__ == '__main__':
         'scope': 'admin'
     }
     
-    user_add(db_connection, user_data)
+    print(user_add(db_connection, user_data))
