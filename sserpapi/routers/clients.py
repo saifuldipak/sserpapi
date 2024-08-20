@@ -623,6 +623,7 @@ def update_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
     - **phone1**: Phone number*
     - **phone2**: Phone number
     - **phone3**: Phone number
+    - **email**: Email address
     - **service_id**: Service id (integer)**
     - **client_id**: Client id (integer)**
     - **vendor_id**: Vendor id (integer)**
