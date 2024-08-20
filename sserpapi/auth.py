@@ -89,6 +89,7 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
             has_permission = True
 
     if not has_permission:
+        logger.warning('User "%s" does not have permission, user has "%s" permission', user, token_data.scopes)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not enough permissions",
