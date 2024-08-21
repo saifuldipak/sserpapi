@@ -16,12 +16,11 @@ class Clients(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, index=True, nullable=False)
     client_type_id = Column(Integer, ForeignKey('client_types.id', ondelete='RESTRICT'), nullable=False)
-    ccare_account_manager_id = Column(Integer, ForeignKey('contacts.id', ondelete='RESTRICT'), nullable=False)
-    sales_account_manager_id = Column(Integer, ForeignKey('contacts.id', ondelete='RESTRICT'), nullable=False)
     client_types = relationship('ClientTypes', back_populates='clients')
     addresses = relationship('Addresses', back_populates='clients', cascade='all, delete-orphan')
     contacts = relationship('Contacts', back_populates='clients', cascade='all, delete-orphan')
     services = relationship('Services', back_populates='clients', cascade='all, delete-orphan')
+    account_managers = relationship('AccountManagers', back_populates='clients', cascade='all, delete-orphan')
 
 class Vendors(Base):
     __tablename__ = 'vendors'
@@ -97,6 +96,7 @@ class Contacts(Base):
     clients = relationship('Clients', back_populates='contacts')
     vendors = relationship('Vendors', back_populates='contacts')
     services = relationship('Services', back_populates='contacts')
+    account_managers = relationship('AccountManagers', back_populates='contacts')
 
 class Users(Base):
     __tablename__ = 'users'
@@ -109,3 +109,11 @@ class Users(Base):
     disabled = Column(Boolean, nullable=False)
     password = Column(String, nullable=False)
     scope = Column(String, nullable=False)
+
+class AccountManagers(Base):
+    __tablename__ = 'account_managers'
+    id = Column(Integer, primary_key=True)
+    client_id = Column(Integer, ForeignKey('clients.id', ondelete='RESTRICT'), nullable=False)
+    contact_id = Column(Integer, ForeignKey('contacts.id', ondelete='RESTRICT'), nullable=False)
+    clients = relationship('Clients', back_populates='account_managers')
+    contacts = relationship('Contacts', back_populates='account_managers')
