@@ -167,3 +167,6 @@ cython_debug/
 #sqlite databases
 *.sqlite
 *.sqlite3
+
+#alembic
+*.ini
