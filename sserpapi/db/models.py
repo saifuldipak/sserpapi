@@ -16,6 +16,8 @@ class Clients(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, index=True, nullable=False)
     client_type_id = Column(Integer, ForeignKey('client_types.id', ondelete='RESTRICT'), nullable=False)
+    ccare_account_manager_id = Column(Integer, ForeignKey('contacts.id', ondelete='RESTRICT'), nullable=False)
+    sales_account_manager_id = Column(Integer, ForeignKey('contacts.id', ondelete='RESTRICT'), nullable=False)
     client_types = relationship('ClientTypes', back_populates='clients')
     addresses = relationship('Addresses', back_populates='clients', cascade='all, delete-orphan')
     contacts = relationship('Contacts', back_populates='clients', cascade='all, delete-orphan')
