@@ -659,3 +659,44 @@ def delete_user(db: Session, user_id: int) -> int:
         raise e
     
     return user_id
+
+def add_account_manager(db: Session, account_manager: schemas.AccountManagerBase) -> models.AccountManagers:
+    """
+    Adds a new account manager to the database.
+
+    Args:
+        db (Session): The database session to use for the operation.
+        account_manager (schemas.AccountManagersBase): The account manager to add.
+
+    Returns:
+        models.AccountManagers: The newly added account manager.
+    """
+    try:
+        new_account_manager = models.AccountManagers(**account_manager.model_dump())
+        db.add(new_account_manager)
+        db.commit()
+        db.refresh(new_account_manager)
+    except Exception as e:
+        raise e
+    
+    return new_account_manager
+
+def get_account_managers(db: Session, account_manager: schemas.AccountManagerBase, offset: int = 0, limit: int = 10) -> list[models.AccountManagers]:
+    """
+    Retrieves a list of account managers from the database.
+
+    Args:
+        db (Session): The database session to use for the operation.
+        account_manager (schemas.AccountManagerBase): The account manager to filter by.
+        offset (int): The offset for pagination. Defaults to 0.
+        limit (int): The limit for pagination. Defaults to 10.
+
+    Returns:
+        list[models.AccountManagers]: A list of account managers.
+    """
+    base_query = db.query(models.AccountManagers).filter(models.AccountManagers.client_id==account_manager.client_id, models.AccountManagers.contact_id==account_manager.contact_id)
+
+    try:
+        return base_query.offset(offset).limit(limit).first()
+    except Exception as e:
+        raise e
