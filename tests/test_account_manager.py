@@ -37,6 +37,24 @@ def test_add_account_manager_blank_body(add_account_manager_only):
     add_account_manager_response = add_account_manager_only({})
     assert add_account_manager_response.status_code == 422
 
+def test_delete_account_manager(new_account_manager, add_account_manager, delete_account_manager):
+    add_account_manager_response = add_account_manager(new_account_manager)
+    assert add_account_manager_response.status_code == 200
+
+    delete_account_manager_response = delete_account_manager(add_account_manager_response.json()['id'])
+    assert delete_account_manager_response.status_code == 200
+    assert delete_account_manager_response.json()['message'] == 'Account manager deleted'
+    assert delete_account_manager_response.json()['id'] == add_account_manager_response.json()['id']
+
+def test_delete_account_manager_wrong_id(auth_header, client):
+    delete_account_manager_response = client.delete("/account_manager/10001", headers=auth_header)
+    assert delete_account_manager_response.status_code == 400
+    assert delete_account_manager_response.json()['detail'] == 'Account manager not found'
+
+def test_delete_account_manager_missing_id(auth_header, client):
+    delete_account_manager_response = client.delete("/account_manager/", headers=auth_header)
+    assert delete_account_manager_response.status_code == 405
+
 """ #test "get_clients"
 def test_get_clients_by_name(auth_header, client, add_client, new_client):
     add_client_response = add_client(new_client)
@@ -108,24 +126,4 @@ def test_update_client_missing_data(update_client):
     update_client_response = update_client({})
     assert update_client_response.status_code == 422
 
-#test "delete_client"
-def test_delete_client(new_client, add_client, auth_header, client):
-    add_client_response = add_client(new_client)
-    assert add_client_response.status_code == 200
-
-    delete_client_response = client.delete(f"/client/{add_client_response.json()['id']}", headers=auth_header)
-    assert delete_client_response.status_code == 200
-    assert delete_client_response.json()['message'] == 'Client deleted'
-    assert delete_client_response.json()['id'] == add_client_response.json()['id']
-
-    get_clients_response = client.get(f"/clients?client_id={add_client_response.json()['id']}", headers=auth_header)
-    assert get_clients_response.status_code == 404
-
-def test_delete_client_wrong_id(auth_header, client):
-    delete_client_response = client.delete("/client/1000001", headers=auth_header)
-    assert delete_client_response.status_code == 400
-    assert delete_client_response.json()['detail'] == 'Client not found'
-
-def test_delete_client_missing_id(auth_header, client):
-    delete_client_response = client.delete("/client/", headers=auth_header)
-    assert delete_client_response.status_code == 405 """
+"""

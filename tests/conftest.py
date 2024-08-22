@@ -346,3 +346,10 @@ def add_account_manager_only(client, auth_header):
         add_account_manager_response = client.post('/account_manager', json=account_manager, headers=auth_header)
         return add_account_manager_response
     return _add_account_manager
+
+@pytest.fixture
+def delete_account_manager(client, auth_header):
+    def _delete_account_manager(account_manager_id: int):
+        delete_account_manager_response = client.delete(f'/account_manager/{account_manager_id}', headers=auth_header)
+        return delete_account_manager_response
+    return _delete_account_manager
