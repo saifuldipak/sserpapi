@@ -205,3 +205,10 @@ class AddressDetails(Address):
     clients: Client | None = None
     vendors: Vendor | None = None
     services: Service | None = None
+
+class AccountManagerBase(BaseModel):
+    client_id: int
+    contact_id: int
+
+class AccountManager(AccountManagerBase):
+    id: int
