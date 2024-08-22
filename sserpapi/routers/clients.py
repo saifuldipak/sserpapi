@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 import sserpapi.pydantic_schemas as schemas
 from sserpapi.db.dependency import get_db
 from sserpapi.db import queries as db_query
@@ -972,3 +972,41 @@ def delete_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelet
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     return schemas.EntryDelete(message='Pop deleted', id=pop_id)
+
+@router.post("/account_manager", response_model=schemas.AccountManager, summary='Add an account manager', tags=['Account Managers'])
+def add_account_manager(account_manager: schemas.AccountManagerBase, db: Session = Depends(get_db)):
+    """
+    ## Adds an account manager
+    - **client_id**: Client id*
+    - **contact_id**: Account manager contact id*
+
+    **Note**: *Required fields
+    """
+    try: 
+        account_manager_exists = db_query.get_account_managers(db=db, account_manager=account_manager)
+    except Exception as e:
+        logger.error('get_account_managers(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if account_manager_exists:
+        raise HTTPException(status_code=400, detail="Account manager exists")
+    
+    try:
+        client_exists = db_query.get_clients(db, client_id=account_manager.client_id)
+    except Exception as e:
+        logger.error('get_clients(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not client_exists:
+        raise HTTPException(status_code=400, detail="Client does not exist")
+    
+    try:
+        contact_exists = db_query.get_contacts(db, schemas.ContactSearch(id=account_manager.contact_id))
+    except Exception as e:
+        logger.error('get_contacts(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not contact_exists:
+        raise HTTPException(status_code=400, detail='Contact does not exist')
+    
+    return db_query.add_account_manager(db=db, account_manager=account_manager)
