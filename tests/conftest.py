@@ -3,6 +3,7 @@ from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError, DBAPIError
 from fastapi.testclient import TestClient
 import pytest
+import warnings
 from sserpapi.db import models
 from sserpapi.main import app
 from sserpapi.db.dependency import get_db
@@ -51,9 +52,9 @@ def auth_header():
 def clear_tables():
     db = next(get_db())
 
-    table_list = ['Services', 'ServiceTypes', 'Pops', 'Vendors', 'Clients', 'ClientTypes', 'Contacts', 'Addresses']
+    tables = ['AccountManagers','Services', 'ServiceTypes', 'Pops', 'Vendors', 'Clients', 'ClientTypes', 'Contacts', 'Addresses']
 
-    for table in table_list:
+    for table in tables:
         stmt = delete(models.__dict__[table])
         try:
             db.execute(stmt)
@@ -317,3 +318,31 @@ def delete_user(auth_header, client):
 @pytest.fixture
 def new_token():
     return {'user_name': 'new_user', 'password': 'new_password', 'scope': 'admin'}
+
+@pytest.fixture
+def new_account_manager():
+    return {'client_id': 0, 'contact_id': 0}
+
+@pytest.fixture
+def add_account_manager(new_client, add_client, new_vendor, add_vendor, new_contact, add_contact, client, auth_header):
+    def _add_account_manager(account_manager: dict):
+        add_client_response = add_client(new_client)
+        assert add_client_response.status_code == 200
+        account_manager['client_id'] = add_client_response.json()['id']
+        new_vendor['name'] = 'Telnet'
+        new_vendor['type'] = 'ISP'
+        add_vendor_response = add_vendor(new_vendor)
+        new_contact['vendor_id'] = add_vendor_response.json()['id']
+        add_contact_response = add_contact(new_contact)
+        assert add_contact_response.status_code == 200
+        account_manager['contact_id'] = add_contact_response.json()['id']
+        add_account_manager_response = client.post('/account_manager', json=account_manager, headers=auth_header)
+        return add_account_manager_response
+    return _add_account_manager
+
+@pytest.fixture
+def add_account_manager_only(client, auth_header):
+    def _add_account_manager(account_manager: dict):
+        add_account_manager_response = client.post('/account_manager', json=account_manager, headers=auth_header)
+        return add_account_manager_response
+    return _add_account_manager
