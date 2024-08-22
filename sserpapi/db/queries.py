@@ -700,3 +700,23 @@ def get_account_managers(db: Session, account_manager: schemas.AccountManagerBas
         return base_query.offset(offset).limit(limit).first()
     except Exception as e:
         raise e
+
+def get_account_manager_by_id(db: Session, account_manager_id: int, offset: int = 0, limit: int = 10) -> models.AccountManagers:
+    base_query = db.query(models.AccountManagers).filter(models.AccountManagers.id==account_manager_id)
+
+    try:
+        return base_query.offset(offset).limit(limit).one()
+    except NoResultFound as e:
+        raise e
+    except Exception as e:
+        raise e
+
+def delete_account_manager(db: Session, account_manager_id: int) -> int:
+    stmt = delete(models.AccountManagers).where(models.AccountManagers.id==account_manager_id)
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise e
+    
+    return account_manager_id
