@@ -1010,3 +1010,22 @@ def add_account_manager(account_manager: schemas.AccountManagerBase, db: Session
         raise HTTPException(status_code=400, detail='Contact does not exist')
     
     return db_query.add_account_manager(db=db, account_manager=account_manager)
+
+@router.delete("/account_manager/{account_manager_id}", summary='Delete an account manager', tags=['Account Managers'])
+def delete_account_manager(account_manager_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
+    try:
+        db_query.get_account_manager_by_id(db=db, account_manager_id=account_manager_id)
+    except NoResultFound as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account manager not found") from e
+    except Exception as e:
+        logger.error('get_account_manager_by_id(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    try:
+        db_query.delete_account_manager(db=db, account_manager_id=account_manager_id)
+    except Exception as e:
+        logger.error('delete_account_manager(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    return schemas.EntryDelete(message='Account manager deleted', id=account_manager_id)
+
