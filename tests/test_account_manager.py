@@ -1,18 +1,18 @@
 #helper functions
-def assert_add_account_manager_response(add_account_manager_response_json, new_account_manager):
+def assert_account_manager_response(add_account_manager_response_json, new_account_manager):
     assert add_account_manager_response_json['client_id'] == new_account_manager['client_id']
     assert add_account_manager_response_json['contact_id'] == new_account_manager['contact_id']
 
-#test "add_client"
+#test "add_account_manager"
 def test_add_account_manager(new_account_manager, add_account_manager):
     add_account_manager_response = add_account_manager(new_account_manager)
     assert add_account_manager_response.status_code == 200
-    assert_add_account_manager_response(add_account_manager_response.json(), new_account_manager)
+    assert_account_manager_response(add_account_manager_response.json(), new_account_manager)
 
 def test_add_duplicate_account_manager(new_account_manager, add_account_manager, client, auth_header):
     add_account_manager_response = add_account_manager(new_account_manager)
     assert add_account_manager_response.status_code == 200
-    assert_add_account_manager_response(add_account_manager_response.json(), new_account_manager)
+    assert_account_manager_response(add_account_manager_response.json(), new_account_manager)
 
     add_duplicate_account_manager_response = client.post('/account_manager', headers=auth_header, json=new_account_manager)
     assert add_duplicate_account_manager_response.status_code == 400
@@ -37,6 +37,7 @@ def test_add_account_manager_blank_body(add_account_manager_only):
     add_account_manager_response = add_account_manager_only({})
     assert add_account_manager_response.status_code == 422
 
+#test "delete_account_manager"
 def test_delete_account_manager(new_account_manager, add_account_manager, delete_account_manager):
     add_account_manager_response = add_account_manager(new_account_manager)
     assert add_account_manager_response.status_code == 200
@@ -54,6 +55,8 @@ def test_delete_account_manager_wrong_id(auth_header, client):
 def test_delete_account_manager_missing_id(auth_header, client):
     delete_account_manager_response = client.delete("/account_manager/", headers=auth_header)
     assert delete_account_manager_response.status_code == 405
+
+
 
 """ #test "get_clients"
 def test_get_clients_by_name(auth_header, client, add_client, new_client):
