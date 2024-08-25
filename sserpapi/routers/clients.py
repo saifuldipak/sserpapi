@@ -1033,3 +1033,24 @@ def delete_account_manager(account_manager_id: int, db: Session = Depends(get_db
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     return schemas.EntryDelete(message='Account manager deleted', id=account_manager_id)
+
+@router.get("/account_managers", response_model=list[schemas.AccountManager], summary='Search account managers', tags=['Account Managers'])
+def get_account_managers(contact_name: str | None = None, client_name: str | None = None, client_id: int | None = None, contact_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+    try:
+        account_manager_details = schemas.AccountManagerDetails(client_name=client_name, contact_name=contact_name, client_id=client_id, contact_id=contact_id)
+    except ValidationError as e:
+        if e.errors()[0]['type'] == 'value_error':
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide at least one query parameter') from e
+        
+    offset = page * page_size
+    try:
+        account_managers =  db_query.get_account_managers(db=db, account_manager_details=account_manager_details, offset=offset, limit=page_size)
+    except Exception as e:
+        logger.error('db_query.get_account_managers(): %s', e)
+        print(e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not account_managers:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No account managers found')
+    
+    return account_managers
