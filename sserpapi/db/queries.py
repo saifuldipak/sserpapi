@@ -681,36 +681,6 @@ def add_account_manager(db: Session, account_manager: schemas.AccountManagerBase
     
     return new_account_manager
 
-def get_account_managers(db: Session, account_manager: schemas.AccountManagerBase, offset: int = 0, limit: int = 10) -> list[models.AccountManagers]:
-    """
-    Retrieves a list of account managers from the database.
-
-    Args:
-        db (Session): The database session to use for the operation.
-        account_manager (schemas.AccountManagerBase): The account manager to filter by.
-        offset (int): The offset for pagination. Defaults to 0.
-        limit (int): The limit for pagination. Defaults to 10.
-
-    Returns:
-        list[models.AccountManagers]: A list of account managers.
-    """
-    base_query = db.query(models.AccountManagers).filter(models.AccountManagers.client_id==account_manager.client_id, models.AccountManagers.contact_id==account_manager.contact_id)
-
-    try:
-        return base_query.offset(offset).limit(limit).first()
-    except Exception as e:
-        raise e
-
-def get_account_manager_by_id(db: Session, account_manager_id: int, offset: int = 0, limit: int = 10) -> models.AccountManagers:
-    base_query = db.query(models.AccountManagers).filter(models.AccountManagers.id==account_manager_id)
-
-    try:
-        return base_query.offset(offset).limit(limit).one()
-    except NoResultFound as e:
-        raise e
-    except Exception as e:
-        raise e
-
 def delete_account_manager(db: Session, account_manager_id: int) -> int:
     stmt = delete(models.AccountManagers).where(models.AccountManagers.id==account_manager_id)
     try:
@@ -720,3 +690,41 @@ def delete_account_manager(db: Session, account_manager_id: int) -> int:
         raise e
     
     return account_manager_id
+
+def get_account_managers(db: Session, account_manager_details: schemas.AccountManagerDetails, offset: int = 0, limit: int = 10) -> list[models.AccountManagers]:
+    """
+    Retrieves account managers from the database based on the provided filters.
+
+    Args:
+        db (Session): The database session to use for the operation.
+        account_manager (schemas.AccountManagerDetails): The account manager to filter by.
+        offset (int, optional): The offset for pagination. Defaults to 0.
+        limit (int, optional): The limit for pagination. Defaults to 10.
+
+    Returns:
+        list[models.AccountManagers]: A list of account managers.
+
+    Raises:
+        Exception: If an error occurs during the query execution.
+    """
+    base_query = db.query(models.AccountManagers)
+
+    if account_manager_details.client_id:
+        base_query = base_query.filter(models.AccountManagers.client_id==account_manager_details.client_id)
+    
+    if account_manager_details.contact_id:
+        base_query = base_query.filter(models.AccountManagers.contact_id==account_manager_details.contact_id)
+
+    if account_manager_details.contact_name:
+        contact_name_string = f'{account_manager_details.contact_name}%'
+        base_query = base_query.join(models.Contacts).filter(models.Contacts.name.ilike(contact_name_string))
+
+    if account_manager_details.client_name:
+        client_name_string = f'{account_manager_details.client_name}%'
+        base_query = base_query.join(models.Clients).filter(models.Clients.name.ilike(client_name_string))
+
+    try:
+        return base_query.offset(offset).limit(limit).all()
+    except Exception as e:
+        raise e
+
