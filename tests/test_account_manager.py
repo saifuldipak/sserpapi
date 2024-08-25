@@ -56,7 +56,55 @@ def test_delete_account_manager_missing_id(auth_header, client):
     delete_account_manager_response = client.delete("/account_manager/", headers=auth_header)
     assert delete_account_manager_response.status_code == 405
 
+#test "get_account_managers"
+def test_get_account_managers_by_contact_name(new_account_manager, add_account_manager, client, auth_header):
+    add_account_manager_response = add_account_manager(new_account_manager)
+    assert add_account_manager_response.status_code == 200
 
+    get_contacts_response = client.get(f'/contacts?contact_id={add_account_manager_response.json()["contact_id"]}', headers=auth_header)
+    assert get_contacts_response.status_code == 200
+
+    get_account_managers_response = client.get(f"/account_managers?contact_name={get_contacts_response.json()[0]['name']}", headers=auth_header)
+    assert get_account_managers_response.status_code == 200
+    assert_account_manager_response(get_account_managers_response.json()[0], new_account_manager)
+
+def test_get_account_managers_by_client_name(new_account_manager, add_account_manager, client, auth_header):
+    add_account_manager_response = add_account_manager(new_account_manager)
+    assert add_account_manager_response.status_code == 200
+    
+    get_clients_response = client.get(f"/clients?client_id={add_account_manager_response.json()['client_id']}", headers=auth_header)
+    assert get_clients_response.status_code == 200
+
+    get_account_managers_response = client.get(f"/account_managers?client_name={get_clients_response.json()[0]['name']}", headers=auth_header)
+    assert get_account_managers_response.status_code == 200
+    assert_account_manager_response(get_account_managers_response.json()[0], new_account_manager)
+
+def test_get_account_managers_by_ids(new_account_manager, add_account_manager, client, auth_header):
+    add_account_manager_response = add_account_manager(new_account_manager)
+    assert add_account_manager_response.status_code == 200
+    
+    get_account_managers_response = client.get(f"/account_managers?client_id={add_account_manager_response.json()['client_id']}&contact_id={add_account_manager_response.json()['contact_id']}", headers=auth_header)
+    assert get_account_managers_response.status_code == 200
+    assert_account_manager_response(get_account_managers_response.json()[0], new_account_manager)
+
+def test_get_account_managers_by_wrong_names(client, auth_header):
+    get_account_managers_response = client.get(f"/account_managers?contact_name=wrong_name&client_name=wrong_name", headers=auth_header)
+    assert get_account_managers_response.status_code == 404
+    assert get_account_managers_response.json()['detail'] == 'No account managers found'
+
+def test_get_account_managers_by_wrong_ids(client, auth_header):
+    get_account_managers_response = client.get(f"/account_managers?client_id=10001&contact_id=10001", headers=auth_header)
+    assert get_account_managers_response.status_code == 404
+    assert get_account_managers_response.json()['detail'] == 'No account managers found'
+
+def test_get_account_managers_with_no_parameters(client, auth_header):
+    get_account_managers_response = client.get("/account_managers", headers=auth_header)
+    assert get_account_managers_response.status_code == 400
+    assert get_account_managers_response.json()['detail'] == 'Must provide at least one query parameter'
+
+def test_get_account_managers_with_wrong_data_types(client, auth_header):
+    get_account_managers_response = client.get("/account_managers?contact_id=wrong_contact_id", headers=auth_header)
+    assert get_account_managers_response.status_code == 422
 
 """ #test "get_clients"
 def test_get_clients_by_name(auth_header, client, add_client, new_client):
