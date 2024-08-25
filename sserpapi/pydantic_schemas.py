@@ -212,3 +212,16 @@ class AccountManagerBase(BaseModel):
 
 class AccountManager(AccountManagerBase):
     id: int
+
+class AccountManagerDetails(BaseModel):
+    id: int | None = None
+    client_id: int | None = None
+    contact_id: int | None = None
+    client_name: str | None = None
+    contact_name: str | None = None
+
+    @model_validator(mode='before')
+    def check_parameters_presence(cls, values):
+        if all(value is None for value in values.values()):
+            raise ValueError("At least one parameter must be provided")
+        return values
