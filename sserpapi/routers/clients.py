@@ -2,6 +2,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
 import sserpapi.pydantic_schemas as schemas
@@ -983,9 +984,12 @@ def add_account_manager(account_manager: schemas.AccountManagerBase, db: Session
     **Note**: *Required fields
     """
     try: 
-        account_manager_exists = db_query.get_account_managers(db=db, account_manager=account_manager)
+        account_manager_exists = db_query.get_account_managers(db=db, account_manager_details=schemas.AccountManagerDetails(client_id=account_manager.client_id, contact_id=account_manager.contact_id))
+    except ValidationError as e:
+        logger.error('add_account_managers(): ValidationError creating AccountManagerDetails class: %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     except Exception as e:
-        logger.error('get_account_managers(): %s', e)
+        logger.error('db_query.get_account_managers(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     if account_manager_exists:
@@ -1014,12 +1018,13 @@ def add_account_manager(account_manager: schemas.AccountManagerBase, db: Session
 @router.delete("/account_manager/{account_manager_id}", summary='Delete an account manager', tags=['Account Managers'])
 def delete_account_manager(account_manager_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     try:
-        db_query.get_account_manager_by_id(db=db, account_manager_id=account_manager_id)
-    except NoResultFound as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account manager not found") from e
+        account_manager_exists = db_query.get_account_managers(db=db, account_manager_details=schemas.AccountManagerDetails(id=account_manager_id))
     except Exception as e:
         logger.error('get_account_manager_by_id(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not account_manager_exists:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Account manager not found')
     
     try:
         db_query.delete_account_manager(db=db, account_manager_id=account_manager_id)
@@ -1028,4 +1033,3 @@ def delete_account_manager(account_manager_id: int, db: Session = Depends(get_db
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     return schemas.EntryDelete(message='Account manager deleted', id=account_manager_id)
-
