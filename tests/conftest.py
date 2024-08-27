@@ -337,6 +337,8 @@ def add_account_manager(new_client, add_client, new_vendor, add_vendor, new_cont
         assert add_contact_response.status_code == 200
         account_manager['contact_id'] = add_contact_response.json()['id']
         add_account_manager_response = client.post('/account_manager', json=account_manager, headers=auth_header)
+        account_manager['client_name'] = add_client_response.json()['name']
+        account_manager['contact_name'] = add_contact_response.json()['name']
         return add_account_manager_response
     return _add_account_manager
 
