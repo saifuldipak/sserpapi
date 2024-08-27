@@ -225,3 +225,7 @@ class AccountManagerSearch(BaseModel):
         if all(value is None for value in values.values()):
             raise ValueError("At least one parameter must be provided")
         return values
+
+class AccountManagerDetails(AccountManager):
+    clients: Client | None = None
+    contacts: Contact | None = None
