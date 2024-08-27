@@ -974,7 +974,7 @@ def delete_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelet
     
     return schemas.EntryDelete(message='Pop deleted', id=pop_id)
 
-@router.post("/account_manager", response_model=schemas.AccountManager, summary='Add an account manager', tags=['Account Managers'])
+@router.post("/account_manager", response_model=schemas.AccountManagerDetails, summary='Add an account manager', tags=['Account Managers'])
 def add_account_manager(account_manager: schemas.AccountManagerBase, db: Session = Depends(get_db)):
     """
     ## Adds an account manager
@@ -1034,7 +1034,7 @@ def delete_account_manager(account_manager_id: int, db: Session = Depends(get_db
     
     return schemas.EntryDelete(message='Account manager deleted', id=account_manager_id)
 
-@router.get("/account_managers", response_model=list[schemas.AccountManager], summary='Search account managers', tags=['Account Managers'])
+@router.get("/account_managers", response_model=list[schemas.AccountManagerDetails], summary='Search account managers', tags=['Account Managers'])
 def get_account_managers(contact_name: str | None = None, client_name: str | None = None, client_id: int | None = None, contact_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     try:
         account_manager_search = schemas.AccountManagerSearch(client_name=client_name, contact_name=contact_name, client_id=client_id, contact_id=contact_id)
