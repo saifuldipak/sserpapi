@@ -984,7 +984,7 @@ def add_account_manager(account_manager: schemas.AccountManagerBase, db: Session
     **Note**: *Required fields
     """
     try: 
-        account_manager_exists = db_query.get_account_managers(db=db, account_manager_details=schemas.AccountManagerDetails(client_id=account_manager.client_id, contact_id=account_manager.contact_id))
+        account_manager_exists = db_query.get_account_managers(db=db, account_manager_search=schemas.AccountManagerSearch(client_id=account_manager.client_id, contact_id=account_manager.contact_id))
     except ValidationError as e:
         logger.error('add_account_managers(): ValidationError creating AccountManagerDetails class: %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
@@ -1018,7 +1018,7 @@ def add_account_manager(account_manager: schemas.AccountManagerBase, db: Session
 @router.delete("/account_manager/{account_manager_id}", summary='Delete an account manager', tags=['Account Managers'])
 def delete_account_manager(account_manager_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelete:
     try:
-        account_manager_exists = db_query.get_account_managers(db=db, account_manager_details=schemas.AccountManagerDetails(id=account_manager_id))
+        account_manager_exists = db_query.get_account_managers(db=db, account_manager_search=schemas.AccountManagerSearch(id=account_manager_id))
     except Exception as e:
         logger.error('get_account_manager_by_id(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
@@ -1037,14 +1037,14 @@ def delete_account_manager(account_manager_id: int, db: Session = Depends(get_db
 @router.get("/account_managers", response_model=list[schemas.AccountManager], summary='Search account managers', tags=['Account Managers'])
 def get_account_managers(contact_name: str | None = None, client_name: str | None = None, client_id: int | None = None, contact_id: int | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
     try:
-        account_manager_details = schemas.AccountManagerDetails(client_name=client_name, contact_name=contact_name, client_id=client_id, contact_id=contact_id)
+        account_manager_search = schemas.AccountManagerSearch(client_name=client_name, contact_name=contact_name, client_id=client_id, contact_id=contact_id)
     except ValidationError as e:
         if e.errors()[0]['type'] == 'value_error':
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide at least one query parameter') from e
         
     offset = page * page_size
     try:
-        account_managers =  db_query.get_account_managers(db=db, account_manager_details=account_manager_details, offset=offset, limit=page_size)
+        account_managers =  db_query.get_account_managers(db=db, account_manager_search=account_manager_search, offset=offset, limit=page_size)
     except Exception as e:
         logger.error('db_query.get_account_managers(): %s', e)
         print(e)

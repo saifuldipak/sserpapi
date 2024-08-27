@@ -213,7 +213,7 @@ class AccountManagerBase(BaseModel):
 class AccountManager(AccountManagerBase):
     id: int
 
-class AccountManagerDetails(BaseModel):
+class AccountManagerSearch(BaseModel):
     id: int | None = None
     client_id: int | None = None
     contact_id: int | None = None

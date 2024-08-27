@@ -691,7 +691,7 @@ def delete_account_manager(db: Session, account_manager_id: int) -> int:
     
     return account_manager_id
 
-def get_account_managers(db: Session, account_manager_details: schemas.AccountManagerDetails, offset: int = 0, limit: int = 10) -> list[models.AccountManagers]:
+def get_account_managers(db: Session, account_manager_search: schemas.AccountManagerSearch, offset: int = 0, limit: int = 10) -> list[models.AccountManagers]:
     """
     Retrieves account managers from the database based on the provided filters.
 
@@ -709,18 +709,18 @@ def get_account_managers(db: Session, account_manager_details: schemas.AccountMa
     """
     base_query = db.query(models.AccountManagers)
 
-    if account_manager_details.client_id:
-        base_query = base_query.filter(models.AccountManagers.client_id==account_manager_details.client_id)
+    if account_manager_search.client_id:
+        base_query = base_query.filter(models.AccountManagers.client_id==account_manager_search.client_id)
     
-    if account_manager_details.contact_id:
-        base_query = base_query.filter(models.AccountManagers.contact_id==account_manager_details.contact_id)
+    if account_manager_search.contact_id:
+        base_query = base_query.filter(models.AccountManagers.contact_id==account_manager_search.contact_id)
 
-    if account_manager_details.contact_name:
-        contact_name_string = f'{account_manager_details.contact_name}%'
+    if account_manager_search.contact_name:
+        contact_name_string = f'{account_manager_search.contact_name}%'
         base_query = base_query.join(models.Contacts).filter(models.Contacts.name.ilike(contact_name_string))
 
-    if account_manager_details.client_name:
-        client_name_string = f'{account_manager_details.client_name}%'
+    if account_manager_search.client_name:
+        client_name_string = f'{account_manager_search.client_name}%'
         base_query = base_query.join(models.Clients).filter(models.Clients.name.ilike(client_name_string))
 
     try:
