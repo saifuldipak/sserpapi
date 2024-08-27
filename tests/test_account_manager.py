@@ -2,6 +2,8 @@
 def assert_account_manager_response(add_account_manager_response_json, new_account_manager):
     assert add_account_manager_response_json['client_id'] == new_account_manager['client_id']
     assert add_account_manager_response_json['contact_id'] == new_account_manager['contact_id']
+    assert add_account_manager_response_json['clients']['name'] == new_account_manager['client_name']
+    assert add_account_manager_response_json['contacts']['name'] == new_account_manager['contact_name']
 
 #test "add_account_manager"
 def test_add_account_manager(new_account_manager, add_account_manager):
@@ -61,10 +63,7 @@ def test_get_account_managers_by_contact_name(new_account_manager, add_account_m
     add_account_manager_response = add_account_manager(new_account_manager)
     assert add_account_manager_response.status_code == 200
 
-    get_contacts_response = client.get(f'/contacts?contact_id={add_account_manager_response.json()["contact_id"]}', headers=auth_header)
-    assert get_contacts_response.status_code == 200
-
-    get_account_managers_response = client.get(f"/account_managers?contact_name={get_contacts_response.json()[0]['name']}", headers=auth_header)
+    get_account_managers_response = client.get(f"/account_managers?contact_name={new_account_manager['contact_name']}", headers=auth_header)
     assert get_account_managers_response.status_code == 200
     assert_account_manager_response(get_account_managers_response.json()[0], new_account_manager)
 
@@ -72,10 +71,7 @@ def test_get_account_managers_by_client_name(new_account_manager, add_account_ma
     add_account_manager_response = add_account_manager(new_account_manager)
     assert add_account_manager_response.status_code == 200
     
-    get_clients_response = client.get(f"/clients?client_id={add_account_manager_response.json()['client_id']}", headers=auth_header)
-    assert get_clients_response.status_code == 200
-
-    get_account_managers_response = client.get(f"/account_managers?client_name={get_clients_response.json()[0]['name']}", headers=auth_header)
+    get_account_managers_response = client.get(f"/account_managers?client_name={new_account_manager['client_name']}", headers=auth_header)
     assert get_account_managers_response.status_code == 200
     assert_account_manager_response(get_account_managers_response.json()[0], new_account_manager)
 
