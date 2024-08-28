@@ -139,6 +139,14 @@ class PopBase(BaseModel):
 class Pop(PopBase):
     id: int
 
+#-- table 'account_managers' --#
+class AccountManagerBase(BaseModel):
+    client_id: int
+    contact_id: int
+
+class AccountManager(AccountManagerBase):
+    id: int
+
 #-- table 'users' --# 
 class UserName(BaseModel):
     user_name: str = Field(min_length=4, max_length=16)
@@ -180,6 +188,7 @@ class ClientDetails(Client):
     contacts: list[Contact] = []
     services: list[Service] = []
     client_types: ClientType
+    account_managers: list[AccountManager] = []
 
 class ServiceDetails(Service):
     service_types: ServiceType
@@ -205,13 +214,6 @@ class AddressDetails(Address):
     clients: Client | None = None
     vendors: Vendor | None = None
     services: Service | None = None
-
-class AccountManagerBase(BaseModel):
-    client_id: int
-    contact_id: int
-
-class AccountManager(AccountManagerBase):
-    id: int
 
 class AccountManagerSearch(BaseModel):
     id: int | None = None
