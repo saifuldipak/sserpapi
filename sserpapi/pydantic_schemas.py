@@ -1,7 +1,7 @@
 # pylint: disable=E0401
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
-import typing_extensions
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator, root_validator
+from typing import Optional, Self
+from typing_extensions import Literal, Any
 
 #-- table 'clients' and 'client_types' --#
 class ClientBase(BaseModel):
@@ -40,7 +40,7 @@ class ServiceType(ServiceTypeBase):
 class ContactBase(BaseModel):
     name: str
     designation: str
-    type: typing_extensions.Literal['Admin', 'Technical', 'Billing']
+    type: Literal['Admin', 'Technical', 'Sales', 'Billing']
     phone1: str
     phone2: str | None = None
     phone3: str | None = None
@@ -48,15 +48,32 @@ class ContactBase(BaseModel):
     client_id: int | None = None
     vendor_id: int | None = None
     service_id: int | None = None
-
+    
+    @model_validator(mode='after')
+    def check_ids(self) -> Self:
+        ids = [self.client_id, self.vendor_id, self.service_id]
+        if sum(id is not None for id in ids) > 1:
+            raise ValueError('Only one of client_id, vendor_id, or service_id can be provided.')
+        return self
+    
+    @field_validator('phone1', 'phone2', 'phone3')
+    @classmethod
+    def check_phone_length_and_prefix(cls, data: str) -> str:
+        if data is not None:
+            if len(data) != 11:
+                raise ValueError('Phone number must be exactly 11 characters long.')
+            if not data.startswith("01"):
+                raise ValueError('Phone number must start with "01".')
+        return data 
+   
 class Contact(ContactBase):
     id: int
-
+    
 class ContactSearch(BaseModel):
     id: int | None = None
     name: str | None = None
     designation: str | None = None
-    type: typing_extensions.Literal['Admin', 'Technical', 'Billing'] | None = None
+    type: Literal['Admin', 'Technical', 'Billing'] | None = None
     phone1: str | None = None
     phone2: str | None = None
     phone3: str | None = None
@@ -71,7 +88,7 @@ class ContactSearch(BaseModel):
 #-- table 'vendors' --#
 class VendorBase(BaseModel):
     name: str
-    type: typing_extensions.Literal['LSP', 'NTTN', 'ISP']
+    type: Literal['LSP', 'NTTN', 'ISP']
 
 class Vendor(VendorBase):
     id: int
@@ -135,7 +152,7 @@ class UserBase(BaseModel):
     last_name: str = Field(min_length=4, max_length=16)
     email: EmailStr
     disabled: bool | None = False
-    scope: typing_extensions.Literal['admin', 'write', 'read']
+    scope: Literal['admin', 'write', 'read']
 
 class User(UserName, UserBase):
     id: int
