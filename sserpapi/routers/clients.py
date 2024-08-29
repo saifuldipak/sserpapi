@@ -552,7 +552,7 @@ def delete_service(service_id: int, db: Session = Depends(get_db)):
 
 # Contacts add, update & delete #
 @router.get("/contacts", response_model=list[schemas.ContactDetails], summary='Get contact list', tags=['Contacts'])
-def get_contacts(contact_id: int | None = None, contact_name: str | None = None, designation: str | None = None, contact_type: typing_extensions.Literal['Admin', 'Technical', 'Billing'] | None = None, phone1: str | None = None, email: str | None = None, client_id: int | None = None, service_id: int | None = None, vendor_id: int | None = None, client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
+def get_contacts(contact_id: int | None = None, contact_name: str | None = None, designation: str | None = None, contact_type: Literal['Admin', 'Technical', 'Sales', 'Billing'] | None = None, phone1: str | None = None, email: str | None = None, client_id: int | None = None, service_id: int | None = None, vendor_id: int | None = None, client_name: str | None = None, service_point: str | None = None, vendor_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):
      
     offset = page * page_size
 
