@@ -8,7 +8,7 @@ import sserpapi.pydantic_schemas as schemas
 from sserpapi.db.dependency import get_db
 from sserpapi.db import queries as db_query
 from sserpapi.auth import get_current_active_user
-import typing_extensions
+from typing_extensions import Any, Literal
 
 logger = logging.getLogger(__name__)
 
@@ -577,8 +577,8 @@ def get_contacts(contact_id: int | None = None, contact_name: str | None = None,
     
     return contact_list
 
-@router.post("/contact", response_model=schemas.Contact, summary='Add a contact', tags=['Contacts'])
-def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
+@router.post("/contact", response_model=schemas.ContactDetails, summary='Add a contact', tags=['Contacts'])
+def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)) -> Any:
     """
     ## Add a contact
     - **name**: Full name*
@@ -592,29 +592,21 @@ def add_contact(contact: schemas.ContactBase, db: Session = Depends(get_db)):
     - **client_id**: Client id (integer)**
     - **vendor_id**: Vendor id (integer)**
 
-    **Note**: *Required fields. **You must provide any of client_id, vendor_id or service_id but not more than one.
+    **Note**: *Required fields. **You must provide only one of client_id, vendor_id or service_id.
     """
-    ids = {'client_id': contact.client_id, 'service_id': contact.service_id, 'vendor_id': contact.vendor_id}
-    check = check_id_presence(db=db, ids=ids)
-    if check.failed:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
-
-    phone_numbers = (contact.phone1, contact.phone2, contact.phone3)
-    check = check_phone_number_length(phone_numbers=phone_numbers)
-    if check.failed:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
-    
     try:
         contact_exists = db_query.get_contacts_by_properties(db=db, contact=contact)
     except Exception as e:
         logger.error('get_contacts_by_properties(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
-    
+
     if contact_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Contact exists')
 
     try:
         return db_query.add_contact(db=db, contact=contact)
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e.orig))
     except Exception as e:
         logger.error('add_contact(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
@@ -643,11 +635,6 @@ def update_contact(contact: schemas.Contact, db: Session = Depends(get_db)):
     
     ids = {'client_id': contact.client_id, 'service_id': contact.service_id, 'vendor_id': contact.vendor_id}
     check = check_id_presence(db=db, ids=ids)
-    if check.failed:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
-
-    phone_numbers = (contact.phone1, contact.phone2, contact.phone3)
-    check = check_phone_number_length(phone_numbers=phone_numbers)
     if check.failed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check.message)
 
