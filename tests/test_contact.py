@@ -24,7 +24,7 @@ def assert_contact_response_json(contact_response_json, contact, name = None):
             assert contact_response_json['services']['point'] == name
 
 #test "add_contact"
-def test_add_contact(add_service, new_service, add_contact, new_contact):
+def test_add_contact_with_service_id(add_service, new_service, add_contact, new_contact):
     add_service_response = add_service(new_service)
     assert add_service_response.status_code == 200
 
@@ -32,6 +32,19 @@ def test_add_contact(add_service, new_service, add_contact, new_contact):
     add_contact_response = add_contact(new_contact)
     assert add_contact_response.status_code == 200
     assert_contact_response_json(add_contact_response.json(), new_contact)
+
+def test_add_contact_with_client_and_vendor_id(new_vendor, add_vendor, new_client, add_client, add_contact, new_contact):
+    add_vendor_response = add_vendor(new_vendor)
+    assert add_vendor_response.status_code == 200
+    new_contact['vendor_id'] = add_vendor_response.json()['id']
+
+    add_client_response = add_client(new_client)
+    assert add_client_response.status_code == 200
+    new_contact['client_id'] = add_client_response.json()['id']
+    
+    add_contact_response = add_contact(new_contact)
+    assert add_contact_response.status_code == 422
+    assert add_contact_response.json()['detail'][0]['msg'] == 'Value error, Only one of client_id, vendor_id, or service_id can be provided.'
 
 def test_add_duplicate_contact(add_client, new_client, add_contact, new_contact):
     add_client_response = add_client(new_client)
@@ -45,11 +58,11 @@ def test_add_duplicate_contact(add_client, new_client, add_contact, new_contact)
     assert add_contact_response.status_code == 400
     assert add_contact_response.json()['detail'] == 'Contact exists'
 
-def test_add_contact_by_wrong_data(add_contact, new_contact):
+def test_add_contact_with_wrong_service_id(add_contact, new_contact):
     new_contact['service_id'] = 10001
     add_contact_response = add_contact(new_contact)
     assert add_contact_response.status_code == 400
-    assert add_contact_response.json()['detail'] == 'Service id not found'
+    assert f'Key (service_id)=({new_contact['service_id']}) is not present in table "services"' in add_contact_response.json()['detail']
 
 def test_add_contact_missing_body(add_contact):
     add_contact_response = add_contact({})
@@ -296,8 +309,8 @@ def test_update_contact_wrong_phone_number(add_client, new_client, add_contact, 
     new_contact_updated['client_id'] = add_contact_response.json()['client_id']
     new_contact_updated['phone1'] = '0171342290123'
     update_contact_response = client.put("/contact", json=new_contact_updated, headers=auth_header)
-    assert update_contact_response.status_code == 400
-    assert update_contact_response.json()['detail'] == f"{new_contact_updated['phone1']} - Phone number must be 11 digits"
+    assert update_contact_response.status_code == 422
+    assert update_contact_response.json()['detail'][0]['msg'] == 'Value error, Phone number must be exactly 11 characters long.'
  
 def test_update_contact_missing_body(client, auth_header):
     update_contact_response = client.put("/contact", headers=auth_header)
