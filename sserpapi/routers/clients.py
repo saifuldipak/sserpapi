@@ -266,7 +266,14 @@ def get_client_types(type_name: str | None = None, type_id: int | None = None, p
     
     return client_types
 @router.post("/client", response_model=schemas.Client, summary='Add a client', tags=['Clients'])
-def create_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
+def add_client(client: schemas.ClientBase, db: Session = Depends(get_db)):
+    """
+    ## Add a client
+    - **name**: Client name*
+    - **client_type_id**: Cline type id*
+
+    **Note**: *Required fields
+    """
     try:
         client_exists = db_query.get_client_by_name_and_type(db, client_name=client.name, client_type_id=client.client_type_id)
     except Exception as e:
