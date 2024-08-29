@@ -1,7 +1,7 @@
 # pylint: disable=E0401
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator, root_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 from typing import Optional, Self
-from typing_extensions import Literal, Any
+from typing_extensions import Literal
 
 #-- table 'clients' and 'client_types' --#
 class ClientBase(BaseModel):
@@ -73,7 +73,7 @@ class ContactSearch(BaseModel):
     id: int | None = None
     name: str | None = None
     designation: str | None = None
-    type: Literal['Admin', 'Technical', 'Billing'] | None = None
+    type: Literal['Admin', 'Technical', 'Sales','Billing'] | None = None
     phone1: str | None = None
     phone2: str | None = None
     phone3: str | None = None
