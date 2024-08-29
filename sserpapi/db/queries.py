@@ -1,7 +1,7 @@
 # pylint: disable=E0401
 import logging
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError, DBAPIError
+from sqlalchemy.exc import IntegrityError, DBAPIError, SQLAlchemyError
 from sqlalchemy import delete
 from sserpapi.db import models
 import sserpapi.pydantic_schemas as schemas
@@ -121,9 +121,8 @@ def delete_client(db: Session, client_id: int) -> int:
         db.execute(stmt)
         db.commit()
     except IntegrityError as e:
-        logger.error(e)
-        raise IntegrityError from e
-    except Exception as e:
+        raise IntegrityError(str(stmt), [], e) from e
+    except SQLAlchemyError as e:
         raise e
     
     return client_id
