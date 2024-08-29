@@ -28,7 +28,8 @@ dependencies = [
     "pytest",
     "alembic",
     "pydantic[email]",
-    "gunicorn"
+    "gunicorn",
+    "httpx"
     ]
 
 [project.urls]
