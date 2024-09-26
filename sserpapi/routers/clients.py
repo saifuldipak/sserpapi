@@ -373,6 +373,8 @@ def delete_client(client_id: int, db: Session = Depends(get_db)) -> schemas.Entr
     
     try:
         db_query.delete_client(db=db, client_id=client_id)
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Cannot delete, client has account manager assigned') from e
     except Exception as e:
         logger.error('delete_client(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
