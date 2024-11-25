@@ -54,7 +54,7 @@ def get_client_by_name_and_type(db: Session, client_name: str, client_type_id: i
         return db.query(models.Clients).filter(models.Clients.name==client_name, models.Clients.client_type_id==client_type_id).first()
     except Exception as e:
         raise e
-def get_clients(db: Session, client_name: str | None = None, client_type: str | None = None, client_id: int | None = None, offset: int = 0, limit: int = 10) -> list[models.Clients]:
+def get_clients(db: Session, client_name: str | None = None, client_type: str | None = None, client_id: int | None = None, offset: int = 0, limit: int = 10) -> tuple[list[models.Clients], int]:
     if not client_name and not client_type and not client_id:
         raise TypeError('Must provide at least client_name, client_type or client_id')
     
@@ -75,8 +75,11 @@ def get_clients(db: Session, client_name: str | None = None, client_type: str | 
     if client_id:
         base_query = base_query.filter(models.Clients.id==client_id)
 
+    base_query = base_query.order_by(models.Clients.name)
     try:
-        return base_query.offset(offset).limit(limit).all()
+        total_count = base_query.count()
+        clients = base_query.offset(offset).limit(limit).all()
+        return clients, total_count
     except Exception as e:
         raise e
 
