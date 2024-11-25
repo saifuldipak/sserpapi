@@ -161,6 +161,22 @@ def add_client(add_client_type, new_client_type, add_client_only):
     return _add_client
 
 @pytest.fixture
+def add_clients(add_client_type, new_client_type, add_client_only, new_client):
+    def _add_clients(no_of_clients: int):
+        add_client_type_response = add_client_type(new_client_type)
+        assert add_client_type_response.status_code == 200
+        new_clients = []
+        for i in range(no_of_clients):
+            test_client = new_client.copy()
+            test_client['name'] = 'test_client' + str(i)
+            test_client['client_type_id'] = add_client_type_response.json()['id']
+            add_client_response = add_client_only(test_client)
+            assert add_client_response.status_code == 200
+            new_clients.append(add_client_response.json())
+        return new_clients
+    return _add_clients
+
+@pytest.fixture
 def update_client(auth_header, client):
     def _update_client(client_data: dict):
         add_client_response = client.put('/client', json=client_data, headers=auth_header)
