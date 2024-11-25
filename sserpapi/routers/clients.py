@@ -1,6 +1,6 @@
 # pylint: disable=E0401
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Security, status, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -9,6 +9,7 @@ from sserpapi.db.dependency import get_db
 from sserpapi.db import queries as db_query
 from sserpapi.auth import get_current_active_user
 from typing_extensions import Any, Literal
+from typing import Annotated, cast
 
 logger = logging.getLogger(__name__)
 
@@ -385,7 +386,7 @@ def delete_client(client_id: int, db: Session = Depends(get_db)) -> schemas.Entr
 @router.get("/services", response_model=list[schemas.ServiceDetails], summary='Search service', tags=['Services'])
 def get_services(service_point: str | None = None, client_name: str | None = None, pop_name: str | None = None, page: int = 0, page_size: int = 10, db: Session = Depends(get_db)):    
     if not service_point and not client_name and not pop_name:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide at least one (service_name,client_name,pop_name')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Must provide at least one (service_point,client_name,pop_name')
 
     offset = page * page_size
     service_list =  db_query.get_services(db=db, service_point=service_point, client_name=client_name, pop_name=pop_name, offset=offset, limit=page_size)
@@ -972,3 +973,35 @@ def delete_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelet
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
     
     return schemas.EntryDelete(message='Pop deleted', id=pop_id)
+
+@router.get("/search")
+async def search_all_resources(
+        query: str,
+        resource_type: Annotated[str | None, Query(enum=["clients", "services", "contacts", "addresses"])],
+        page: Annotated[int | None, Query(ge=1, description="Page number (1-based)")] = 1,
+        items_per_page: Annotated[int | None, Query(ge=1, le=100, description="Number of items per page")] = 20,
+        db: Session = Depends(get_db)
+    ) -> JSONResponse:
+    if not resource_type:
+        resource_type = "services"
+    
+    offset = (cast(int, page) - 1) * cast(int, items_per_page)
+    limit = cast(int, items_per_page)
+    try:
+        if resource_type == "clients":
+            (clients, total) = db_query.get_clients(db=db, client_name=query, offset=offset, limit=limit)
+            results_dict = [schemas.Client.model_validate(client).model_dump() for client in clients]
+        elif resource_type == "services":
+            results = db_query.get_services(db=db, service_point=query, offset=offset, limit=limit)
+        
+        response = {
+            "results": results_dict,
+            "total": total,
+            "page": page,
+            "items_per_page": items_per_page
+            }
+        return JSONResponse(content=response)
+    except Exception as e:
+        logger.error('search_all_resources(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
