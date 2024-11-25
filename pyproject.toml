@@ -29,7 +29,8 @@ dependencies = [
     "alembic",
     "pydantic[email]",
     "gunicorn",
-    "httpx"
+    "httpx",
+    "bcrypt"
     ]
 
 [project.urls]
