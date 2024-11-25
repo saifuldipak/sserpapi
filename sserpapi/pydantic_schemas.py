@@ -1,5 +1,5 @@
 # pylint: disable=E0401
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 from typing import Optional, Self
 from typing_extensions import Literal
 
@@ -10,6 +10,8 @@ class ClientBase(BaseModel):
 
 class Client(ClientBase):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ClientTypeBase(BaseModel):
     name: str
