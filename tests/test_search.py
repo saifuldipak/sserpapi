@@ -12,6 +12,8 @@ def assert_search_response(search_response, new_clients, total, page, items_per_
 
     for i in range(items_per_page):
         assert search_response.json().get('results')[i].get('name') == new_clients_sorted_subset[i].get('name')
+        assert search_response.json().get('results')[i].get('client_type_id') == new_clients_sorted_subset[i].get('client_type_id')
+
 
 def test_search_clients(auth_header, client, add_clients, new_client):
     clients = 100
