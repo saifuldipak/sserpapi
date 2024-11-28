@@ -186,7 +186,7 @@ def add_clients(add_client_type, new_client_type, add_client_only, new_client, a
             assert add_client_response.status_code == 200
             new_clients.append(add_client_response.json())
 
-        return new_clients
+        return new_clients, add_client_type_response, add_another_client_type_response
     return _add_clients
 
 @pytest.fixture
