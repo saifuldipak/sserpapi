@@ -19,6 +19,8 @@ class ClientTypeBase(BaseModel):
 class ClientType(ClientTypeBase):
     id: int
 
+    model_config = ConfigDict(from_attributes=True)
+
 #-- table 'services' and 'service_types' --#
 class ServiceBase(BaseModel):
     client_id: int
@@ -178,10 +180,12 @@ class EntryDelete(BaseModel):
 
 #-- records from different tables --#
 class ClientDetails(Client):
+    client_types: ClientType
     addresses: list[Address] = []
     contacts: list[Contact] = []
     services: list[Service] = []
-    client_types: ClientType
+    
+    model_config = ConfigDict(from_attributes=True)
 
 class ServiceDetails(Service):
     service_types: ServiceType
