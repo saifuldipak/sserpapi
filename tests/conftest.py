@@ -161,14 +161,12 @@ def add_client(add_client_type, new_client_type, add_client_only):
     return _add_client
 
 @pytest.fixture
-def add_clients(add_client_type, new_client_type, add_client_only, new_client, another_new_client_type):
-    def _add_clients(no_of_clients: int):
+def add_clients(add_client_type, add_client_only, new_client):
+    def _add_clients(no_of_clients: int, new_client_type: dict):
         new_clients = []
-        half_no_of_clients = no_of_clients // 2
-
         add_client_type_response = add_client_type(new_client_type)
         assert add_client_type_response.status_code == 200  
-        for i in range(half_no_of_clients):
+        for i in range(no_of_clients):
             test_client = new_client.copy()
             test_client['name'] = 'test_client' + str(i)
             test_client['client_type_id'] = add_client_type_response.json()['id']
@@ -176,17 +174,7 @@ def add_clients(add_client_type, new_client_type, add_client_only, new_client, a
             assert add_client_response.status_code == 200
             new_clients.append(add_client_response.json())
 
-        add_another_client_type_response = add_client_type(another_new_client_type)
-        assert add_another_client_type_response.status_code == 200
-        for i in range(half_no_of_clients, no_of_clients):
-            test_client = new_client.copy()
-            test_client['name'] = 'test_client' + str(i)
-            test_client['client_type_id'] = add_another_client_type_response.json()['id']
-            add_client_response = add_client_only(test_client)
-            assert add_client_response.status_code == 200
-            new_clients.append(add_client_response.json())
-
-        return new_clients, add_client_type_response, add_another_client_type_response
+        return new_clients, add_client_type_response
     return _add_clients
 
 @pytest.fixture
