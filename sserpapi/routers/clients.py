@@ -978,6 +978,7 @@ def delete_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelet
 async def search_all_resources(
         query: str,
         resource_type: Annotated[str | None, Query(enum=["clients", "services", "contacts", "addresses"])],
+        filter_by: Annotated[str | None, Query(enum=['client_type'])] = None,
         page: Annotated[int | None, Query(ge=1, description="Page number (1-based)")] = 1,
         items_per_page: Annotated[int | None, Query(ge=1, le=100, description="Number of items per page")] = 20,
         db: Session = Depends(get_db)
@@ -989,7 +990,7 @@ async def search_all_resources(
     limit = cast(int, items_per_page)
     try:
         if resource_type == "clients":
-            (clients, total) = db_query.get_clients(db=db, client_name=query, offset=offset, limit=limit)
+            (clients, total) = db_query.get_clients(db=db, client_name=query, client_type=filter_by, offset=offset, limit=limit)
             results_dict = [schemas.ClientDetails.model_validate(client).model_dump() for client in clients]
         elif resource_type == "services":
             results = db_query.get_services(db=db, service_point=query, offset=offset, limit=limit)
