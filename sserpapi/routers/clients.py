@@ -990,7 +990,7 @@ async def search_all_resources(
     try:
         if resource_type == "clients":
             (clients, total) = db_query.get_clients(db=db, client_name=query, offset=offset, limit=limit)
-            results_dict = [schemas.Client.model_validate(client).model_dump() for client in clients]
+            results_dict = [schemas.ClientDetails.model_validate(client).model_dump() for client in clients]
         elif resource_type == "services":
             results = db_query.get_services(db=db, service_point=query, offset=offset, limit=limit)
         
