@@ -990,11 +990,16 @@ async def search_all_resources(
     limit = cast(int, items_per_page)
     try:
         if resource_type == "clients":
-            (clients, total) = db_query.get_clients(db=db, client_name=query, client_type=filter_by, offset=offset, limit=limit)
-            results_dict = [schemas.ClientDetails.model_validate(client).model_dump() for client in clients]
-        elif resource_type == "services":
-            results = db_query.get_services(db=db, service_point=query, offset=offset, limit=limit)
-        
+            (results, total) = db_query.get_clients(db=db, client_name=query, client_type=filter_by, offset=offset, limit=limit)
+            if results:
+                results_dict = [schemas.ClientDetails.model_validate(result).model_dump() for result in results]
+    except Exception as e:
+        logger.error('search_all_resources(): %s', e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
+    
+    if not results:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'No {resource_type} found')
+    else:   
         response = {
             "results": results_dict,
             "total": total,
@@ -1002,7 +1007,3 @@ async def search_all_resources(
             "items_per_page": items_per_page
             }
         return JSONResponse(content=response)
-    except Exception as e:
-        logger.error('search_all_resources(): %s', e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
-    
