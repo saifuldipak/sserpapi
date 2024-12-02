@@ -978,7 +978,10 @@ def delete_pop(pop_id: int, db: Session = Depends(get_db)) -> schemas.EntryDelet
 async def search_all_resources(
         query: str,
         resource_type: Annotated[str | None, Query(enum=["clients", "services", "contacts", "addresses"])],
-        filter_by: Annotated[str | None, Query(enum=['client_type'])] = None,
+        client_name: str | None = None,
+        client_type: str | None = None,
+        service_type: str | None = None,
+        pop_name: str | None = None,
         page: Annotated[int | None, Query(ge=1, description="Page number (1-based)")] = 1,
         items_per_page: Annotated[int | None, Query(ge=1, le=100, description="Number of items per page")] = 20,
         db: Session = Depends(get_db)
@@ -990,9 +993,13 @@ async def search_all_resources(
     limit = cast(int, items_per_page)
     try:
         if resource_type == "clients":
-            (results, total) = db_query.get_clients(db=db, client_name=query, client_type=filter_by, offset=offset, limit=limit)
+            (results, total) = db_query.get_clients(db=db, client_name=query, client_type=client_type, offset=offset, limit=limit)
             if results:
                 results_dict = [schemas.ClientDetails.model_validate(result).model_dump() for result in results]
+        elif resource_type == "services":
+            (results, total) = db_query.get_services(db=db, service_point=query, client_name=client_name, service_type=service_type, pop_name=pop_name, offset=offset, limit=limit)
+            if results:
+                results_dict = [schemas.ServiceDetails.model_validate(result).model_dump() for result in results]
     except Exception as e:
         logger.error('search_all_resources(): %s', e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) from e
