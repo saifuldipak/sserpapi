@@ -9,7 +9,7 @@ def get_partial_list(list, resource_type, page, items_per_page):
     partial_list = sorted_list[results_from:results_to]
     return partial_list
 
-def assert_search_response(search_response, new_clients, new_client_type, total, page, items_per_page):
+def assert_client_search_response(search_response, new_clients, new_client_type, total, page, items_per_page):
     assert search_response.status_code == 200
     assert len(search_response.json().get('results')) == items_per_page
     assert search_response.json().get('total') == total
@@ -23,7 +23,7 @@ def assert_search_response(search_response, new_clients, new_client_type, total,
 
     for i in range(items_per_page):
         assert search_response.json().get('results')[i].get('name') == new_clients_sorted_subset[i].get('name')
-        assert search_response.json().get('results')[i]['client_types']['name'] == new_client_type.json().get('name')
+        assert search_response.json().get('results')[i]['client_types']['name'] == new_client_type.get('name')
 
 def assert_service_search_response(search_response, new_services, total, page, items_per_page):
     assert search_response.status_code == 200
@@ -40,39 +40,95 @@ def assert_service_search_response(search_response, new_services, total, page, i
         assert search_response.json().get('results')[i]['service_type_id'] == new_services_partial[i]['service_type_id']
         assert search_response.json().get('results')[i]['bandwidth'] == new_services_partial[i]['bandwidth']
   
-def test_search_clients(auth_header, client, add_clients, new_client, new_client_type):
-    clients = 100
-    (new_clients, new_client_type)  = add_clients(clients, new_client_type)
-    get_clients_response = client.get(f"/search?query={new_client['name']}&resource_type=clients", headers=auth_header)
-    assert_search_response(get_clients_response, new_clients, new_client_type, clients, 1, 20)
+def test_search_clients(auth_header, client, add_clients, new_client, new_client_type, add_client_type):
+    clients = 50
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+    test_client = new_client.copy()
+    test_client['client_type_id'] = add_client_type_response.json()['id']
+    new_clients  = add_clients(clients, test_client)
+    get_clients_response = client.get(f"/search?query={test_client['name']}&resource_type=clients", headers=auth_header)
+    assert_client_search_response(get_clients_response, new_clients, new_client_type, clients, 1, 20)
 
-def test_search_clients_with_page_and_items_per_page(auth_header, client, add_clients, new_client, new_client_type):
-    clients = 100
+def test_search_clients_with_pagination(auth_header, client, add_clients, new_client, new_client_type, add_client_type):
+    clients = 50
     page = 5
     items_per_page = 10
-    (new_clients, new_client_type)  = add_clients(clients, new_client_type)
-    get_clients_response = client.get(f"/search?query={new_client['name']}&resource_type=clients&page={page}&items_per_page={items_per_page}", headers=auth_header)
-    assert_search_response(get_clients_response, new_clients, new_client_type, clients, page, items_per_page)
 
-def test_search_clients_by_client_type(auth_header, client, add_clients, new_client, new_client_type):
-    clients = 50
-    page = 2
-    items_per_page = 10
-    (new_clients, new_client_type) = add_clients(clients, new_client_type)
-    get_clients_response = client.get(f"/search?query={new_client['name']}&resource_type=clients&filter_by={new_client_type.json()['name']}&page={page}&items_per_page={items_per_page}", headers=auth_header)
-    assert_search_response(get_clients_response, new_clients, new_client_type, clients, page, items_per_page)
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+    test_client = new_client.copy()
+    test_client['client_type_id'] = add_client_type_response.json()['id']
+    new_clients  = add_clients(clients, test_client)
 
-def test_search_clients_by_wrong_client_type(auth_header, client, add_clients, new_client, new_client_type):
-    clients = 50
-    page = 2
+    get_clients_response = client.get(f"/search?query={test_client['name']}&resource_type=clients&page={page}&items_per_page={items_per_page}", headers=auth_header)
+    assert_client_search_response(get_clients_response, new_clients, new_client_type, clients, page, items_per_page)
+
+def test_search_clients_with_wrong_pagination(auth_header, client, add_clients, new_client, new_client_type, add_client_type):
+    clients = 20
+    page = 3
     items_per_page = 10
-    (new_clients, new_client_type) = add_clients(clients, new_client_type)
-    get_clients_response = client.get(f"/search?query={new_client['name']}&resource_type=clients&filter_by=wrong_client_type&page={page}&items_per_page={items_per_page}", headers=auth_header)
+
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+    test_client = new_client.copy()
+    test_client['client_type_id'] = add_client_type_response.json()['id']
+    new_clients  = add_clients(clients, test_client)
+
+    get_clients_response = client.get(f"/search?query={test_client['name']}&resource_type=clients&page={page}&items_per_page={items_per_page}", headers=auth_header)
     assert get_clients_response.status_code == 404
 
-def test_search_clients_by_wrong_client_name(auth_header, client, add_clients, new_client_type):
+def test_search_clients_by_client_type(auth_header, client, add_clients, new_client, new_client_type, add_client_type):
     clients = 50
-    (new_clients, new_client_type) = add_clients(clients, new_client_type)
+    page = 2
+    items_per_page = 10
+
+    client_type_a = new_client_type.copy()
+    client_type_a['name'] = 'client_type_a'
+    add_client_type_a_response = add_client_type(client_type_a)
+    assert add_client_type_a_response.status_code == 200
+    new_client_a = new_client.copy()
+    new_client_a['name'] = 'Client_a'
+    new_client_a['client_type_id'] = add_client_type_a_response.json()['id']
+    new_clients_a = add_clients(clients, new_client_a)
+
+    client_type_b = new_client_type.copy()
+    client_type_b['name'] = 'client_type_b'
+    add_client_type_b_response = add_client_type(client_type_b)
+    assert add_client_type_b_response.status_code == 200
+    new_client_b = new_client.copy()
+    new_client_b['name'] = 'Client_b'
+    new_client_b['client_type_id'] = add_client_type_b_response.json()['id']
+    new_clients_b = add_clients(clients, new_client_b)
+
+    get_clients_response = client.get(f"/search?query={new_client_a['name']}&resource_type=clients&client_type={add_client_type_a_response.json()['name']}&page={page}&items_per_page={items_per_page}", headers=auth_header)
+    assert_client_search_response(get_clients_response, new_clients_a, client_type_a, clients, page, items_per_page)
+
+    get_clients_response = client.get(f"/search?query={new_client_b['name']}&resource_type=clients&client_type={add_client_type_b_response.json()['name']}&page={page}&items_per_page={items_per_page}", headers=auth_header)
+    assert_client_search_response(get_clients_response, new_clients_b, client_type_b, clients, page, items_per_page)
+
+def test_search_clients_by_wrong_client_type(auth_header, client, add_clients, new_client, new_client_type, add_client_type):
+    clients = 50
+    page = 2
+    items_per_page = 10
+
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+    test_client = new_client.copy()
+    test_client['client_type_id'] = add_client_type_response.json()['id']
+    new_clients = add_clients(clients, test_client)
+
+    get_clients_response = client.get(f"/search?query={new_client['name']}&resource_type=clients&client_type=wrong_client_type&page={page}&items_per_page={items_per_page}", headers=auth_header)
+    assert get_clients_response.status_code == 404
+
+def test_search_clients_by_wrong_client_name(auth_header, client, add_clients, new_client_type, add_client_type, new_client):
+    clients = 50
+
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+    test_client = new_client.copy()
+    test_client['client_type_id'] = add_client_type_response.json()['id']
+    new_clients = add_clients(clients, test_client)
     get_clients_response = client.get(f"/search?query=wrong_client_name&resource_type=clients", headers=auth_header)
     assert get_clients_response.status_code == 404
 
