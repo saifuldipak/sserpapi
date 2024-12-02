@@ -143,26 +143,28 @@ def get_service_by_properties(db: Session, service: schemas.ServiceBase) -> mode
     except Exception as e:
         raise e
     
-def get_services(db: Session, service_point: str | None = None, client_name: str | None = None, pop_name: str | None = None, service_id: int | None = None, offset: int = 0, limit: int = 50) -> list[models.Services]:
+def get_services(db: Session, service_point: str | None = None, service_type: str | None = None, client_name: str | None = None, pop_name: str | None = None, service_id: int | None = None, offset: int = 0, limit: int = 50) -> tuple[list[models.Services], int]:
     base_query = db.query(models.Services)
 
     if client_name:
-        client_name_string = f'{client_name}%'
-        base_query = base_query.join(models.Clients).filter(models.Clients.name.ilike(client_name_string))
+        base_query = base_query.join(models.Clients).filter(models.Clients.name.ilike(f'{client_name}%'))
 
     if service_point:
-        service_point_string = f'{service_point}%'
-        base_query = base_query.filter(models.Services.point.ilike(service_point_string))
+        base_query = base_query.filter(models.Services.point.ilike(f'{service_point}%'))
+    
+    if service_type:
+        base_query = base_query.join(models.ServiceTypes).filter(models.ServiceTypes.name.ilike(f'{service_type}%'))
 
     if pop_name:
-        pop_name_string = f'{pop_name}%'
-        base_query = base_query.join(models.Pops).filter(models.Pops.name.ilike(pop_name_string))
+        base_query = base_query.join(models.Pops).filter(models.Pops.name.ilike(f'{pop_name}%'))
 
     if service_id:
         base_query = base_query.filter(models.Services.id==service_id)
     
     try:
-        return base_query.offset(offset).limit(limit).all()
+        no_of_results = base_query.order_by(None).count()
+        results = base_query.order_by(models.Services.point).offset(offset).limit(limit).all()
+        return results, no_of_results
     except Exception as e:
         raise DBAPIError(str(base_query), [], e) from e
 

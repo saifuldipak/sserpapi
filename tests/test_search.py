@@ -35,3 +35,11 @@ def test_search_clients_by_client_type(auth_header, client, add_clients, new_cli
     (new_clients, new_client_type) = add_clients(clients, new_client_type)
     get_clients_response = client.get(f"/search?query={new_client['name']}&resource_type=clients&filter_by={new_client_type.json()['name']}&page={page}&items_per_page={items_per_page}", headers=auth_header)
     assert_search_response(get_clients_response, new_clients, new_client_type, clients, page, items_per_page)
+
+def test_search_clients_by_wrong_client_type(auth_header, client, add_clients, new_client, new_client_type):
+    clients = 50
+    page = 2
+    items_per_page = 10
+    (new_clients, new_client_type) = add_clients(clients, new_client_type)
+    get_clients_response = client.get(f"/search?query={new_client['name']}&resource_type=clients&filter_by=wrong_client_type&page={page}&items_per_page={items_per_page}", headers=auth_header)
+    assert get_clients_response.status_code == 404
