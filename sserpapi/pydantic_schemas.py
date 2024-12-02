@@ -40,6 +40,8 @@ class ServiceTypeBase(BaseModel):
 class ServiceType(ServiceTypeBase):
     id: int
 
+    model_config = ConfigDict(from_attributes=True)
+
 #-- table 'contacts' --#
 class ContactBase(BaseModel):
     name: str
@@ -143,6 +145,8 @@ class PopBase(BaseModel):
 class Pop(PopBase):
     id: int
 
+    model_config = ConfigDict(from_attributes=True)
+
 #-- table 'users' --# 
 class UserName(BaseModel):
     user_name: str = Field(min_length=4, max_length=16)
@@ -193,6 +197,8 @@ class ServiceDetails(Service):
     clients: Client
     contacts: list[Contact] = []
     addresses: list[Address] = []
+
+    model_config = ConfigDict(from_attributes=True)
 
 class PopDetails(Pop):
     vendors: Vendor | None = None
