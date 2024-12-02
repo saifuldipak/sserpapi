@@ -223,6 +223,19 @@ def add_service_only(auth_header, client):
     return _add_service_only
 
 @pytest.fixture
+def add_services(add_service_only):
+    def _add_services(no_of_services: int, new_service: dict):
+        new_services = []
+        for i in range(no_of_services):
+            test_service = new_service.copy()
+            test_service['point'] = test_service['point'] + str(i)
+            add_service_only_response = add_service_only(test_service)
+            assert add_service_only_response.status_code == 200
+            new_services.append(add_service_only_response.json())
+        return new_services
+    return _add_services
+
+@pytest.fixture
 def new_service_updated():
     return {'id': 0, 'client_id': 0, 'point': 'updated_test_service', 'service_type_id': 0, 'bandwidth': 200, 'pop_id': 0, 'extra_info': 'updated_test_extra_info'}
 
