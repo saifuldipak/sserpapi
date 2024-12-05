@@ -99,6 +99,8 @@ class VendorBase(BaseModel):
 class Vendor(VendorBase):
     id: int
 
+    model_config = ConfigDict(from_attributes=True)
+    
 #-- table 'addresses' --#
 class AddressBase(BaseModel):
     flat: str | None = None
@@ -191,18 +193,11 @@ class ClientDetails(Client):
     
     model_config = ConfigDict(from_attributes=True)
 
-class ServiceDetails(Service):
-    service_types: ServiceType
-    pops: Pop
-    clients: Client
-    contacts: list[Contact] = []
-    addresses: list[Address] = []
-
-    model_config = ConfigDict(from_attributes=True)
-
 class PopDetails(Pop):
     vendors: Vendor | None = None
     services: list[Service] = []
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ContactDetails(Contact):
     clients: Client | None = None
@@ -217,3 +212,17 @@ class AddressDetails(Address):
     clients: Client | None = None
     vendors: Vendor | None = None
     services: Service | None = None
+
+class PopVendor(Pop):
+    vendors: Vendor
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ServiceDetails(Service):
+    service_types: ServiceType
+    pops: PopVendor
+    clients: Client
+    contacts: list[Contact] = []
+    addresses: list[Address] = []
+
+    model_config = ConfigDict(from_attributes=True)
