@@ -143,7 +143,7 @@ def get_service_by_properties(db: Session, service: schemas.ServiceBase) -> mode
     except Exception as e:
         raise e
     
-def get_services(db: Session, service_point: str | None = None, service_type: str | None = None, client_name: str | None = None, pop_name: str | None = None, service_id: int | None = None, offset: int = 0, limit: int = 50) -> tuple[list[models.Services], int]:
+def get_services(db: Session, service_point: str | None = None, service_type: str | None = None, client_name: str | None = None, pop_name: str | None = None, service_id: int | None = None, vendor_name: str | None = None, offset: int = 0, limit: int = 50) -> tuple[list[models.Services], int]:
     base_query = db.query(models.Services)
 
     if client_name:
@@ -160,6 +160,9 @@ def get_services(db: Session, service_point: str | None = None, service_type: st
 
     if service_id:
         base_query = base_query.filter(models.Services.id==service_id)
+    
+    if vendor_name:
+        base_query = base_query.join(models.Pops).join(models.Vendors).filter(models.Vendors.name.ilike(f'{vendor_name}%'))
     
     try:
         no_of_results = base_query.order_by(None).count()
