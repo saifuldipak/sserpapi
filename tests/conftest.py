@@ -6,6 +6,7 @@ import pytest
 from sserpapi.db import models
 from sserpapi.main import app
 from sserpapi.db.dependency import get_db
+from typing import Callable
 
 #username and password for access token
 credential = {
@@ -343,3 +344,22 @@ def delete_user(auth_header, client):
 @pytest.fixture
 def new_token():
     return {'user_name': 'new_user', 'password': 'new_password', 'scope': 'admin'}
+
+@pytest.fixture
+def add_clients_and_services(add_client_only, add_service_only, new_client, new_service) -> Callable[[int, int, int, int], None]:
+    def _add_clients_and_services(no_of_services: int, client_type_id: int, pop_id: int, service_type_id: int) -> None:
+        for i in range(no_of_services):
+            test_client = new_client.copy()
+            test_client['name'] = 'client_' + str(pop_id) + '_' + str(i)
+            test_client['client_type_id'] = client_type_id
+            add_client_response = add_client_only(test_client)
+            assert add_client_response.status_code == 200
+
+            test_service = new_service.copy()
+            test_service['client_id'] = add_client_response.json()['id']
+            test_service['pop_id'] = pop_id
+            test_service['service_type_id'] = service_type_id
+            add_service_response = add_service_only(test_service)
+            assert add_service_response.status_code == 200
+    
+    return _add_clients_and_services
