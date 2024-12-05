@@ -39,7 +39,11 @@ def assert_service_search_response(search_response, new_services, total, page, i
         assert search_response.json().get('results')[i]['pop_id'] == new_services_partial[i]['pop_id']
         assert search_response.json().get('results')[i]['service_type_id'] == new_services_partial[i]['service_type_id']
         assert search_response.json().get('results')[i]['bandwidth'] == new_services_partial[i]['bandwidth']
-  
+
+def assert_vendor_name(get_services_response, vendor_name: str) -> None:
+    for service in get_services_response.json()['results']:
+        assert service['pops']['vendors']['name'] == vendor_name
+
 def test_search_clients(auth_header, client, add_clients, new_client, new_client_type, add_client_type):
     clients = 50
     add_client_type_response = add_client_type(new_client_type)
@@ -307,3 +311,36 @@ def test_search_services_by_pop_name(auth_header, client, add_services, new_serv
 
     get_services_response = client.get(f"/search?query={new_service['point']}&resource_type=services&pop_name={add_test_pop_2_response.json()['name']}&page={page}&items_per_page={items_per_page}", headers=auth_header)
     assert_service_search_response(get_services_response, new_services_2, services, page, items_per_page)
+
+def test_search_services_by_vendor_name(auth_header, client, new_service, add_pop_only, new_pop, new_vendor, add_service_type, new_service_type, add_client_type, new_client_type, add_vendor, add_clients_and_services):
+    no_of_services = 10
+
+    add_service_type_response = add_service_type(new_service_type)
+    assert add_service_type_response.status_code == 200
+    add_client_type_response = add_client_type(new_client_type)
+    assert add_client_type_response.status_code == 200
+
+    vendor_a = new_vendor.copy()
+    vendor_a['name'] = 'vendor_a'
+    add_vendor_a_response = add_vendor(vendor_a)
+    assert add_vendor_a_response.status_code == 200
+    pop_a = new_pop.copy()
+    pop_a['owner'] = add_vendor_a_response.json()['id'] 
+    add_pop_a_response = add_pop_only(pop_a)
+    assert add_pop_a_response.status_code == 200
+    add_clients_and_services(no_of_services=no_of_services, client_type_id=add_client_type_response.json()['id'], pop_id=add_pop_a_response.json()['id'], service_type_id=add_service_type_response.json()['id'])
+    get_services_response = client.get(f"/search?query={new_service['point']}&resource_type=services&vendor_name={add_vendor_a_response.json()['name']}", headers=auth_header)
+    assert_vendor_name(get_services_response, vendor_a['name'])
+    
+    vendor_b = new_vendor.copy()
+    vendor_b['name'] = 'vendor_b'
+    add_vendor_b_response = add_vendor(vendor_b)
+    assert add_vendor_b_response.status_code == 200
+    pop_a = new_pop.copy()
+    pop_a['owner'] = add_vendor_b_response.json()['id'] 
+    add_pop_b_response = add_pop_only(pop_a)
+    assert add_pop_b_response.status_code == 200
+    add_clients_and_services(no_of_services=no_of_services, client_type_id=add_client_type_response.json()['id'], pop_id=add_pop_b_response.json()['id'], service_type_id=add_service_type_response.json()['id'])
+    get_services_response = client.get(f"/search?query={new_service['point']}&resource_type=services&vendor_name={add_vendor_b_response.json()['name']}", headers=auth_header)
+    assert_vendor_name(get_services_response,vendor_b['name'])
+    
