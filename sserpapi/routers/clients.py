@@ -981,6 +981,7 @@ async def search_all_resources(
         client_name: str | None = None,
         client_type: str | None = None,
         service_type: str | None = None,
+        vendor_name: str | None = None,
         pop_name: str | None = None,
         page: Annotated[int | None, Query(ge=1, description="Page number (1-based)")] = 1,
         items_per_page: Annotated[int | None, Query(ge=1, le=100, description="Number of items per page")] = 20,
@@ -997,7 +998,7 @@ async def search_all_resources(
             if results:
                 results_dict = [schemas.ClientDetails.model_validate(result).model_dump() for result in results]
         elif resource_type == "services":
-            (results, total) = db_query.get_services(db=db, service_point=query, client_name=client_name, service_type=service_type, pop_name=pop_name, offset=offset, limit=limit)
+            (results, total) = db_query.get_services(db=db, service_point=query, client_name=client_name, service_type=service_type, pop_name=pop_name, vendor_name=vendor_name, offset=offset, limit=limit)
             if results:
                 results_dict = [schemas.ServiceDetails.model_validate(result).model_dump() for result in results]
     except Exception as e:
