@@ -1,7 +1,9 @@
 # pylint: disable=missing-docstring
 # pylint: disable=E0401
+from typing import Optional
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship, declarative_base
+from sqlmodel import SQLModel, Field
 
 Base = declarative_base()
 
@@ -96,14 +98,24 @@ class Contacts(Base):
     vendors = relationship('Vendors', back_populates='contacts')
     services = relationship('Services', back_populates='contacts')
 
-class Users(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    user_name = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    first_name = Column(String, nullable=False)
-    middle_name = Column(String)
-    last_name = Column(String, nullable=False)
-    disabled = Column(Boolean, nullable=False)
-    password = Column(String, nullable=False)
-    scope = Column(String, nullable=False)
+class Users(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_name: str = Field(unique=True, index=True, nullable=False)
+    password: str = Field(nullable=False)
+    full_name: str = Field(nullable=False)
+    email: str = Field(unique=True, nullable=False)
+    phone: str = Field(unique=True, nullable=False)
+    disabled: bool = Field(nullable=False)
+
+class Teams(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True, index=True, nullable=False)
+    description: Optional[str] = Field(default=None)
+
+class Authorizations(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(sa_column=Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False))
+    team_id: int = Field(sa_column=Column(Integer, ForeignKey('teams.id', ondelete='CASCADE'), nullable=False))
+    item: str = Field(nullable=False)
+    type: str = Field(nullable=False)
+    
