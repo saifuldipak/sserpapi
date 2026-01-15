@@ -30,8 +30,9 @@ dependencies = [
     "pydantic[email]",
     "gunicorn",
     "httpx",
-    "bcrypt"
-    ]
+    "bcrypt",
+    "sqlmodel>=0.0.29",
+]
 
 [project.urls]
 Homepage = "https://github.com/saifuldipak/sserpapi"
